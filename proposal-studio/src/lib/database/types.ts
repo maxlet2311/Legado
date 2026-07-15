@@ -370,6 +370,51 @@ export type Database = {
           },
         ]
       }
+      proposal_comparisons: {
+        Row: {
+          columns: Json
+          created_at: string
+          id: string
+          proposal_id: string
+          rows: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          columns?: Json
+          created_at?: string
+          id?: string
+          proposal_id: string
+          rows?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          columns?: Json
+          created_at?: string
+          id?: string
+          proposal_id?: string
+          rows?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_comparisons_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: true
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_comparisons_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       proposal_events: {
         Row: {
           created_at: string
@@ -479,6 +524,7 @@ export type Database = {
         Row: {
           created_at: string
           current_situation: string | null
+          detected_needs: string | null
           detected_risks: string | null
           executive_summary: string | null
           expected_result: string | null
@@ -494,6 +540,7 @@ export type Database = {
         Insert: {
           created_at?: string
           current_situation?: string | null
+          detected_needs?: string | null
           detected_risks?: string | null
           executive_summary?: string | null
           expected_result?: string | null
@@ -509,6 +556,7 @@ export type Database = {
         Update: {
           created_at?: string
           current_situation?: string | null
+          detected_needs?: string | null
           detected_risks?: string | null
           executive_summary?: string | null
           expected_result?: string | null
@@ -709,6 +757,7 @@ export type Database = {
           expires_at: string | null
           font_family: string
           id: string
+          internal_notes: string | null
           last_exported_at: string | null
           last_opened_at: string
           margin_size: string
@@ -716,6 +765,7 @@ export type Database = {
           pdf_format: string
           primary_color_override: string | null
           primary_objective: string
+          product: string | null
           proposal_number: string
           proposal_type: string
           secondary_color_override: string | null
@@ -742,6 +792,7 @@ export type Database = {
           expires_at?: string | null
           font_family?: string
           id?: string
+          internal_notes?: string | null
           last_exported_at?: string | null
           last_opened_at?: string
           margin_size?: string
@@ -749,6 +800,7 @@ export type Database = {
           pdf_format?: string
           primary_color_override?: string | null
           primary_objective: string
+          product?: string | null
           proposal_number: string
           proposal_type: string
           secondary_color_override?: string | null
@@ -775,6 +827,7 @@ export type Database = {
           expires_at?: string | null
           font_family?: string
           id?: string
+          internal_notes?: string | null
           last_exported_at?: string | null
           last_opened_at?: string
           margin_size?: string
@@ -782,6 +835,7 @@ export type Database = {
           pdf_format?: string
           primary_color_override?: string | null
           primary_objective?: string
+          product?: string | null
           proposal_number?: string
           proposal_type?: string
           secondary_color_override?: string | null
@@ -848,11 +902,108 @@ export type Database = {
           proposal_number: string
         }[]
       }
+      delete_proposal_alternative: {
+        Args: { p_id: string; p_proposal_id: string }
+        Returns: {
+          id: string
+        }[]
+      }
+      delete_proposal_benefit: {
+        Args: { p_id: string; p_proposal_id: string }
+        Returns: {
+          id: string
+        }[]
+      }
+      finalize_proposal: {
+        Args: { p_id: string }
+        Returns: {
+          id: string
+          status: string
+        }[]
+      }
       generate_proposal_number: { Args: Record<PropertyKey, never>; Returns: string }
+      reorder_proposal_alternatives: {
+        Args: { p_ordered_ids: string[]; p_proposal_id: string }
+        Returns: undefined
+      }
+      reorder_proposal_benefits: {
+        Args: { p_ordered_ids: string[]; p_proposal_id: string }
+        Returns: undefined
+      }
+      update_proposal_details: {
+        Args: {
+          p_client_id: string
+          p_currency: string
+          p_id: string
+          p_internal_notes: string
+          p_primary_objective: string
+          p_product: string
+          p_proposal_type: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
       update_proposal_meta: {
         Args: { p_id: string; p_title: string }
         Returns: {
           id: string
+        }[]
+      }
+      upsert_proposal_alternative: {
+        Args: {
+          p_category: string
+          p_currency: string
+          p_description: string
+          p_display_order: number
+          p_financial_details: Json
+          p_id: string
+          p_insurance_company: string
+          p_monthly_premium: number
+          p_product_name: string
+          p_proposal_id: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
+      upsert_proposal_benefit: {
+        Args: {
+          p_category: string
+          p_description: string
+          p_display_order: number
+          p_icon: string
+          p_id: string
+          p_proposal_id: string
+          p_title: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
+      upsert_proposal_comparison: {
+        Args: { p_columns: Json; p_proposal_id: string; p_rows: Json }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
+      upsert_proposal_narrative: {
+        Args: {
+          p_current_situation: string
+          p_detected_needs: string
+          p_detected_risks: string
+          p_objectives: string
+          p_opportunities: string
+          p_proposal_id: string
+          p_recommended_strategy: string
+        }
+        Returns: {
+          id: string
+          updated_at: string
         }[]
       }
     }

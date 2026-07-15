@@ -16,6 +16,12 @@ function mapSupabaseError(error: { code?: string; message?: string } | null | un
     return knownMessage;
   }
 
+  // P0001: excepciones de negocio levantadas a mano en RPCs (mensaje ya en español,
+  // pensado para mostrarse tal cual al usuario, ej. validaciones de finalize_proposal).
+  if (error.code === "P0001" && error.message) {
+    return error.message;
+  }
+
   const message = error.message?.toLowerCase() ?? "";
 
   if (message.includes("invalid login credentials")) {

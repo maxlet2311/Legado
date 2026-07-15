@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Pencil } from "lucide-react";
 
 import { ContentContainer } from "@/components/layout/content-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatusPill, type ProposalStatus } from "@/components/layout/status-pill";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/database/server";
@@ -48,6 +51,12 @@ export default async function ProposalDetailPage({
         actions={
           <div className="flex items-center gap-3">
             <StatusPill status={proposal.status as ProposalStatus} />
+            <Button variant="secondary" asChild>
+              <Link href={`/proposal/${proposal.id}/edit`}>
+                <Pencil className="h-4 w-4" />
+                Continuar edición
+              </Link>
+            </Button>
             <EditTitleDialog proposalId={proposal.id} currentTitle={proposal.title} />
             <ArchiveButton proposalId={proposal.id} disabled={proposal.status === "archived"} />
           </div>
@@ -61,7 +70,7 @@ export default async function ProposalDetailPage({
         <CardContent>
           <p className="text-body text-on-surface-variant">
             {narrative?.executive_summary ??
-              "Todavía no se redactó el resumen ejecutivo. La narrativa, las alternativas, los beneficios y la comparativa se completan desde el wizard funcional en el Sprint 3."}
+              "Todavía no se redactó el resumen ejecutivo. Completá la narrativa, las alternativas, los beneficios y la comparativa desde el wizard."}
           </p>
         </CardContent>
       </Card>
