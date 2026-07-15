@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+        }
+        .signature-pad {
+            background-image: radial-gradient(#dcd9d9 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0041c8;
+            box-shadow: 0 0 0 1px #0041c8;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#001551",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c3c5d9",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e5e2e1",
+                        "surface-container-low": "#f6f3f2",
+                        "surface": "#fcf9f8",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-primary-fixed-variant": "#0039b3",
+                        "secondary-fixed": "#d2eca2",
+                        "on-tertiary-fixed-variant": "#6d3900",
+                        "surface-tint": "#004dea",
+                        "on-error-container": "#93000a",
+                        "primary": "#0041c8",
+                        "on-tertiary-container": "#ffe2cd",
+                        "inverse-on-surface": "#f3f0ef",
+                        "tertiary-fixed-dim": "#ffb77c",
+                        "surface-dim": "#dcd9d9",
+                        "surface-container-high": "#ebe7e7",
+                        "primary-container": "#0055ff",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#737688",
+                        "primary-fixed-dim": "#b6c4ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#fcf9f8",
+                        "on-background": "#1c1b1b",
+                        "on-tertiary-fixed": "#2e1500",
+                        "on-secondary-container": "#546a2e",
+                        "secondary-container": "#cfe99f",
+                        "secondary-fixed-dim": "#b6d088",
+                        "on-surface-variant": "#434656",
+                        "on-secondary-fixed-variant": "#394d14",
+                        "secondary": "#50652a",
+                        "primary-fixed": "#dce1ff",
+                        "on-secondary-fixed": "#131f00",
+                        "tertiary-fixed": "#ffdcc2",
+                        "inverse-primary": "#b6c4ff",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#313030",
+                        "tertiary-container": "#9d5500",
+                        "on-surface": "#1c1b1b",
+                        "on-primary-container": "#e3e6ff",
+                        "background": "#fcf9f8",
+                        "on-error": "#ffffff",
+                        "tertiary": "#7a4100",
+                        "surface-container": "#f0edec",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "unit": "4px",
+                        "container-max-width": "1280px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Sidebar (Shared Component Logic) -->
+<aside class="bg-surface-container-low border-r border-outline-variant h-screen w-64 fixed left-0 top-0 flex flex-col z-50">
+<div class="px-6 py-8">
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface tracking-tight">Proposal Engine™</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-70">Advisor Premium</p>
+</div>
+<nav class="flex-1 px-2 space-y-1">
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 font-label-md text-label-md hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Dashboard
+            </a>
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 font-label-md text-label-md hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="folder_special">folder_special</span>
+                Library
+            </a>
+<a class="text-primary border-l-4 border-primary font-bold bg-surface-container-high flex items-center gap-3 px-4 py-3 font-label-md text-label-md transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="palette">palette</span>
+                Brand
+            </a>
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 font-label-md text-label-md hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+<button class="w-full bg-primary text-on-primary py-3 px-4 rounded-lg font-label-md text-label-md flex items-center justify-center gap-2 hover:opacity-90 transition-all">
+<span class="material-symbols-outlined" data-icon="add" style="font-size: 18px;">add</span>
+                New Proposal
+            </button>
+</div>
+<div class="mt-auto px-2 pb-6 space-y-1">
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 font-label-md text-label-md hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+                Support
+            </a>
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 font-label-md text-label-md hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                Sign Out
+            </a>
+</div>
+</aside>
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 left-0 right-0 bg-surface border-b border-outline-variant h-16 flex justify-between items-center px-margin-desktop ml-64 z-40">
+<div class="flex items-center gap-8">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant" data-icon="search">search</span>
+<input class="bg-surface-container h-10 pl-10 pr-4 rounded-full border-none text-body-sm w-64 focus:ring-1 focus:ring-primary" placeholder="Search templates..." type="text"/>
+</div>
+<nav class="flex gap-6">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Drafts</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Client Activity</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-surface text-primary border border-primary px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-primary-fixed transition-all active:scale-95 duration-150">Generate PDF</button>
+<button class="text-on-surface-variant p-2 hover:bg-surface-container-highest rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden bg-surface-container-highest border border-outline-variant">
+<img class="h-full w-full object-cover" data-alt="A professional close-up headshot of a financial advisor in a modern, light-filled office. The lighting is soft and flattering, with a shallow depth of field blurring the clean, minimalist background. The style is executive and high-trust, consistent with a premium financial consulting brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCY4s9K2UC2ufjIxfEeA0qgMZQQND1_b-6JG86GV0av2eQRsQPE9S7h6zPYAXktwkiwUFzzhAX7_zEETmksERM1WsR4QOWUKCrk4QvfRgmHF3StTaAkAbJ_nZLq9z5dnrc2KS0mN-uztBoG1fhCZLDikQmt-2eumHGXFUtjUTl6sUxjkwO6Gj5FhDG3v1SjNCIFW1ArwEgAFe636BG2pOc-OJo9ETGOAjth8h6EpCjIqFEbV1zwEQBDAelIuH0FTYM4WW_cNhLJ3qk"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="ml-64 mt-16 p-10 min-h-screen bg-background">
+<div class="max-w-[1400px] mx-auto">
+<header class="mb-10">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Mi Marca</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">Configura la identidad visual de tus propuestas y documentos profesionales.</p>
+</header>
+<div class="grid grid-cols-12 gap-10">
+<!-- Settings Form -->
+<div class="col-span-12 lg:col-span-7 space-y-8">
+<!-- Section: Identity -->
+<section class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="badge">badge</span>
+<h3 class="font-headline-sm text-headline-sm">Identidad Básica</h3>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="col-span-2">
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">Nombre Comercial</label>
+<input class="w-full bg-surface h-12 px-4 border border-outline-variant rounded-lg font-body-md" id="brandNameInput" type="text" value="Advisor Premium Global"/>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">WhatsApp</label>
+<input class="w-full bg-surface h-12 px-4 border border-outline-variant rounded-lg font-body-md" id="brandPhoneInput" type="tel" value="+34 600 000 000"/>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">Email Profesional</label>
+<input class="w-full bg-surface h-12 px-4 border border-outline-variant rounded-lg font-body-md" id="brandEmailInput" type="email" value="contacto@advisorpremium.com"/>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">Número de Licencia</label>
+<input class="w-full bg-surface h-12 px-4 border border-outline-variant rounded-lg font-body-md" id="brandLicenseInput" type="text" value="L-99283-X"/>
+</div>
+</div>
+</section>
+<!-- Section: Assets -->
+<section class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="image">image</span>
+<h3 class="font-headline-sm text-headline-sm">Logo y Firma</h3>
+</div>
+<div class="space-y-6">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">Logo de la Marca (PNG/SVG)</label>
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-on-surface-variant mb-2 text-3xl group-hover:text-primary transition-colors" data-icon="cloud_upload">cloud_upload</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Arrastra tu logo aquí o haz clic para subir</p>
+<p class="font-label-sm text-label-sm text-outline mt-1">Recomendado: Fondo transparente, min 500px</p>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">Firma Digital</label>
+<div class="signature-pad border border-outline-variant rounded-xl h-40 bg-surface relative overflow-hidden">
+<div class="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-8xl" data-icon="draw">draw</span>
+</div>
+<canvas class="relative z-10 w-full h-full" id="sigCanvas"></canvas>
+<button class="absolute bottom-3 right-3 text-on-surface-variant hover:text-error flex items-center gap-1 font-label-sm text-label-sm transition-colors">
+<span class="material-symbols-outlined" data-icon="delete" style="font-size: 14px;">delete</span>
+                                        Limpiar
+                                    </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Visual Style -->
+<section class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="brush">brush</span>
+<h3 class="font-headline-sm text-headline-sm">Paleta de Colores</h3>
+</div>
+<div class="grid grid-cols-4 gap-4">
+<button class="border-2 border-primary ring-2 ring-primary ring-offset-2 p-4 rounded-xl flex flex-col items-center gap-2 bg-surface hover:bg-surface-container transition-all">
+<div class="flex gap-1">
+<div class="w-4 h-4 rounded-full bg-[#0041c8]"></div>
+<div class="w-4 h-4 rounded-full bg-[#50652a]"></div>
+<div class="w-4 h-4 rounded-full bg-[#7a4100]"></div>
+</div>
+<span class="font-label-sm text-label-sm">Ejecutivo</span>
+</button>
+<button class="border border-outline-variant p-4 rounded-xl flex flex-col items-center gap-2 bg-surface hover:bg-surface-container transition-all">
+<div class="flex gap-1">
+<div class="w-4 h-4 rounded-full bg-[#1c1b1b]"></div>
+<div class="w-4 h-4 rounded-full bg-[#434656]"></div>
+<div class="w-4 h-4 rounded-full bg-[#737688]"></div>
+</div>
+<span class="font-label-sm text-label-sm">Minimal</span>
+</button>
+<button class="border border-outline-variant p-4 rounded-xl flex flex-col items-center gap-2 bg-surface hover:bg-surface-container transition-all">
+<div class="flex gap-1">
+<div class="w-4 h-4 rounded-full bg-[#00514a]"></div>
+<div class="w-4 h-4 rounded-full bg-[#829600]"></div>
+<div class="w-4 h-4 rounded-full bg-[#4d635d]"></div>
+</div>
+<span class="font-label-sm text-label-sm">Bosque</span>
+</button>
+<button class="border border-outline-variant p-4 rounded-xl flex flex-col items-center gap-2 bg-surface hover:bg-surface-container transition-all">
+<div class="flex gap-1">
+<div class="w-4 h-4 rounded-full bg-[#6d001a]"></div>
+<div class="w-4 h-4 rounded-full bg-[#9c4238]"></div>
+<div class="w-4 h-4 rounded-full bg-[#ffb4ab]"></div>
+</div>
+<span class="font-label-sm text-label-sm">Vino</span>
+</button>
+</div>
+</section>
+<!-- Configuración del Pie de Página (fusionado desde mi_marca_legado) -->
+<section class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="footer_click">footer_click</span>
+<h3 class="font-headline-sm text-headline-sm">Configuración del Pie de Página</h3>
+</div>
+<div class="space-y-6">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">Información Legal / Disclaimer</label>
+<textarea class="w-full bg-surface p-4 border border-outline-variant rounded-lg font-body-sm h-24 focus:ring-1 focus:ring-primary" placeholder="Ej: Empresa regulada por la CNMV. Los rendimientos pasados no garantizan resultados futuros."></textarea>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">LinkedIn (URL)</label>
+<input class="w-full bg-surface h-12 px-4 border border-outline-variant rounded-lg font-body-md" placeholder="https://linkedin.com/in/..." type="url"/>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">Sitio Web</label>
+<input class="w-full bg-surface h-12 px-4 border border-outline-variant rounded-lg font-body-md" placeholder="www.tuweb.com" type="url"/>
+</div>
+</div>
+</div>
+</section>
+<div class="flex justify-end pt-4">
+<button class="bg-primary text-on-primary px-10 py-4 rounded-lg font-headline-sm text-headline-sm shadow-lg hover:shadow-xl hover:opacity-90 active:scale-95 transition-all">Guardar Cambios</button>
+</div>
+</div>
+<!-- Preview Sidebar -->
+<div class="col-span-12 lg:col-span-5">
+<div class="sticky top-24 space-y-6">
+<h4 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest px-2">Vista Previa en Tiempo Real</h4>
+<!-- Card Preview -->
+<div class="bg-white rounded-2xl shadow-xl border border-outline-variant overflow-hidden">
+<div class="bg-[#0041c8] p-6 text-white flex justify-between items-start">
+<div>
+<h5 class="font-headline-md text-headline-md leading-tight" id="previewBrandName">Advisor Premium Global</h5>
+<p class="font-label-sm text-label-sm opacity-80 mt-1" id="previewLicense">L-99283-X</p>
+</div>
+<div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-2">
+<span class="material-symbols-outlined text-[#0041c8] text-3xl" data-icon="token">token</span>
+</div>
+</div>
+<div class="p-8 space-y-6">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="mail">mail</span>
+<span class="font-body-sm text-body-sm" id="previewEmail">contacto@advisorpremium.com</span>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="call">call</span>
+<span class="font-body-sm text-body-sm" id="previewPhone">+34 600 000 000</span>
+</div>
+<div class="pt-6 border-t border-outline-variant flex justify-between items-end">
+<div class="space-y-1">
+<p class="font-label-sm text-label-sm text-outline">Firma Autorizada</p>
+<div class="h-12 w-32 flex items-center justify-center bg-surface-container-low rounded italic font-serif text-on-surface-variant">
+                                            Signature
+                                        </div>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-label-sm text-outline">Válido hasta</p>
+<p class="font-body-sm text-body-sm font-bold">12 / 2025</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Document Header Preview -->
+<div class="bg-white rounded-xl shadow-md border border-outline-variant p-6">
+<div class="flex items-center justify-between border-b border-outline-variant pb-4 mb-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center p-1">
+<span class="material-symbols-outlined text-white text-xl" data-icon="token">token</span>
+</div>
+<span class="font-label-md text-label-md font-bold text-on-surface" id="previewHeaderTitle">ADVISOR PREMIUM GLOBAL</span>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-label-sm text-outline">Propuesta de Inversión</p>
+<p class="font-label-sm text-label-sm text-on-surface">Pág. 1 de 12</p>
+</div>
+</div>
+<div class="space-y-2">
+<div class="h-2 w-3/4 bg-surface-container-high rounded"></div>
+<div class="h-2 w-full bg-surface-container-high rounded opacity-60"></div>
+<div class="h-2 w-1/2 bg-surface-container-high rounded opacity-30"></div>
+</div>
+</div>
+<!-- Contextual Illustration -->
+<div class="rounded-xl overflow-hidden h-48 relative group">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A macro shot of luxurious, thick white paper being printed with deep blue ink. The lighting is sophisticated and moody, highlighting the texture of the high-quality stationery. The aesthetic is extremely premium and editorial, emphasizing craft and attention to detail in professional branding." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBV44pDBllN2BobJGZJVljMI7RMhMCPqrpq3ks-KRWmhegoA1uOL1HKQC5m1PEcGjAO8ytzw201aVDuYcL1QVWzQ1tTWEUUcpqKtm3lV_QukgDYpjDD_E2m3mdcERe78HbFGUFVjMrP1fCHKUE54j4_XUC62NE8U1GFuQMN4zeI05ElwZaov7CElj5MPMU1iDATy56IEGrl-8YEXVwaK8ZzEyJFJrchUH4cQc6Q_dJXdnFSxqzxKSrNTBYpm3vGtycBdRqWx5q-Mk0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/60 to-transparent flex items-end p-6">
+<p class="text-white font-label-md text-label-md">La coherencia visual transmite confianza a tus clientes.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Real-time Preview Logic
+        const brandNameInput = document.getElementById('brandNameInput');
+        const brandPhoneInput = document.getElementById('brandPhoneInput');
+        const brandEmailInput = document.getElementById('brandEmailInput');
+        const brandLicenseInput = document.getElementById('brandLicenseInput');
+
+        const previewBrandName = document.getElementById('previewBrandName');
+        const previewHeaderTitle = document.getElementById('previewHeaderTitle');
+        const previewPhone = document.getElementById('previewPhone');
+        const previewEmail = document.getElementById('previewEmail');
+        const previewLicense = document.getElementById('previewLicense');
+
+        function updatePreviews() {
+            previewBrandName.textContent = brandNameInput.value || 'Mi Marca';
+            previewHeaderTitle.textContent = (brandNameInput.value || 'MI MARCA').toUpperCase();
+            previewPhone.textContent = brandPhoneInput.value || '+00 000 000 000';
+            previewEmail.textContent = brandEmailInput.value || 'email@dominio.com';
+            previewLicense.textContent = brandLicenseInput.value || 'LICENCIA-0000';
+        }
+
+        brandNameInput.addEventListener('input', updatePreviews);
+        brandPhoneInput.addEventListener('input', updatePreviews);
+        brandEmailInput.addEventListener('input', updatePreviews);
+        brandLicenseInput.addEventListener('input', updatePreviews);
+
+        // Simple Canvas Signature Interaction
+        const canvas = document.getElementById('sigCanvas');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            ctx.strokeStyle = '#434656';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        canvas.addEventListener('mousedown', (e) => {
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (drawing) {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mouseleave', () => drawing = false);
+
+        document.querySelector('button[class*="text-error"]').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+    </script>
+</body></html>

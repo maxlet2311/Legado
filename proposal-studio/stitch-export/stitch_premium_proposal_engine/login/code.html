@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Proposal Engine™ - Iniciar Sesión</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fcf9f8; /* background from theme */
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .premium-card {
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .input-focus-ring:focus {
+            outline: none;
+            border-color: #0041c8; /* primary */
+            box-shadow: 0 0 0 1px #0041c8;
+        }
+        .editorial-image-container {
+            position: relative;
+            overflow: hidden;
+        }
+        .editorial-image-container::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, #fcf9f8 0%, transparent 15%);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#001551",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c3c5d9",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e5e2e1",
+                        "surface-container-low": "#f6f3f2",
+                        "surface": "#fcf9f8",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-primary-fixed-variant": "#0039b3",
+                        "secondary-fixed": "#d2eca2",
+                        "on-tertiary-fixed-variant": "#6d3900",
+                        "surface-tint": "#004dea",
+                        "on-error-container": "#93000a",
+                        "primary": "#0041c8",
+                        "on-tertiary-container": "#ffe2cd",
+                        "inverse-on-surface": "#f3f0ef",
+                        "tertiary-fixed-dim": "#ffb77c",
+                        "surface-dim": "#dcd9d9",
+                        "surface-container-high": "#ebe7e7",
+                        "primary-container": "#0055ff",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#737688",
+                        "primary-fixed-dim": "#b6c4ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#fcf9f8",
+                        "on-background": "#1c1b1b",
+                        "on-tertiary-fixed": "#2e1500",
+                        "on-secondary-container": "#546a2e",
+                        "secondary-container": "#cfe99f",
+                        "secondary-fixed-dim": "#b6d088",
+                        "on-surface-variant": "#434656",
+                        "on-secondary-fixed-variant": "#394d14",
+                        "secondary": "#50652a",
+                        "primary-fixed": "#dce1ff",
+                        "on-secondary-fixed": "#131f00",
+                        "tertiary-fixed": "#ffdcc2",
+                        "inverse-primary": "#b6c4ff",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#313030",
+                        "tertiary-container": "#9d5500",
+                        "on-surface": "#1c1b1b",
+                        "on-primary-container": "#e3e6ff",
+                        "background": "#fcf9f8",
+                        "on-error": "#ffffff",
+                        "tertiary": "#7a4100",
+                        "surface-container": "#f0edec",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "unit": "4px",
+                        "container-max-width": "1280px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "label-md": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<main class="min-h-screen w-full flex overflow-hidden">
+<!-- Left Side: Login Form -->
+<div class="w-full lg:w-[45%] flex flex-col justify-center items-center px-margin-mobile md:px-24 bg-background z-10">
+<div class="w-full max-w-md">
+<!-- Logo Anchor -->
+<div class="mb-16">
+<h1 class="font-headline-lg text-headline-lg text-on-surface font-extrabold tracking-tight">
+                        Proposal Engine™
+                    </h1>
+<p class="font-label-md text-label-md text-on-surface-variant mt-2 opacity-70">
+                        Portal Premium para Asesores
+                    </p>
+</div>
+<!-- Centralized Login Card -->
+<div class="bg-white p-8 md:p-10 premium-card rounded-xl border border-outline-variant/30">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-8">
+                        Iniciar Sesión
+                    </h2>
+<form class="space-y-6" onsubmit="return false;">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-2" for="email">Correo Electrónico</label>
+<input class="w-full px-4 py-3 bg-white border border-outline-variant rounded text-body-md font-body-md input-focus-ring transition-all placeholder:text-outline-variant" id="email" placeholder="nombre@empresa.com" type="email"/>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<label class="block font-label-md text-label-md text-on-surface-variant" for="password">Contraseña</label>
+<a class="text-primary font-label-md text-label-md hover:underline" href="#">¿Olvidó su contraseña?</a>
+</div>
+<input class="w-full px-4 py-3 bg-white border border-outline-variant rounded text-body-md font-body-md input-focus-ring transition-all placeholder:text-outline-variant" id="password" placeholder="••••••••" type="password"/>
+</div>
+<button class="w-full py-4 bg-primary text-on-primary font-label-md text-label-md rounded flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all" type="submit">
+<span>Ingresar al Panel</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</form>
+<div class="mt-8 pt-8 border-t border-outline-variant/20">
+<p class="font-body-sm text-body-sm text-center text-on-surface-variant">
+                            ¿Es un nuevo asesor? <a class="text-primary font-bold hover:underline" href="#">Solicite una cuenta</a>
+</p>
+</div>
+</div>
+<!-- Footer Text -->
+<div class="mt-12">
+<p class="font-label-sm text-label-sm text-outline uppercase tracking-widest text-center lg:text-left">
+                        Precisión. Autoridad. Seguridad.
+                    </p>
+</div>
+</div>
+</div>
+<!-- Right Side: Premium Editorial Illustration -->
+<div class="hidden lg:block lg:w-[55%] editorial-image-container h-screen bg-surface-container-low">
+<div class="w-full h-full bg-cover bg-center mix-blend-multiply opacity-80" data-alt="Una pintura digital editorial minimalista y de alta gama que representa el crecimiento financiero y la planificación sofisticada." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDXT0Hr3o_esetJIHBK6fPJiNiNrg0YHJACYEAMnrPzJeOzU-ShtTsjTgAQ0AC8J4U7sNqS68dIMSiQpby5m53Gt4CyNyq-yeoCJ5tqd5Dyufs8RLU551yR2_EzE_JQ3qWfKa4mI4CXzqMyERB4CmnTWzsD7YndOXx8uxt5hg9MlmTzo0cD7cBFnZa3WCRVwGb7WQW9jwU7UOq8qR2wzqfj1lt0fbhQAW6BYxmEcmUF8BKZRnkIx9loNLGkVUoTN7djRjqezwUqsRc')"></div>
+<!-- Floating Data Element for Micro-Interaction -->
+<div class="absolute bottom-24 left-16 max-w-sm p-8 bg-white/40 backdrop-blur-md border border-white/40 rounded-xl">
+<div class="flex items-center gap-4 mb-4">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">insights</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-primary-fixed">12.4%</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                    "La precisión es el pilar de la confianza en la consultoría. Nuestro motor ofrece proyecciones financieras impecables para asesores de alto nivel."
+                </p>
+<div class="mt-4 flex gap-1">
+<div class="w-2 h-1 bg-primary rounded-full"></div>
+<div class="w-1 h-1 bg-outline-variant rounded-full"></div>
+<div class="w-1 h-1 bg-outline-variant rounded-full"></div>
+</div>
+</div>
+<!-- Subtle Grain Overlay -->
+<div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB8wGEaHiIH7GmvZAF6LxrAHusJK0pHEBT5zqhfv7PtTdxmDL-YkE29RmcGkBJlpHm4x-V7hYKaa4Ufj8Ci2U6UHiMn5p0ahn1IJbSjWCngKcfxirp05bVvf5I-lxHCBKrgBT3baQs21-Vz5pLs2j3b-4VYEbzYfk-xiW2nXML94cOAjBPvCVKkrdKF8bu0RaxTOlWMaE-sYnhSSk7bw1sVO9ztVDU99tvYkYlkVXFMD2eV0_QNXy9tbqe3FTXFmGVkdBCmqdIolUA');"></div>
+</div>
+</main>
+<script>
+        // Micro-interactions
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('input');
+            
+            inputs.forEach(input => {
+                input.addEventListener('focus', () => {
+                    const label = input.parentElement.querySelector('label');
+                    if (label) label.classList.add('text-primary');
+                });
+                input.addEventListener('blur', () => {
+                    const label = input.parentElement.querySelector('label');
+                    if (label) label.classList.remove('text-primary');
+                });
+            });
+
+            // Gentle parallax effect for the floating element
+            const floatingCard = document.querySelector('.editorial-image-container > div:nth-child(2)');
+            window.addEventListener('mousemove', (e) => {
+                const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
+                const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
+                if (floatingCard) {
+                    floatingCard.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                }
+            });
+        });
+    </script>
+</body></html>

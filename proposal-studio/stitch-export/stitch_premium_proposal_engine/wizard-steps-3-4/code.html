@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Proposal Engine™ - Pasos del Asistente 3 y 4</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed": "#001551",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#c3c5d9",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e5e2e1",
+                    "surface-container-low": "#f6f3f2",
+                    "surface": "#fcf9f8",
+                    "surface-container-highest": "#e5e2e1",
+                    "on-primary-fixed-variant": "#0039b3",
+                    "secondary-fixed": "#d2eca2",
+                    "on-tertiary-fixed-variant": "#6d3900",
+                    "surface-tint": "#004dea",
+                    "on-error-container": "#93000a",
+                    "primary": "#0041c8",
+                    "on-tertiary-container": "#ffe2cd",
+                    "inverse-on-surface": "#f3f0ef",
+                    "tertiary-fixed-dim": "#ffb77c",
+                    "surface-dim": "#dcd9d9",
+                    "surface-container-high": "#ebe7e7",
+                    "primary-container": "#0055ff",
+                    "on-tertiary": "#ffffff",
+                    "outline": "#737688",
+                    "primary-fixed-dim": "#b6c4ff",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#fcf9f8",
+                    "on-background": "#1c1b1b",
+                    "on-tertiary-fixed": "#2e1500",
+                    "on-secondary-container": "#546a2e",
+                    "secondary-container": "#cfe99f",
+                    "secondary-fixed-dim": "#b6d088",
+                    "on-surface-variant": "#434656",
+                    "on-secondary-fixed-variant": "#394d14",
+                    "secondary": "#50652a",
+                    "primary-fixed": "#dce1ff",
+                    "on-secondary-fixed": "#131f00",
+                    "tertiary-fixed": "#ffdcc2",
+                    "inverse-primary": "#b6c4ff",
+                    "on-secondary": "#ffffff",
+                    "inverse-surface": "#313030",
+                    "tertiary-container": "#9d5500",
+                    "on-surface": "#1c1b1b",
+                    "on-primary-container": "#e3e6ff",
+                    "background": "#fcf9f8",
+                    "on-error": "#ffffff",
+                    "tertiary": "#7a4100",
+                    "surface-container": "#f0edec",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "unit": "4px",
+                    "container-max-width": "1280px",
+                    "margin-desktop": "40px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Inter"],
+                    "body-md": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "label-md": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+        }
+        .premium-card {
+            transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease;
+            cursor: grab;
+        }
+        .premium-card:active { cursor: grabbing; transform: scale(0.98); }
+        .ambient-shadow { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .stepper-line { position: relative; }
+        .stepper-line::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e5e2e1;
+            z-index: 0;
+        }
+        .progress-bar-fill {
+            transition: width 0.8s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- TopNavBar (Shared Component) -->
+<nav class="flex justify-between items-center h-16 px-margin-desktop ml-64 bg-surface dark:bg-surface sticky top-0 z-40 border-b border-outline-variant dark:border-outline-variant">
+<div class="flex items-center gap-8">
+<h1 class="font-headline-sm text-headline-sm font-bold text-on-surface dark:text-on-surface tracking-tight">Proposal Engine™</h1>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors" href="#">Borradores</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors" href="#">Actividad del Cliente</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-surface-container-low rounded-full">notifications</button>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-lg font-label-md hover:opacity-90 transition-all active:scale-95 duration-150">Generar PDF</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Retrato profesional de asesor financiero sénior" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPKCl4Dg8V_RSPACVrtvd64K21IXVUPGklx1tAs5LJSsLdOTDKsPGH5yyzjp9H3V8EwebV0Xl7lNp-HbuorcuPSVSz1HvuLWkpoxSXNGvfgja_iyx3uvwJQXWyo2k_NgbyvO9ZItonS0Gt2MAGexWUmYvl3fijHn6dfX_HmEy5ltxfIz7KqGzb36iW3FQtxK8NT_kCAdwO1aryJRtxRZGk8AL9Se65mZZ6rflaKwzNItvj04arARX5Wq2VdvN9g8qLoFn7L74BSXQ"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar (Shared Component) -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-low dark:bg-surface-container-low border-r border-outline-variant dark:border-outline-variant flex flex-col z-50">
+<div class="px-6 py-8">
+<span class="font-headline-md text-headline-md font-bold text-on-surface dark:text-on-surface">Proposal Engine™</span>
+<p class="text-on-surface-variant font-label-sm mt-1 uppercase tracking-widest">Advisor Premium</p>
+</div>
+<div class="mt-4 flex-1">
+<button class="w-[calc(100%-32px)] mx-4 mb-8 bg-primary-container text-on-primary-container py-3 rounded-xl flex items-center justify-center gap-2 font-label-md hover:opacity-90 transition-all">
+<span class="material-symbols-outlined">add</span> Nueva Propuesta
+            </button>
+<nav class="space-y-1">
+<a class="text-primary dark:text-primary-fixed border-l-4 border-primary font-bold bg-surface-container-high flex items-center gap-3 px-4 py-3 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md">Panel de Control</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">folder_special</span>
+<span class="font-label-md">Biblioteca</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">palette</span>
+<span class="font-label-md">Marca</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md">Configuración</span>
+</a>
+</nav>
+</div>
+<div class="p-4 border-t border-outline-variant">
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md">Soporte</span>
+</a>
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md">Cerrar Sesión</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 p-margin-desktop bg-background">
+<div class="max-w-container-max-width mx-auto">
+<!-- Wizard Header & Stepper -->
+<header class="mb-12">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-background">Crear Nueva Propuesta</h2>
+<p class="text-on-surface-variant font-body-md mt-1">Refinando alternativas financieras y definiendo paquetes de beneficios principales.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-2 border border-outline text-on-surface font-label-md rounded-lg hover:bg-surface-container-low transition-all">Guardar Borrador</button>
+<button class="px-6 py-2 bg-primary text-on-primary font-label-md rounded-lg hover:opacity-90 transition-all shadow-sm">Revisar Resumen</button>
+</div>
+</div>
+<!-- Horizontal Stepper -->
+<div class="stepper-line flex justify-between items-center px-12 relative">
+<div class="flex flex-col items-center gap-2 relative z-10">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-md">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<span class="font-label-sm text-on-surface">Info Cliente</span>
+</div>
+<div class="flex flex-col items-center gap-2 relative z-10">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-md">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<span class="font-label-sm text-on-surface">Análisis</span>
+</div>
+<div class="flex flex-col items-center gap-2 relative z-10">
+<div class="w-10 h-10 rounded-full border-2 border-primary bg-surface flex items-center justify-center font-label-md text-primary ring-4 ring-background">
+                            3
+                        </div>
+<span class="font-label-sm font-bold text-primary">Alternativas</span>
+</div>
+<div class="flex flex-col items-center gap-2 relative z-10">
+<div class="w-8 h-8 rounded-full bg-surface border border-outline-variant text-on-surface-variant flex items-center justify-center font-label-md ring-4 ring-background">
+                            4
+                        </div>
+<span class="font-label-sm text-on-surface-variant">Beneficios</span>
+</div>
+<div class="flex flex-col items-center gap-2 relative z-10">
+<div class="w-8 h-8 rounded-full bg-surface border border-outline-variant text-on-surface-variant flex items-center justify-center font-label-md ring-4 ring-background">
+                            5
+                        </div>
+<span class="font-label-sm text-on-surface-variant">Finalizar</span>
+</div>
+</div>
+</header>
+<!-- Step 3: Alternatives Selection -->
+<section class="mb-16">
+<div class="flex items-end justify-between mb-6">
+<h3 class="font-headline-md text-headline-md text-on-background">Paso 3: Alternativas Financieras</h3>
+<div class="text-on-surface-variant font-label-md italic">Arrastra las tarjetas para reordenar prioridades</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Card 1 (Recommended) -->
+<div class="premium-card ambient-shadow bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 flex flex-col gap-4 relative">
+<div class="absolute -top-3 -right-2 bg-secondary text-on-secondary px-3 py-1 rounded-full flex items-center gap-1 font-label-sm shadow-md">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span> Recomendado
+                        </div>
+<div>
+<h4 class="font-headline-sm text-on-surface font-bold">SafeGuard Elite</h4>
+<p class="text-on-surface-variant font-label-sm uppercase mt-1">Plan de Rendimiento Premium</p>
+</div>
+<div class="grid grid-cols-2 gap-y-4 py-4 border-y border-outline-variant/10">
+<div>
+<p class="font-label-sm text-outline uppercase">Prima</p>
+<p class="font-body-lg font-bold text-primary">$12,450 <span class="text-xs font-normal">/año</span></p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Capital</p>
+<p class="font-body-lg font-bold text-on-surface">$500,000</p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Fondo</p>
+<p class="font-body-lg font-bold text-on-surface">Crecimiento Equilibrado</p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Rescate</p>
+<p class="font-body-lg font-bold text-on-surface">Garantizado</p>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-on-surface-variant">Incremento: +4.2%</span>
+<button class="text-primary font-label-md flex items-center gap-1 hover:underline">Detalles <span class="material-symbols-outlined text-[16px]">chevron_right</span></button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="premium-card ambient-shadow bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 flex flex-col gap-4">
+<div>
+<h4 class="font-headline-sm text-on-surface font-bold">Horizon Growth</h4>
+<p class="text-on-surface-variant font-label-sm uppercase mt-1">Estrategia de Rendimiento Agresiva</p>
+</div>
+<div class="grid grid-cols-2 gap-y-4 py-4 border-y border-outline-variant/10">
+<div>
+<p class="font-label-sm text-outline uppercase">Prima</p>
+<p class="font-body-lg font-bold text-primary">$15,800 <span class="text-xs font-normal">/año</span></p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Capital</p>
+<p class="font-body-lg font-bold text-on-surface">$750,000</p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Fondo</p>
+<p class="font-body-lg font-bold text-on-surface">Vanguard Global</p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Rescate</p>
+<p class="font-body-lg font-bold text-on-surface">Vinculado al Mercado</p>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-on-surface-variant">Incremento: +6.8%</span>
+<button class="text-primary font-label-md flex items-center gap-1 hover:underline">Detalles <span class="material-symbols-outlined text-[16px]">chevron_right</span></button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="premium-card ambient-shadow bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 flex flex-col gap-4">
+<div>
+<h4 class="font-headline-sm text-on-surface font-bold">Stability First</h4>
+<p class="text-on-surface-variant font-label-sm uppercase mt-1">Enfoque en Preservación</p>
+</div>
+<div class="grid grid-cols-2 gap-y-4 py-4 border-y border-outline-variant/10">
+<div>
+<p class="font-label-sm text-outline uppercase">Prima</p>
+<p class="font-body-lg font-bold text-primary">$8,200 <span class="text-xs font-normal">/año</span></p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Capital</p>
+<p class="font-body-lg font-bold text-on-surface">$250,000</p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Fondo</p>
+<p class="font-body-lg font-bold text-on-surface">Renta Fija</p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Rescate</p>
+<p class="font-body-lg font-bold text-on-surface">Reembolso Total</p>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-on-surface-variant">Incremento: +2.1%</span>
+<button class="text-primary font-label-md flex items-center gap-1 hover:underline">Detalles <span class="material-symbols-outlined text-[16px]">chevron_right</span></button>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="premium-card ambient-shadow bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 flex flex-col gap-4">
+<div>
+<h4 class="font-headline-sm text-on-surface font-bold">Legacy Builder</h4>
+<p class="text-on-surface-variant font-label-sm uppercase mt-1">Optimizado para Transferencia</p>
+</div>
+<div class="grid grid-cols-2 gap-y-4 py-4 border-y border-outline-variant/10">
+<div>
+<p class="font-label-sm text-outline uppercase">Prima</p>
+<p class="font-body-lg font-bold text-primary">$20,000 <span class="text-xs font-normal">/año</span></p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Capital</p>
+<p class="font-body-lg font-bold text-on-surface">$1,200,000</p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Fondo</p>
+<p class="font-body-lg font-bold text-on-surface">RE Diversificado</p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Rescate</p>
+<p class="font-body-lg font-bold text-on-surface">Base de Incremento</p>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-on-surface-variant">Incremento: +5.5%</span>
+<button class="text-primary font-label-md flex items-center gap-1 hover:underline">Detalles <span class="material-symbols-outlined text-[16px]">chevron_right</span></button>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="premium-card ambient-shadow bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 flex flex-col gap-4">
+<div>
+<h4 class="font-headline-sm text-on-surface font-bold">Quantum Core</h4>
+<p class="text-on-surface-variant font-label-sm uppercase mt-1">Reequilibrio Algorítmico</p>
+</div>
+<div class="grid grid-cols-2 gap-y-4 py-4 border-y border-outline-variant/10">
+<div>
+<p class="font-label-sm text-outline uppercase">Prima</p>
+<p class="font-body-lg font-bold text-primary">$14,100 <span class="text-xs font-normal">/año</span></p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Capital</p>
+<p class="font-body-lg font-bold text-on-surface">$600,000</p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Fondo</p>
+<p class="font-body-lg font-bold text-on-surface">AI Momentum</p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Rescate</p>
+<p class="font-body-lg font-bold text-on-surface">Cobertura Inteligente</p>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-on-surface-variant">Incremento: +7.2%</span>
+<button class="text-primary font-label-md flex items-center gap-1 hover:underline">Detalles <span class="material-symbols-outlined text-[16px]">chevron_right</span></button>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="premium-card ambient-shadow bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 flex flex-col gap-4">
+<div>
+<h4 class="font-headline-sm text-on-surface font-bold">Dynamic Shield</h4>
+<p class="text-on-surface-variant font-label-sm uppercase mt-1">Protección Adaptativa</p>
+</div>
+<div class="grid grid-cols-2 gap-y-4 py-4 border-y border-outline-variant/10">
+<div>
+<p class="font-label-sm text-outline uppercase">Prima</p>
+<p class="font-body-lg font-bold text-primary">$11,900 <span class="text-xs font-normal">/año</span></p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Capital</p>
+<p class="font-body-lg font-bold text-on-surface">$450,000</p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Fondo</p>
+<p class="font-body-lg font-bold text-on-surface">Baja Volatilidad</p>
+</div>
+<div>
+<p class="font-label-sm text-outline uppercase">Rescate</p>
+<p class="font-body-lg font-bold text-on-surface">Beneficio Total</p>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-on-surface-variant">Incremento: +3.9%</span>
+<button class="text-primary font-label-md flex items-center gap-1 hover:underline">Detalles <span class="material-symbols-outlined text-[16px]">chevron_right</span></button>
+</div>
+</div>
+</div>
+</section>
+<!-- Step 4: Benefits -->
+<section class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 p-8 ambient-shadow">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-background">Paso 4: Paquetes de Beneficios</h3>
+<p class="text-on-surface-variant font-body-sm">Seleccione cláusulas adicionales y beneficios de cobertura para el cliente.</p>
+</div>
+<div class="items-center gap-4 w-full md:w-auto flex">
+<div class="relative flex-1 md:w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-body-sm" placeholder="Buscar beneficios..." type="text"/>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-secondary-container text-on-secondary-container rounded-lg font-label-md hover:bg-secondary-container/80 transition-all">
+<span class="material-symbols-outlined">add_circle</span> Añadir Beneficio
+                        </button>
+</div>
+</div>
+<!-- Benefits List with Table Structure -->
+<div class="overflow-hidden border-t border-outline-variant/30">
+<table class="w-full text-left">
+<thead>
+<tr class="border-b border-outline-variant/30">
+<th class="py-4 px-2 font-label-sm text-outline uppercase tracking-wider w-12">Selecc.</th>
+<th class="py-4 px-4 font-label-sm text-outline uppercase tracking-wider">Nombre del Beneficio</th>
+<th class="py-4 px-4 font-label-sm text-outline uppercase tracking-wider">Tipo</th>
+<th class="py-4 px-4 font-label-sm text-outline uppercase tracking-wider text-right">Costo Adicional</th>
+<th class="py-4 px-4 font-label-sm text-outline uppercase tracking-wider text-right">Estado</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20">
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-4 px-2">
+<input checked="" class="rounded border-outline text-primary focus:ring-primary w-5 h-5" type="checkbox"/>
+</td>
+<td class="py-4 px-4">
+<p class="font-label-md text-on-surface group-hover:text-primary transition-colors">Cláusula Acelerada de Enfermedad Crítica</p>
+<p class="text-body-sm text-on-surface-variant">Pago de suma global tras el diagnóstico de condiciones cubiertas.</p>
+</td>
+<td class="py-4 px-4 font-body-sm">Protección</td>
+<td class="py-4 px-4 text-right font-label-md">$145 / mes</td>
+<td class="py-4 px-4 text-right">
+<span class="px-2 py-1 bg-secondary-fixed text-on-secondary-fixed text-[10px] rounded uppercase font-bold">Estándar</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-4 px-2">
+<input checked="" class="rounded border-outline text-primary focus:ring-primary w-5 h-5" type="checkbox"/>
+</td>
+<td class="py-4 px-4">
+<p class="font-label-md text-on-surface group-hover:text-primary transition-colors">Exoneración de Prima por Discapacidad</p>
+<p class="text-body-sm text-on-surface-variant">La póliza permanece activa sin pago de prima en caso de discapacidad.</p>
+</td>
+<td class="py-4 px-4 font-body-sm">Continuidad</td>
+<td class="py-4 px-4 text-right font-label-md">$68 / mes</td>
+<td class="py-4 px-4 text-right">
+<span class="px-2 py-1 bg-tertiary-fixed text-on-tertiary-fixed text-[10px] rounded uppercase font-bold">Opcional</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-4 px-2">
+<input class="rounded border-outline text-primary focus:ring-primary w-5 h-5" type="checkbox"/>
+</td>
+<td class="py-4 px-4">
+<p class="font-label-md text-on-surface group-hover:text-primary transition-colors">Cláusula Flexible de Cuidados a Largo Plazo</p>
+<p class="text-body-sm text-on-surface-variant">Opción de conversión para cuidados domiciliarios y apoyo clínico.</p>
+</td>
+<td class="py-4 px-4 font-body-sm">Salud</td>
+<td class="py-4 px-4 text-right font-label-md">$210 / mes</td>
+<td class="py-4 px-4 text-right">
+<span class="px-2 py-1 bg-surface-variant text-on-surface-variant text-[10px] rounded uppercase font-bold">Nuevo</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-4 px-2">
+<input class="rounded border-outline text-primary focus:ring-primary w-5 h-5" type="checkbox"/>
+</td>
+<td class="py-4 px-4">
+<p class="font-label-md text-on-surface group-hover:text-primary transition-colors">Pago por Enfermedad Terminal</p>
+<p class="text-body-sm text-on-surface-variant">Acceso anticipado al beneficio por fallecimiento en caso de enfermedad terminal.</p>
+</td>
+<td class="py-4 px-4 font-body-sm">Protección</td>
+<td class="py-4 px-4 text-right font-label-md">Incluido</td>
+<td class="py-4 px-4 text-right">
+<span class="px-2 py-1 bg-secondary-fixed text-on-secondary-fixed text-[10px] rounded uppercase font-bold">Base</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="mt-8 flex justify-end">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-all font-label-md mr-auto">
+<span class="material-symbols-outlined">description</span> Ver Términos y Condiciones
+                    </button>
+<div class="flex gap-4">
+<button class="px-8 py-3 bg-surface-container-high text-on-surface font-label-md rounded-lg hover:bg-surface-variant transition-all">Atrás</button>
+<button class="px-10 py-3 bg-primary text-on-primary font-label-md rounded-lg hover:opacity-90 transition-all shadow-md">Siguiente Paso</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+<script>
+        // Simple micro-interaction for cards
+        document.querySelectorAll('.premium-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.classList.add('shadow-xl');
+                card.style.transform = 'translateY(-4px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.classList.remove('shadow-xl');
+                card.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Search highlight logic
+        const searchInput = document.querySelector('input[placeholder="Buscar beneficios..."]');
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+    </script>
+</body></html>

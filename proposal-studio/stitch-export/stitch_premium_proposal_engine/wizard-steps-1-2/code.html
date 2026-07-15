@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Proposal Engine™ | Wizard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#001551",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c3c5d9",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e5e2e1",
+                        "surface-container-low": "#f6f3f2",
+                        "surface": "#fcf9f8",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-primary-fixed-variant": "#0039b3",
+                        "secondary-fixed": "#d2eca2",
+                        "on-tertiary-fixed-variant": "#6d3900",
+                        "surface-tint": "#004dea",
+                        "on-error-container": "#93000a",
+                        "primary": "#0041c8",
+                        "on-tertiary-container": "#ffe2cd",
+                        "inverse-on-surface": "#f3f0ef",
+                        "tertiary-fixed-dim": "#ffb77c",
+                        "surface-dim": "#dcd9d9",
+                        "surface-container-high": "#ebe7e7",
+                        "primary-container": "#0055ff",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#737688",
+                        "primary-fixed-dim": "#b6c4ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#fcf9f8",
+                        "on-background": "#1c1b1b",
+                        "on-tertiary-fixed": "#2e1500",
+                        "on-secondary-container": "#546a2e",
+                        "secondary-container": "#cfe99f",
+                        "secondary-fixed-dim": "#b6d088",
+                        "on-surface-variant": "#434656",
+                        "on-secondary-fixed-variant": "#394d14",
+                        "secondary": "#50652a",
+                        "primary-fixed": "#dce1ff",
+                        "on-secondary-fixed": "#131f00",
+                        "tertiary-fixed": "#ffdcc2",
+                        "inverse-primary": "#b6c4ff",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#313030",
+                        "tertiary-container": "#9d5500",
+                        "on-surface": "#1c1b1b",
+                        "on-primary-container": "#e3e6ff",
+                        "background": "#fcf9f8",
+                        "on-error": "#ffffff",
+                        "tertiary": "#7a4100",
+                        "surface-container": "#f0edec",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "unit": "4px",
+                        "container-max-width": "1280px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "label-md": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom Ambient Shadow for Premium Look */
+        .premium-card {
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .premium-card:hover {
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+        .active-selection {
+            border-color: #0041c8;
+            background-color: #f0f4ff;
+        }
+        /* Hide scrollbar but keep functionality */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #0041c8 !important;
+            box-shadow: 0 0 0 1px #0041c8;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- Top Navigation Shell -->
+<header class="bg-surface sticky top-0 z-40 flex justify-between items-center h-16 px-margin-desktop border-b border-outline-variant">
+<div class="flex items-center gap-4">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">Proposal Engine™</span>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-8">
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors" href="#">Borradores</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors" href="#">Actividad del Cliente</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-highest p-2 rounded-full transition-colors">notifications</button>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high border border-outline-variant">
+<img alt="Perfil del asesor" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxrHOXmEP0goQizkCian6kYmgEjL1lIgA_Aj40IDAahHavz-hcR1l-5EQkYAr2ZdBTWAgh2f8aZeHYDGiA0_NS0h_G-vp25veY_MRtZ5Qznd9-t7JYJNQg62BqlsZ1eQUbCiCVCXP_0FIcy9xE12Vcp8QEqMH4DBrllZMvUeVab9HUqlEkNgQL5kB-wNAIWl7SO4TSWwcPteqda4W45Dck40eoB7CcX-8yugPfNSpKBhJkT-7dZBiVKcAQvEEODXERf7tISDriaTs"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex min-h-[calc(100vh-64px)]">
+<!-- Side Navigation Shell -->
+<aside class="bg-surface-container-low w-64 fixed left-0 top-16 bottom-0 border-r border-outline-variant hidden lg:flex flex-col">
+<div class="p-6">
+<button class="w-full bg-primary text-on-primary py-3 px-4 rounded-lg flex items-center justify-center gap-2 font-label-md text-label-md transition-all active:scale-95 shadow-md">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                    Nueva Propuesta
+                </button>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Panel
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">folder_special</span>
+                    Biblioteca
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">palette</span>
+                    Marca
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    Configuración
+                </a>
+</nav>
+<div class="p-4 border-t border-outline-variant mt-auto">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">help</span>
+                    Soporte
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">logout</span>
+                    Cerrar Sesión
+                </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<section class="flex-1 ml-0 lg:ml-64 p-8 bg-surface-container-lowest">
+<div class="max-w-[900px] mx-auto">
+<!-- Horizontal Stepper (8 steps) -->
+<nav class="mb-12">
+<div class="flex items-center justify-between relative">
+<!-- Progress Line Background -->
+<div class="absolute top-1/2 left-0 w-full h-[2px] bg-surface-container-high -translate-y-1/2 z-0"></div>
+<!-- Progress Line Active -->
+<div class="absolute top-1/2 left-0 w-[14%] h-[2px] bg-primary -translate-y-1/2 z-0 transition-all duration-500"></div>
+<!-- Steps -->
+<div class="relative z-10 flex flex-col items-center group cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-sm ring-4 ring-surface-container-lowest">1</div>
+<span class="absolute -bottom-6 text-xs font-bold text-primary whitespace-nowrap">Tipo Cliente</span>
+</div>
+<div class="relative z-10 flex flex-col items-center group cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-sm ring-4 ring-surface-container-lowest transition-colors group-hover:bg-primary-fixed">2</div>
+<span class="absolute -bottom-6 text-xs font-medium text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">Datos</span>
+</div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-sm ring-4 ring-surface-container-lowest">3</div>
+</div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-sm ring-4 ring-surface-container-lowest">4</div>
+</div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-sm ring-4 ring-surface-container-lowest">5</div>
+</div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-sm ring-4 ring-surface-container-lowest">6</div>
+</div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-sm ring-4 ring-surface-container-lowest">7</div>
+</div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-sm ring-4 ring-surface-container-lowest">8</div>
+</div>
+</div>
+</nav>
+<div class="space-y-16 mt-20">
+<!-- Paso 1: Tipo de Cliente -->
+<div class="animate-in fade-in slide-in-from-bottom-4 duration-700" id="step-1">
+<header class="mb-8">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">Seleccione el tipo de cliente</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Defina la naturaleza jurídica para personalizar los cálculos actuariales y fiscales.</p>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Persona Card -->
+<div class="premium-card group bg-white border border-outline-variant p-8 rounded-xl cursor-pointer hover:border-primary transition-all flex flex-col items-center text-center active:scale-[0.98]">
+<div class="w-16 h-16 rounded-full bg-primary-fixed flex items-center justify-center mb-6 transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined text-primary text-3xl">person</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Persona</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Soluciones individuales para planificación patrimonial, seguros de vida y ahorro privado.</p>
+<div class="mt-8 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="text-primary font-bold flex items-center gap-2">Seleccionar <span class="material-symbols-outlined">chevron_right</span></span>
+</div>
+</div>
+<!-- Empresa Card -->
+<div class="premium-card group bg-white border border-outline-variant p-8 rounded-xl cursor-pointer hover:border-primary transition-all flex flex-col items-center text-center active:scale-[0.98]">
+<div class="w-16 h-16 rounded-full bg-secondary-fixed flex items-center justify-center mb-6 transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined text-secondary text-3xl">corporate_fare</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Empresa</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Protección corporativa, beneficios para empleados y transferencia de riesgos empresariales.</p>
+<div class="mt-8 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="text-primary font-bold flex items-center gap-2">Seleccionar <span class="material-symbols-outlined">chevron_right</span></span>
+</div>
+</div>
+</div>
+</div>
+<!-- Paso 2: Información Detallada -->
+<div class="animate-in fade-in slide-in-from-bottom-4 duration-700" id="step-2">
+<div class="h-[1px] bg-outline-variant mb-12"></div>
+<header class="mb-8">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">Información Detallada</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Complete los campos requeridos para generar el análisis preliminar de riesgos.</p>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-x-gutter gap-y-6">
+<!-- Name -->
+<div class="md:col-span-8 flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant px-1">Nombre Completo / Razón Social</label>
+<input class="bg-surface-container-lowest border border-outline-variant rounded-lg p-3 text-on-surface font-body-md" placeholder="Ej. Juan Pérez o Constructora S.A." type="text"/>
+</div>
+<!-- Age -->
+<div class="md:col-span-4 flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant px-1">Edad / Años Operación</label>
+<input class="bg-surface-container-lowest border border-outline-variant rounded-lg p-3 text-on-surface font-body-md" placeholder="00" type="number"/>
+</div>
+<!-- Company -->
+<div class="md:col-span-6 flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant px-1">Empresa Vinculada</label>
+<input class="bg-surface-container-lowest border border-outline-variant rounded-lg p-3 text-on-surface font-body-md" placeholder="Nombre de la matriz" type="text"/>
+</div>
+<!-- Currency -->
+<div class="md:col-span-6 flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant px-1">Moneda del Contrato</label>
+<select class="bg-surface-container-lowest border border-outline-variant rounded-lg p-3 text-on-surface font-body-md appearance-none">
+<option>USD - Dólar Estadounidense</option>
+<option>EUR - Euro</option>
+<option>MXN - Peso Mexicano</option>
+<option>BRL - Real Brasileño</option>
+</select>
+</div>
+<!-- Objective -->
+<div class="md:col-span-12 flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant px-1">Objetivo de la Propuesta</label>
+<input class="bg-surface-container-lowest border border-outline-variant rounded-lg p-3 text-on-surface font-body-md" placeholder="Describa el propósito principal (ej. Optimización Fiscal)" type="text"/>
+</div>
+<!-- Date -->
+<div class="md:col-span-4 flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant px-1">Fecha de Presentación</label>
+<input class="bg-surface-container-lowest border border-outline-variant rounded-lg p-3 text-on-surface font-body-md" type="date"/>
+</div>
+<!-- Advisor -->
+<div class="md:col-span-8 flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant px-1">Asesor Responsable</label>
+<div class="relative">
+<input class="w-full bg-surface-container border border-outline-variant rounded-lg p-3 text-on-surface-variant font-body-md cursor-not-allowed" readonly="" type="text" value="Alexander Vance (Asesor Premium)"/>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
+</div>
+</div>
+<!-- Observations -->
+<div class="md:col-span-12 flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant px-1">Observaciones Internas</label>
+<textarea class="bg-surface-container-lowest border border-outline-variant rounded-lg p-3 text-on-surface font-body-md resize-none" placeholder="Notas adicionales sobre el perfil de riesgo o antecedentes del cliente..." rows="3"></textarea>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Footer Action -->
+<div class="mt-16 pt-8 border-t border-outline-variant flex justify-between items-center">
+<button class="px-6 py-3 rounded-lg border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors">
+                        Cancelar
+                    </button>
+<button class="bg-primary text-on-primary px-10 py-3 rounded-lg flex items-center gap-2 font-bold transition-all hover:bg-primary-container shadow-lg active:scale-95">
+                        Siguiente Paso
+                        <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<script>
+        // Light micro-interactions for input focus
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.querySelector('label')?.classList.add('text-primary');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.querySelector('label')?.classList.remove('text-primary');
+            });
+        });
+
+        // Toggle logic for client type cards
+        const cards = document.querySelectorAll('.premium-card');
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                cards.forEach(c => c.classList.remove('active-selection', 'border-primary', 'bg-primary-fixed/20'));
+                card.classList.add('active-selection', 'border-primary', 'bg-primary-fixed/20');
+            });
+        });
+    </script>
+</body></html>

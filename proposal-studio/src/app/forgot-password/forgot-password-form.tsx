@@ -1,0 +1,75 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Loader2, Send, CircleCheck } from "lucide-react";
+
+import { requestPasswordResetAction } from "@/lib/auth/actions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+const forgotPasswordSchema = z.object({
+  email: z.string().trim().email("Ingresá un correo electrónico válido."),
+});
+
+type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
+
+function ForgotPasswordForm() {
+  const [serverError, setServerError] = useState<string | undefined>();
+  const [success, setSuccess] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordValues>({ resolver: zodResolver(forgotPasswordSchema) });
+
+  function onSubmit(values: ForgotPasswordValues) {
+    setServerError(undefined);
+    const formData = new FormData();
+    formData.set("email", values.email);
+
+    startTransition(async () => {
+      const result = await requestPasswordResetAction({}, formData);
+      if (result?.error) {
+        setServerError(result.error);
+      } else if (result?.success) {
+        setSuccess(true);
+      }
+    });
+  }
+
+  if (success) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-6 text-center">
+        <CircleCheck className="h-8 w-8 text-primary" />
+        <p className="text-body text-on-surface">
+          Si el correo existe en nuestro sistema, vas a recibir un enlace para restablecer tu
+          contraseña.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+      <div className="space-y-2">
+        <Label htmlFor="email">Correo Electrónico</Label>
+        <Input id="email" type="email" placeholder="nombre@empresa.com" {...register("email")} />
+        {errors.email && <p className="text-small text-error">{errors.email.message}</p>}
+      </div>
+
+      {serverError && <p className="text-small text-error">{serverError}</p>}
+
+      <Button type="submit" className="w-full" disabled={isPending}>
+        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+        Enviar enlace
+      </Button>
+    </form>
+  );
+}
+
+export { ForgotPasswordForm };

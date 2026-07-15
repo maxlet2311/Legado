@@ -1,0 +1,70 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+
+import { ContentContainer } from "@/components/layout/content-container";
+import { PageHeader } from "@/components/layout/page-header";
+import { StatusPill, type ProposalStatus } from "@/components/layout/status-pill";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { requireUser } from "@/lib/auth/session";
+import { createClient } from "@/lib/database/server";
+import { EditTitleDialog, ArchiveButton } from "@/app/(app)/proposal/[id]/proposal-actions";
+
+export const metadata: Metadata = {
+  title: "Propuesta — Proposal Studio™",
+};
+
+export default async function ProposalDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const user = await requireUser();
+  const supabase = await createClient();
+
+  const { data: proposal } = await supabase
+    .from("proposals")
+    .select("id, title, status, client_id, clients(full_name, email)")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!proposal) {
+    notFound();
+  }
+
+  const { data: narrative } = await supabase
+    .from("proposal_narratives")
+    .select("executive_summary")
+    .eq("proposal_id", proposal.id)
+    .maybeSingle();
+
+  return (
+    <ContentContainer className="max-w-240">
+      <PageHeader
+        title={proposal.title}
+        description={`Cliente: ${proposal.clients?.full_name ?? "—"}`}
+        breadcrumbs={[{ label: "Panel de Control", href: "/dashboard" }, { label: "Propuesta" }]}
+        actions={
+          <div className="flex items-center gap-3">
+            <StatusPill status={proposal.status as ProposalStatus} />
+            <EditTitleDialog proposalId={proposal.id} currentTitle={proposal.title} />
+            <ArchiveButton proposalId={proposal.id} disabled={proposal.status === "archived"} />
+          </div>
+        }
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Resumen ejecutivo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-body text-on-surface-variant">
+            {narrative?.executive_summary ??
+              "Todavía no se redactó el resumen ejecutivo. La narrativa, las alternativas, los beneficios y la comparativa se completan desde el wizard funcional en el Sprint 3."}
+          </p>
+        </CardContent>
+      </Card>
+    </ContentContainer>
+  );
+}

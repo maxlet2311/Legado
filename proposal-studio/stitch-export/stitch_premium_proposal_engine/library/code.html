@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed": "#001551",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#c3c5d9",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e5e2e1",
+                    "surface-container-low": "#f6f3f2",
+                    "surface": "#fcf9f8",
+                    "surface-container-highest": "#e5e2e1",
+                    "on-primary-fixed-variant": "#0039b3",
+                    "secondary-fixed": "#d2eca2",
+                    "on-tertiary-fixed-variant": "#6d3900",
+                    "surface-tint": "#004dea",
+                    "on-error-container": "#93000a",
+                    "primary": "#0041c8",
+                    "on-tertiary-container": "#ffe2cd",
+                    "inverse-on-surface": "#f3f0ef",
+                    "tertiary-fixed-dim": "#ffb77c",
+                    "surface-dim": "#dcd9d9",
+                    "surface-container-high": "#ebe7e7",
+                    "primary-container": "#0055ff",
+                    "on-tertiary": "#ffffff",
+                    "outline": "#737688",
+                    "primary-fixed-dim": "#b6c4ff",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#fcf9f8",
+                    "on-background": "#1c1b1b",
+                    "on-tertiary-fixed": "#2e1500",
+                    "on-secondary-container": "#546a2e",
+                    "secondary-container": "#cfe99f",
+                    "secondary-fixed-dim": "#b6d088",
+                    "on-surface-variant": "#434656",
+                    "on-secondary-fixed-variant": "#394d14",
+                    "secondary": "#50652a",
+                    "primary-fixed": "#dce1ff",
+                    "on-secondary-fixed": "#131f00",
+                    "tertiary-fixed": "#ffdcc2",
+                    "inverse-primary": "#b6c4ff",
+                    "on-secondary": "#ffffff",
+                    "inverse-surface": "#313030",
+                    "tertiary-container": "#9d5500",
+                    "on-surface": "#1c1b1b",
+                    "on-primary-container": "#e3e6ff",
+                    "background": "#fcf9f8",
+                    "on-error": "#ffffff",
+                    "tertiary": "#7a4100",
+                    "surface-container": "#f0edec",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "unit": "4px",
+                    "container-max-width": "1280px",
+                    "margin-desktop": "40px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Inter"],
+                    "body-md": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "label-md": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SideNavBar Shell -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-low border-r border-outline-variant flex flex-col z-50">
+<div class="p-6">
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface">Proposal Engine™</h1>
+<p class="text-on-surface-variant font-label-md text-label-md mt-1 opacity-70">Asesor Premium</p>
+</div>
+<div class="mt-4 px-4">
+<button class="w-full py-3 px-4 bg-primary text-on-primary rounded-lg font-label-md text-label-md flex items-center justify-center gap-2 hover:opacity-90 transition-all">
+<span class="material-symbols-outlined">add</span>
+                Nueva Propuesta
+            </button>
+</div>
+<nav class="flex-1 mt-8 space-y-1">
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Panel Principal
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-primary bg-surface-container-high border-l-4 border-primary font-bold font-label-md text-label-md transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="folder_special">folder_special</span>
+                Biblioteca
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="palette">palette</span>
+                Marca
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Configuración
+            </a>
+</nav>
+<div class="p-6 border-t border-outline-variant">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 rounded-full bg-primary-fixed overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a financial advisor in a modern office setting. The lighting is soft and natural, reflecting a high-end corporate environment. The advisor is smiling confidently, wearing a tailored navy blazer. Pristine white background with a hint of architectural glass." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMxXqCK6-lyYedkwcUBs7J_pLproSf1gl_HNHCYj6OirjK_WDq_tA96JQgVwBIAUpHoAaeBlpUMoOAaDmUtPc_z8M98utVF4Nriq5kAumKtVmxOyOQOEaBasa7IBrwbibuGJWJbKcCCKbQafqBh6BCDtR3jb8sa3-ua9jAPstsuSe7KrY8Tkwuu4QLspZCFb_WoEglI1n21JkoVbgqPSTvbrVbi4WmkGtPNvA9gWQYa_sSBBgWyEQRAAteYJjZWXpNrlx__4wp_rk"/>
+</div>
+<div>
+<p class="font-label-md text-label-md font-bold">Perfil del Asesor</p>
+<p class="text-xs text-on-surface-variant">Miembro Premium</p>
+</div>
+</div>
+<a class="flex items-center gap-3 py-2 text-on-surface-variant font-label-md text-label-md hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+                Soporte
+            </a>
+<a class="flex items-center gap-3 py-2 text-on-surface-variant font-label-md text-label-md hover:text-error transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Cerrar Sesión
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar Shell -->
+<header class="sticky top-0 z-40 bg-surface/80 backdrop-blur-md flex justify-between items-center h-16 px-10 border-b border-outline-variant">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary focus:border-primary text-body-sm transition-all outline-none" placeholder="Buscar recursos, plantillas o documentos..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-8 ml-8">
+<div class="flex items-center gap-6">
+<a class="text-on-surface-variant font-label-md text-label-md hover:text-primary transition-colors" href="#">Borradores</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:text-primary transition-colors" href="#">Actividad del Cliente</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-95 duration-150">
+                        Generar PDF
+                    </button>
+</div>
+</div>
+</header>
+<!-- Library Content -->
+<div class="p-10 max-w-[1400px] mx-auto">
+<div class="mb-10">
+<h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Biblioteca de Recursos</h2>
+<p class="text-on-surface-variant font-body-md text-body-md mt-2 max-w-2xl">Accede a plantillas de propuestas premium, guías estratégicas y material de marketing curado para elevar tu práctica de consultoría financiera.</p>
+</div>
+<div class="flex gap-10">
+<!-- Sidebar Filtering -->
+<aside class="w-56 shrink-0">
+<div class="space-y-8">
+<section>
+<h3 class="font-label-sm text-label-sm text-outline uppercase tracking-widest mb-4">Segmentos</h3>
+<div class="space-y-1">
+<label class="flex items-center gap-3 p-2 hover:bg-surface-container rounded-lg cursor-pointer transition-colors group">
+<input checked="" class="rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Individuos</span>
+</label>
+<label class="flex items-center gap-3 p-2 hover:bg-surface-container rounded-lg cursor-pointer transition-colors group">
+<input class="rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Empresas</span>
+</label>
+</div>
+</section>
+<section>
+<h3 class="font-label-sm text-label-sm text-outline uppercase tracking-widest mb-4">Categorías</h3>
+<div class="space-y-1">
+<button class="w-full flex items-center justify-between p-2 bg-primary-fixed text-on-primary-fixed rounded-lg font-label-md text-label-md">
+<span>Todos</span>
+<span class="bg-primary-container text-on-primary-container px-2 py-0.5 rounded text-[10px]">24</span>
+</button>
+<button class="w-full flex items-center justify-between p-2 hover:bg-surface-container-high rounded-lg font-label-md text-label-md transition-colors">
+<span>Protección</span>
+<span class="text-outline-variant font-normal">8</span>
+</button>
+<button class="w-full flex items-center justify-between p-2 hover:bg-surface-container-high rounded-lg font-label-md text-label-md transition-colors">
+<span>Retiro</span>
+<span class="text-outline-variant font-normal">6</span>
+</button>
+<button class="w-full flex items-center justify-between p-2 hover:bg-surface-container-high rounded-lg font-label-md text-label-md transition-colors">
+<span>Inversión</span>
+<span class="text-outline-variant font-normal">5</span>
+</button>
+<button class="w-full flex items-center justify-between p-2 hover:bg-surface-container-high rounded-lg font-label-md text-label-md transition-colors">
+<span>Persona Clave</span>
+<span class="text-outline-variant font-normal">5</span>
+</button>
+</div>
+</section>
+<section>
+<div class="p-4 bg-surface-container-highest rounded-xl border border-outline-variant/30">
+<span class="material-symbols-outlined text-primary mb-2">tips_and_updates</span>
+<h4 class="font-label-md text-label-md font-bold mb-1">Tip del Día</h4>
+<p class="text-xs text-on-surface-variant leading-relaxed">Usa la categoría 'Persona Clave' para propuestas de retención de talento en PyMEs.</p>
+</div>
+</section>
+</div>
+</aside>
+<!-- Grid Content -->
+<div class="flex-1">
+<!-- Favoritos (fusionado desde biblioteca_legado) -->
+<div class="mb-10"><div class="flex items-center gap-2 mb-6"><span class="material-symbols-outlined text-primary">star</span><h3 class="font-headline-md text-headline-md font-bold text-on-surface">Favoritos</h3></div><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"><div class="group flex flex-col bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"><div class="p-6 flex-1 flex flex-col"><div class="flex justify-between items-start mb-4"><span class="material-symbols-outlined text-primary text-3xl">description</span><span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">star</span></div><h4 class="font-label-md text-label-md font-bold mb-1">Propuesta de Vida Universal</h4><p class="text-xs text-on-surface-variant">Plantilla de alta conversión para perfiles HNWI.</p><div class="mt-4 pt-4 border-t border-outline-variant flex items-center justify-between"><span class="text-[10px] text-outline uppercase font-bold">Más usado</span><button class="text-primary font-label-md text-label-md flex items-center gap-1">Abrir</button></div></div></div><div class="group flex flex-col bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"><div class="p-6 flex-1 flex flex-col"><div class="flex justify-between items-start mb-4"><span class="material-symbols-outlined text-primary text-3xl">calculate</span><span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">star</span></div><h4 class="font-label-md text-label-md font-bold mb-1">Calculadora de Brecha</h4><p class="text-xs text-on-surface-variant">Herramienta interactiva para análisis de necesidades.</p><div class="mt-4 pt-4 border-t border-outline-variant flex items-center justify-between"><span class="text-[10px] text-outline uppercase font-bold">Herramienta</span><button class="text-primary font-label-md text-label-md flex items-center gap-1">Abrir</button></div></div></div><div class="group flex flex-col bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"><div class="p-6 flex-1 flex flex-col"><div class="flex justify-between items-start mb-4"><span class="material-symbols-outlined text-primary text-3xl">business</span><span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">star</span></div><h4 class="font-label-md text-label-md font-bold mb-1">Acuerdo de Socios</h4><p class="text-xs text-on-surface-variant">Guía legal y financiera para protección empresarial.</p><div class="mt-4 pt-4 border-t border-outline-variant flex items-center justify-between"><span class="text-[10px] text-outline uppercase font-bold">Legal</span><button class="text-primary font-label-md text-label-md flex items-center gap-1">Abrir</button></div></div></div></div><div class="mt-8 border-b border-outline-variant"></div></div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+<!-- Card 1: Protección Familiar -->
+<div class="group flex flex-col bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A serene family lifestyle photograph with soft, ethereal morning light streaming through a modern living room window. The composition is clean and minimalist, using a palette of soft whites, pale woods, and gentle grays. The mood is one of profound safety, peace, and domestic tranquility, echoing a premium financial security aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5_I_zjOkYhZRX_pB9wPwIoc4R1cEkflvKlO7ukxSRFVzKZ6F8KOF9uU1XV5MqKwEwYur8eOKwoFfOysldDhy9stEX7G0wWyY_yoFzkQmIH08lLMblyEM7APG59CuzxLMxRnu3biJ8HOsC9yM2zOj_RoTmit7jJMSzj0cr0mpWxDbPLbXOrPp_C8OGOZPTuoh5LNgskAFhH5z5GwGpRgGiTE4nTBt9lNLM4ywsOKcQzQ9L1xNTeuR-opeo9USi1lBq07e8_cpBN5Y"/>
+<div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Protección</div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<span class="material-symbols-outlined text-primary text-3xl mb-3">family_restroom</span>
+<h3 class="font-headline-sm text-headline-sm font-bold mb-2">Protección Familiar</h3>
+<p class="text-on-surface-variant font-body-sm text-body-sm flex-1">Estrategias integrales de blindaje patrimonial para el núcleo familiar. Incluye calculadora de brecha sucesoria.</p>
+<div class="mt-6 pt-6 border-t border-outline-variant flex items-center justify-between">
+<span class="text-label-sm text-outline">12 Plantillas</span>
+<button class="text-primary font-label-md text-label-md flex items-center gap-1 hover:gap-2 transition-all">
+                                        Ver Recursos <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 2: Estrategia de Retiro -->
+<div class="group flex flex-col bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A sophisticated, low-contrast photograph of a sunset over a calm ocean horizon. The colors are muted golds and deep navy blues, conveying a sense of timelessness and well-earned relaxation. The style is editorial and premium, suggestive of a high-end retirement lifestyle focused on freedom and peace of mind." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_AqryUpsuOxnYpBM1owseaaB__ANIxJAwm7GI4VzFEOQH8Or7IxeOPhReA2-ZZQGNlA8D9buH8kZebn0SxXj76oHHKU5uqv2EKPd3RYlJFjq6jENo5ee6E2pGH8UGeDTXlTZ24M0k560Kqydoq8IOZhYt1sLdSprJivYkwMLP28GUWWz94GBE2tGUQZ4q_7zJnKJ24zQ-No3k6M1MfK39QiXhbzLx-8bt5aiWwaBDtXUPJdIHuNhb4UonPurZZg7683k8-6RzQ7Y"/>
+<div class="absolute top-4 left-4 bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Planificación</div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<span class="material-symbols-outlined text-primary text-3xl mb-3">auto_graph</span>
+<h3 class="font-headline-sm text-headline-sm font-bold mb-2">Estrategia de Retiro</h3>
+<p class="text-on-surface-variant font-body-sm text-body-sm flex-1">Modelos de proyección actuarial para jubilación privada. Optimización fiscal de aportaciones voluntarias.</p>
+<div class="mt-6 pt-6 border-t border-outline-variant flex items-center justify-between">
+<span class="text-label-sm text-outline">8 Plantillas</span>
+<button class="text-primary font-label-md text-label-md flex items-center gap-1 hover:gap-2 transition-all">
+                                        Ver Recursos <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 3: Persona Clave -->
+<div class="group flex flex-col bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A high-end architectural interior of a modern glass boardroom. Sharp lines, shadows, and reflections dominate the frame. The color palette is strictly professional: deep charcoal, cool steel, and brilliant white. The image exudes authority, corporate precision, and the critical importance of leadership stability in business." src="https://lh3.googleusercontent.com/aida-public/AB6AXuASUq3eJafv4ObJwHGq0SeeSA79S58g8z0Lr1M1o2aCX2n4Z9_8XS0SSyWG8T4kxXwt7Cn5Y2chzrPeIuFA2f2spebU_g3DKN_S4hqY9i6blOdL718ixBglsTaZkZnQ9dr0TwHxGUN2yUfd2z-jdVmM09QUvwmzCG9CEQB77sC8H2L9cgkEyYSWVaXfNQkKJrphG0a5i1gaRexVZrVReSeGceGo8m9WU-VYdS6hKYE-j2i50W7I5oKOtqeiOtOjqj2YOIXBK8D_524"/>
+<div class="absolute top-4 left-4 bg-primary-fixed text-on-primary-fixed px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Empresas</div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<span class="material-symbols-outlined text-primary text-3xl mb-3">business_center</span>
+<h3 class="font-headline-sm text-headline-sm font-bold mb-2">Persona Clave</h3>
+<p class="text-on-surface-variant font-body-sm text-body-sm flex-1">Soluciones de contingencia para la pérdida de socios o ejecutivos clave. Continuidad de negocio garantizada.</p>
+<div class="mt-6 pt-6 border-t border-outline-variant flex items-center justify-between">
+<span class="text-label-sm text-outline">5 Plantillas</span>
+<button class="text-primary font-label-md text-label-md flex items-center gap-1 hover:gap-2 transition-all">
+                                        Ver Recursos <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 4: Inversión Educativa -->
+<div class="group flex flex-col bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative h-48 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-primary-fixed to-secondary-fixed opacity-20"></div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A high-key, bright photograph of a modern library or university study space. Geometric bookshelves and clean white surfaces create a rhythmic pattern. The lighting is crisp and optimistic, symbolizing knowledge, growth, and long-term investment in future generations. Professional minimalism at its finest." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbqnBtsX1EsyD0kzHvQ3K2clBXM00Y4JeqhX0yYirS-Qe3l9zqGW6YITfaAkjblrJbIdm9PLkC7mmpvoRRr1S8DozimildqEgC98Bbyhvmk7JnAxTzFVmzpF26AbW72-7gP-CiXLJSIKPnsULgNosWL7MJLMOscb93k_K9kL8Fss3B3V-E1vf52mUyGI91SWV5YQNZEzv9Ia0TFxKbs0ymgtoIasM1LKaoYJ0jqzLh2R-J5YF3cxXW_51Mb8wDCCIJKlLFzR6KN0E"/>
+<div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Inversión</div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<span class="material-symbols-outlined text-primary text-3xl mb-3">school</span>
+<h3 class="font-headline-sm text-headline-sm font-bold mb-2">Inversión Educativa</h3>
+<p class="text-on-surface-variant font-body-sm text-body-sm flex-1">Planes de ahorro estructurado para garantizar la educación superior de los hijos. Análisis de costos universitarios.</p>
+<div class="mt-6 pt-6 border-t border-outline-variant flex items-center justify-between">
+<span class="text-label-sm text-outline">6 Plantillas</span>
+<button class="text-primary font-label-md text-label-md flex items-center gap-1 hover:gap-2 transition-all">
+                                        Ver Recursos <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 5: Blindaje PYME -->
+<div class="group flex flex-col bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A close-up photograph of a sophisticated mechanical watch or high-precision engineering component. The focus is on the intricate interplay of gears and metallic textures. The lighting is dramatic and technical, representing the complex but perfectly synchronized systems required for business protection and efficiency." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA-etmdA-Wn6FiRda7BKGh-4wM7dtxab7V8mDXT5MRCv-1DadN4kqGq3KrEgqmyGWPyUuAln9WRfmmO4YYKPzlychyZhGlQWTSneKy57HKJrVezosyID1Fnz_uq1Oc4CrVjgYWpJYzotuGGD7SxkBYeJQ2AbiqXURihaocoXRr3WIURQ4A9nfjeR_J7zfzX_D0K5zE_qeI9J1VDoeJgqsWtMAlBj_E8xmGa1DybMkRlTNV_0TUAb7mAACxzuacAMIGCCTwE1hdNGw"/>
+<div class="absolute top-4 left-4 bg-primary-fixed text-on-primary-fixed px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Empresas</div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<span class="material-symbols-outlined text-primary text-3xl mb-3">security</span>
+<h3 class="font-headline-sm text-headline-sm font-bold mb-2">Blindaje PYME</h3>
+<p class="text-on-surface-variant font-body-sm text-body-sm flex-1">Pack completo para protección de activos y responsabilidad civil patronal. Manuales de gestión de riesgo.</p>
+<div class="mt-6 pt-6 border-t border-outline-variant flex items-center justify-between">
+<span class="text-label-sm text-outline">10 Plantillas</span>
+<button class="text-primary font-label-md text-label-md flex items-center gap-1 hover:gap-2 transition-all">
+                                        Ver Recursos <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 6: Marketing Advisor -->
+<div class="group flex flex-col bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="relative h-48 overflow-hidden bg-primary-fixed flex items-center justify-center p-8">
+<div class="relative z-10 text-center">
+<span class="material-symbols-outlined text-primary text-6xl">campaign</span>
+</div>
+<div class="absolute top-4 left-4 bg-on-primary-fixed text-on-primary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Herramienta Premium</div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<h3 class="font-headline-sm text-headline-sm font-bold mb-2">Marketing para Asesores</h3>
+<p class="text-on-surface-variant font-body-sm text-body-sm flex-1">Templates para redes sociales, artículos de blog y guiones de prospección telefónica con enfoque en "quiet luxury".</p>
+<div class="mt-6 pt-6 border-t border-outline-variant flex items-center justify-between">
+<span class="text-label-sm text-outline">15 Plantillas</span>
+<button class="text-primary font-label-md text-label-md flex items-center gap-1 hover:gap-2 transition-all">
+                                        Ver Recursos <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button for Support/Contextual -->
+<div class="fixed bottom-10 right-10 z-50">
+<button class="group relative flex items-center gap-2 bg-primary text-on-primary px-5 py-4 rounded-full shadow-2xl hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">help</span>
+<span class="font-label-md text-label-md max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 ease-in-out whitespace-nowrap">Asistencia en Vivo</span>
+</button>
+</div>
+<script>
+        // Micro-interactions for hover states
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.borderColor = 'rgba(0, 65, 200, 0.4)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.borderColor = '';
+            });
+        });
+
+        // Simple search animation
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-2', 'ring-primary/20');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-2', 'ring-primary/20');
+        });
+    </script>
+</body></html>

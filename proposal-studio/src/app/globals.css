@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — fuentes:
+ * - Paleta de color: stitch-export/stitch_premium_proposal_engine (10 pantallas, tokens idénticos)
+ * - Radios, spacing, escala tipográfica: docs/03_DESIGN_SYSTEM.md
+ * - Paletas por tipo de propuesta (personas/empresas): docs/03_DESIGN_SYSTEM.md + docs/04_DATA_MODEL.md (defaults de `brands`)
+ */
+@theme {
+  /* Roles de color (Material Design 3) — exactos al export de Stitch */
+  --color-primary: #0041c8;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #0055ff;
+  --color-on-primary-container: #e3e6ff;
+  --color-primary-fixed: #dce1ff;
+  --color-primary-fixed-dim: #b6c4ff;
+  --color-on-primary-fixed: #001551;
+  --color-on-primary-fixed-variant: #0039b3;
+  --color-inverse-primary: #b6c4ff;
+
+  --color-secondary: #50652a;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #cfe99f;
+  --color-on-secondary-container: #546a2e;
+  --color-secondary-fixed: #d2eca2;
+  --color-secondary-fixed-dim: #b68d88;
+  --color-on-secondary-fixed: #131f00;
+  --color-on-secondary-fixed-variant: #394d14;
+
+  --color-tertiary: #7a4100;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #9d5500;
+  --color-on-tertiary-container: #ffe2cd;
+  --color-tertiary-fixed: #ffdcc2;
+  --color-tertiary-fixed-dim: #ffb77c;
+  --color-on-tertiary-fixed: #2e1500;
+  --color-on-tertiary-fixed-variant: #6d3900;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  --color-background: #fcf9f8;
+  --color-on-background: #1c1b1b;
+
+  --color-surface: #fcf9f8;
+  --color-on-surface: #1c1b1b;
+  --color-surface-variant: #e5e2e1;
+  --color-on-surface-variant: #434656;
+  --color-surface-dim: #dcd9d9;
+  --color-surface-bright: #fcf9f8;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f6f3f2;
+  --color-surface-container: #f0edec;
+  --color-surface-container-high: #ebe7e7;
+  --color-surface-container-highest: #e5e2e1;
+  --color-surface-tint: #004dea;
+
+  --color-outline: #737688;
+  --color-outline-variant: #c3c5d9;
+
+  --color-inverse-surface: #313030;
+  --color-inverse-on-surface: #f3f0ef;
+
+  /* Estados semánticos (docs/03_DESIGN_SYSTEM.md) */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+
+  /* Paleta Personas (docs/03 + default de brands en docs/04) */
+  --color-persona-primary: #596b4d;
+  --color-persona-secondary: #f6f2e9;
+  --color-persona-accent: #c49752;
+
+  /* Paleta Empresas */
+  --color-corporate-primary: #2457a7;
+  --color-corporate-secondary: #162a46;
+  --color-corporate-accent: #c7a45b;
+
+  /* Tipografía */
+  --font-sans: var(--font-inter), "SF Pro Display", ui-sans-serif, system-ui, sans-serif;
+
+  --text-display: 3rem;
+  --text-display--line-height: 3.5rem;
+  --text-display--font-weight: 700;
+
+  --text-h1: 2.25rem;
+  --text-h1--line-height: 2.75rem;
+  --text-h1--font-weight: 700;
+
+  --text-h2: 1.875rem;
+  --text-h2--line-height: 2.375rem;
+  --text-h2--font-weight: 600;
+
+  --text-h3: 1.5rem;
+  --text-h3--line-height: 2rem;
+  --text-h3--font-weight: 600;
+
+  --text-h4: 1.25rem;
+  --text-h4--line-height: 1.75rem;
+  --text-h4--font-weight: 600;
+
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.75rem;
+  --text-body-lg--font-weight: 400;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+  --text-body--font-weight: 400;
+
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.25rem;
+  --text-small--font-weight: 400;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-caption--font-weight: 400;
+
+  /* Radios (docs/03_DESIGN_SYSTEM.md) */
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  /* Motion (docs/03_DESIGN_SYSTEM.md: 150-250ms, curvas suaves) */
+  --ease-premium: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 250ms;
+}
+
+@layer base {
+  * {
+    @apply border-outline-variant;
+  }
+
+  body {
+    @apply bg-background text-on-background;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}

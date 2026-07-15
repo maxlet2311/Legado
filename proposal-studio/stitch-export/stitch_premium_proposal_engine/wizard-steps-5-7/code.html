@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Proposal Engine™ | Flujo de Trabajo del Asistente</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#001551",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c3c5d9",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e5e2e1",
+                        "surface-container-low": "#f6f3f2",
+                        "surface": "#fcf9f8",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-primary-fixed-variant": "#0039b3",
+                        "secondary-fixed": "#d2eca2",
+                        "on-tertiary-fixed-variant": "#6d3900",
+                        "surface-tint": "#004dea",
+                        "on-error-container": "#93000a",
+                        "primary": "#0041c8",
+                        "on-tertiary-container": "#ffe2cd",
+                        "inverse-on-surface": "#f3f0ef",
+                        "tertiary-fixed-dim": "#ffb77c",
+                        "surface-dim": "#dcd9d9",
+                        "surface-container-high": "#ebe7e7",
+                        "primary-container": "#0055ff",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#737688",
+                        "primary-fixed-dim": "#b6c4ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#fcf9f8",
+                        "on-background": "#1c1b1b",
+                        "on-tertiary-fixed": "#2e1500",
+                        "on-secondary-container": "#546a2e",
+                        "secondary-container": "#cfe99f",
+                        "secondary-fixed-dim": "#b6d088",
+                        "on-surface-variant": "#434656",
+                        "on-secondary-fixed-variant": "#394d14",
+                        "secondary": "#50652a",
+                        "primary-fixed": "#dce1ff",
+                        "on-secondary-fixed": "#131f00",
+                        "tertiary-fixed": "#ffdcc2",
+                        "inverse-primary": "#b6c4ff",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#313030",
+                        "tertiary-container": "#9d5500",
+                        "on-surface": "#1c1b1b",
+                        "on-primary-container": "#e3e6ff",
+                        "background": "#fcf9f8",
+                        "on-error": "#ffffff",
+                        "tertiary": "#7a4100",
+                        "surface-container": "#f0edec",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "unit": "4px",
+                        "container-max-width": "1280px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "label-md": ["13px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .step-active { color: #0041c8; border-color: #0041c8; }
+        .step-complete { color: #0041c8; background-color: #dce1ff; border-color: #0041c8; }
+        .editor-focus:focus-within { border-color: #0041c8; box-shadow: 0 0 0 1px #0041c8; }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c3c5d9; border-radius: 2px; }
+        
+        .premium-card {
+            background: #ffffff;
+            box-shadow: 0 4px 24px -12px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(195, 197, 217, 0.3);
+        }
+
+        .no-border-table th, .no-border-table td {
+            border: none;
+            border-bottom: 1px solid #f0edec;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+<!-- Sidebar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-low border-r border-outline-variant flex flex-col z-50">
+<div class="p-6">
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface">Proposal Engine™</h1>
+<p class="text-on-surface-variant font-label-md text-label-md opacity-70">Advisor Premium</p>
+</div>
+<nav class="flex-1 px-4 py-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">dashboard</span> Panel de Control
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary border-l-4 border-primary font-bold bg-surface-container-high transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">folder_special</span> Biblioteca
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">palette</span> Identidad de Marca
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">settings</span> Configuración
+            </a>
+</nav>
+<div class="p-4 border-t border-outline-variant mt-auto">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">help</span> Soporte Técnico
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">logout</span> Cerrar Sesión
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen flex flex-col relative">
+<!-- Top Navigation -->
+<header class="flex justify-between items-center h-16 px-margin-desktop bg-surface sticky top-0 z-40 border-b border-outline-variant">
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="absolute inset-y-0 left-3 flex items-center text-outline">
+<span class="material-symbols-outlined text-body-md">search</span>
+</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container border-none focus:ring-1 focus:ring-primary text-body-sm w-64 rounded-lg" placeholder="Buscar plantillas..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors font-label-md text-label-md" href="#">Borradores</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors font-label-md text-label-md" href="#">Actividad del Cliente</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-95 transition-all">
+                    Generar PDF
+                </button>
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-bold text-label-sm">
+                        JD
+                    </div>
+</div>
+</div>
+</header>
+<!-- Stepper -->
+<div class="px-margin-desktop py-8 bg-surface-container-low border-b border-outline-variant">
+<div class="max-w-4xl mx-auto flex items-center justify-between">
+<div class="flex items-center gap-2 group cursor-pointer">
+<div class="w-8 h-8 rounded-full flex items-center justify-center step-complete border-2 font-bold text-label-sm">1</div>
+</div>
+<div class="h-[2px] flex-1 bg-primary mx-4"></div>
+<div class="flex items-center gap-2 group cursor-pointer">
+<div class="w-8 h-8 rounded-full flex items-center justify-center step-complete border-2 font-bold text-label-sm">2</div>
+</div>
+<div class="h-[2px] flex-1 bg-primary mx-4"></div>
+<div class="flex items-center gap-2 group cursor-pointer">
+<div class="w-8 h-8 rounded-full flex items-center justify-center step-complete border-2 font-bold text-label-sm">3</div>
+</div>
+<div class="h-[2px] flex-1 bg-primary mx-4"></div>
+<div class="flex items-center gap-2 group cursor-pointer">
+<div class="w-8 h-8 rounded-full flex items-center justify-center step-complete border-2 font-bold text-label-sm">4</div>
+</div>
+<div class="h-[2px] flex-1 bg-primary mx-4"></div>
+<div class="flex items-center gap-2 group cursor-pointer">
+<div class="w-8 h-8 rounded-full flex items-center justify-center step-active border-2 font-bold text-label-sm">5</div>
+</div>
+<div class="h-[2px] flex-1 bg-outline-variant mx-4"></div>
+<div class="flex items-center gap-2 group">
+<div class="w-8 h-8 rounded-full flex items-center justify-center border-2 border-outline-variant text-outline font-bold text-label-sm">6</div>
+</div>
+<div class="h-[2px] flex-1 bg-outline-variant mx-4"></div>
+<div class="flex items-center gap-2 group">
+<div class="w-8 h-8 rounded-full flex items-center justify-center border-2 border-outline-variant text-outline font-bold text-label-sm">7</div>
+</div>
+<div class="h-[2px] flex-1 bg-outline-variant mx-4"></div>
+<div class="flex items-center gap-2 group">
+<div class="w-8 h-8 rounded-full flex items-center justify-center border-2 border-outline-variant text-outline font-bold text-label-sm">8</div>
+</div>
+</div>
+<div class="max-w-4xl mx-auto flex justify-between mt-2 px-1">
+<span class="text-label-sm text-outline font-bold">INTRO</span>
+<span class="text-label-sm text-outline font-bold">CLIENTE</span>
+<span class="text-label-sm text-outline font-bold">NECESIDADES</span>
+<span class="text-label-sm text-outline font-bold">PLANES</span>
+<span class="text-label-sm text-primary font-bold">ESTRATEGIA</span>
+<span class="text-label-sm text-outline font-bold">COMPARAR</span>
+<span class="text-label-sm text-outline font-bold">LLAMADO ACCIÓN</span>
+<span class="text-label-sm text-outline font-bold">FINAL</span>
+</div>
+</div>
+<!-- Dynamic Content Section -->
+<div class="flex-1 overflow-y-auto pb-32">
+<!-- STEP 5: Personalized Strategy -->
+<section class="max-w-6xl mx-auto py-12 px-margin-desktop grid grid-cols-12 gap-gutter" id="step-5">
+<div class="col-span-12 mb-8">
+<h2 class="font-headline-lg text-headline-lg mb-2">Paso 5: Estrategia Personalizada</h2>
+<p class="text-on-surface-variant font-body-lg text-body-lg">Redacte la narrativa de su propuesta. Utilice plantillas o escriba desde cero con nuestro editor premium.</p>
+</div>
+<!-- Editor Toolbar & Canvas -->
+<div class="col-span-9 flex flex-col gap-4">
+<div class="premium-card p-0 rounded-xl overflow-hidden editor-focus border transition-all">
+<div class="flex items-center gap-1 p-2 bg-surface-container-low border-b border-outline-variant">
+<button class="p-2 hover:bg-surface-container-high rounded transition-colors text-on-surface-variant"><span class="material-symbols-outlined">format_bold</span></button>
+<button class="p-2 hover:bg-surface-container-high rounded transition-colors text-on-surface-variant"><span class="material-symbols-outlined">format_italic</span></button>
+<button class="p-2 hover:bg-surface-container-high rounded transition-colors text-on-surface-variant"><span class="material-symbols-outlined">format_list_bulleted</span></button>
+<div class="w-px h-6 bg-outline-variant mx-1"></div>
+<button class="p-2 hover:bg-surface-container-high rounded transition-colors text-on-surface-variant"><span class="material-symbols-outlined">format_quote</span></button>
+<button class="p-2 hover:bg-surface-container-high rounded transition-colors text-on-surface-variant"><span class="material-symbols-outlined">image</span></button>
+<button class="p-2 hover:bg-surface-container-high rounded transition-colors text-on-surface-variant"><span class="material-symbols-outlined">add_circle</span></button>
+</div>
+<div class="p-12 min-h-[500px] outline-none prose prose-slate max-w-none font-body-lg text-body-lg" contenteditable="true">
+<h1 class="text-headline-lg font-extrabold mb-8">Estrategia Ejecutiva para Cartera de Alto Patrimonio</h1>
+<p class="mb-4">Basado en nuestra sesión inicial de descubrimiento, esta propuesta se centra en la preservación del capital y una transición fiscal eficiente. Hemos identificado tres pilares primarios para el ciclo fiscal 2024-2025:</p>
+<ul class="mb-6 list-disc pl-5">
+<li><strong>Asignación de Activos:</strong> Reequilibrio dinámico de instrumentos de renta fija.</li>
+<li><strong>Mitigación de Riesgos:</strong> Implementación de derivados de cobertura contra la volatilidad.</li>
+<li><strong>Planificación de Legado:</strong> Integración de estructuras de fideicomisos benéficos.</li>
+</ul>
+<p class="text-on-surface-variant italic">Escriba '/' para comandos o para insertar análisis generados por IA...</p>
+</div>
+</div>
+</div>
+<!-- Suggested Templates Sidebar -->
+<div class="col-span-3 flex flex-col gap-4">
+<h3 class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-2">Plantillas Sugeridas</h3>
+<div class="premium-card p-4 rounded-xl cursor-pointer hover:border-primary transition-all group">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="font-label-md text-label-md font-bold">Patrimonio Estándar</span>
+</div>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">Narrativa equilibrada para escenarios estándar de gestión patrimonial.</p>
+</div>
+<div class="premium-card p-4 rounded-xl border-primary bg-primary-container/10 cursor-pointer transition-all">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-label-md text-label-md font-bold">Borrador de IA</span>
+</div>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">Generado en base a los datos del perfil de riesgo del cliente del Paso 3.</p>
+</div>
+<div class="premium-card p-4 rounded-xl cursor-pointer hover:border-primary transition-all">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-outline">verified_user</span>
+<span class="font-label-md text-label-md font-bold">Crecimiento Conservador</span>
+</div>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">Enfocado en estrategias con aversión al riesgo y rendimientos de renta fija.</p>
+</div>
+</div>
+</section>
+<div class="h-px w-full bg-outline-variant max-w-6xl mx-auto my-12"></div>
+<!-- STEP 6: Comparison -->
+<section class="max-w-6xl mx-auto py-12 px-margin-desktop" id="step-6">
+<div class="mb-10">
+<h2 class="font-headline-lg text-headline-lg mb-2">Paso 6: Comparación de Planes</h2>
+<p class="text-on-surface-variant font-body-lg text-body-lg">Seleccione los parámetros específicos que desea destacar en la matriz de comparación final para el cliente.</p>
+</div>
+<div class="premium-card rounded-xl overflow-hidden mb-8">
+<table class="w-full text-left no-border-table">
+<thead>
+<tr class="bg-surface-container-low">
+<th class="p-6 font-label-sm text-label-sm text-outline uppercase">Atributo</th>
+<th class="p-6 font-label-sm text-label-sm text-outline uppercase">Cartera Actual</th>
+<th class="p-6 font-label-sm text-label-sm text-outline uppercase bg-primary-container/5">Estrategia Propuesta A</th>
+<th class="p-6 font-label-sm text-label-sm text-outline uppercase">Estrategia Propuesta B</th>
+<th class="p-6 w-12"></th>
+</tr>
+</thead>
+<tbody class="text-body-md">
+<tr>
+<td class="p-6 font-bold flex items-center gap-3">
+<input checked="" class="w-4 h-4 text-primary border-outline rounded focus:ring-primary" type="checkbox"/>
+                                    Rendimiento Anual
+                                </td>
+<td class="p-6 text-error">3.2%</td>
+<td class="p-6 font-bold text-secondary bg-primary-container/5">5.8%</td>
+<td class="p-6 text-on-surface">5.1%</td>
+<td class="p-6"><span class="material-symbols-outlined text-outline">drag_indicator</span></td>
+</tr>
+<tr>
+<td class="p-6 font-bold flex items-center gap-3">
+<input checked="" class="w-4 h-4 text-primary border-outline rounded focus:ring-primary" type="checkbox"/>
+                                    Comisión de Gestión
+                                </td>
+<td class="p-6">1.25%</td>
+<td class="p-6 font-bold bg-primary-container/5 text-on-surface">0.85%</td>
+<td class="p-6 text-on-surface">0.95%</td>
+<td class="p-6"><span class="material-symbols-outlined text-outline">drag_indicator</span></td>
+</tr>
+<tr>
+<td class="p-6 font-bold flex items-center gap-3">
+<input checked="" class="w-4 h-4 text-primary border-outline rounded focus:ring-primary" type="checkbox"/>
+                                    Índice de Riesgo (1-10)
+                                </td>
+<td class="p-6">7.5</td>
+<td class="p-6 font-bold bg-primary-container/5 text-on-surface">4.2</td>
+<td class="p-6 text-on-surface">5.8</td>
+<td class="p-6"><span class="material-symbols-outlined text-outline">drag_indicator</span></td>
+</tr>
+<tr class="opacity-40">
+<td class="p-6 font-bold flex items-center gap-3">
+<input class="w-4 h-4 text-primary border-outline rounded focus:ring-primary" type="checkbox"/>
+                                    Plazo de Liquidez
+                                </td>
+<td class="p-6">Ninguno</td>
+<td class="p-6 bg-primary-container/5">12 Meses</td>
+<td class="p-6">24 Meses</td>
+<td class="p-6"><span class="material-symbols-outlined text-outline">drag_indicator</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<button class="flex items-center gap-2 text-primary font-bold font-label-md text-label-md hover:underline">
+<span class="material-symbols-outlined">add</span> Añadir Atributo de Comparación
+                </button>
+</section>
+<div class="h-px w-full bg-outline-variant max-w-6xl mx-auto my-12"></div>
+<!-- STEP 7: Call to Action -->
+<section class="max-w-6xl mx-auto py-12 px-margin-desktop grid grid-cols-2 gap-gutter" id="step-7">
+<div class="col-span-2 mb-10">
+<h2 class="font-headline-lg text-headline-lg mb-2">Paso 7: Compromiso Final</h2>
+<p class="text-on-surface-variant font-body-lg text-body-lg">¿Cómo debería responder el cliente a esta propuesta?</p>
+</div>
+<!-- CTA Configuration -->
+<div class="space-y-8">
+<div>
+<label class="block font-label-sm text-label-sm text-outline uppercase tracking-wider mb-3">Tipo de Acción Primaria</label>
+<div class="grid grid-cols-2 gap-3">
+<button class="p-4 rounded-xl border-2 border-primary bg-primary-container/5 flex items-center gap-3 text-left">
+<span class="material-symbols-outlined text-primary">schedule</span>
+<div>
+<p class="font-bold font-label-md text-label-md">Agendar Reunión</p>
+<p class="text-label-sm opacity-70">Sincronizar con Calendly</p>
+</div>
+</button>
+<button class="p-4 rounded-xl border border-outline-variant hover:border-primary transition-colors flex items-center gap-3 text-left">
+<span class="material-symbols-outlined text-on-surface-variant">check_circle</span>
+<div>
+<p class="font-bold font-label-md text-label-md">Aprobación Directa</p>
+<p class="text-label-sm opacity-70">Firma Digital</p>
+</div>
+</button>
+</div>
+</div>
+<div class="premium-card p-6 rounded-xl space-y-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#25D366]">chat</span>
+<span class="font-bold font-label-md text-label-md">Integración de WhatsApp</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="space-y-4">
+<div>
+<label class="block text-label-sm text-outline mb-1.5">Número de teléfono (Formato internacional)</label>
+<input class="w-full border-outline-variant rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-surface-container-lowest text-body-sm" type="text" value="+1 (555) 012-3456"/>
+</div>
+<div>
+<label class="block text-label-sm text-outline mb-1.5">Mensaje pre-completado</label>
+<textarea class="w-full border-outline-variant rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-surface-container-lowest text-body-sm" rows="2">Hola, he revisado la propuesta y me gustaría proceder con la Estrategia A. ¡Hablemos!</textarea>
+</div>
+</div>
+</div>
+</div>
+<!-- Preview Column -->
+<div class="flex flex-col gap-4">
+<label class="block font-label-sm text-label-sm text-outline uppercase tracking-wider">Vista Previa del Botón</label>
+<div class="flex-1 premium-card rounded-xl p-8 flex flex-col items-center justify-center bg-surface-container-low border-dashed border-2 border-outline-variant">
+<div class="w-full max-w-sm space-y-4">
+<button class="w-full py-4 bg-primary text-on-primary rounded-xl font-bold font-body-lg text-body-lg shadow-lg hover:shadow-xl transition-all">
+                                Agendar Revisión de Propuesta
+                            </button>
+<p class="text-center text-label-sm text-outline">o</p>
+<button class="w-full py-3 border-2 border-[#25D366] text-[#25D366] rounded-xl font-bold font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-[#25D366] hover:text-white transition-all">
+<span class="material-symbols-outlined">chat</span>
+                                Chatear con consultor por WhatsApp
+                            </button>
+</div>
+<p class="mt-8 text-label-sm text-on-surface-variant italic opacity-60 text-center">Así es como se verá el pie de página de la propuesta final para su cliente.</p>
+</div>
+</div>
+</section>
+</div>
+<!-- Sticky Footer Wizard Controls -->
+<footer class="fixed bottom-0 right-0 w-[calc(100%-16rem)] bg-surface border-t border-outline-variant px-margin-desktop py-6 flex justify-between items-center z-40">
+<button class="flex items-center gap-2 px-6 py-2.5 text-on-surface-variant font-bold font-label-md text-label-md hover:bg-surface-container-high rounded-lg transition-colors">
+<span class="material-symbols-outlined">arrow_back</span> Paso Anterior
+            </button>
+<div class="flex items-center gap-4">
+<button class="px-6 py-2.5 border border-outline-variant text-on-surface font-bold font-label-md text-label-md rounded-lg hover:bg-surface-container-low transition-colors">
+                    Guardar Borrador
+                </button>
+<button class="flex items-center gap-2 px-8 py-2.5 bg-primary text-on-primary font-bold font-label-md text-label-md rounded-lg hover:opacity-90 active:scale-95 transition-all">
+                    Continuar a Revisión <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</footer>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-all z-50 group">
+<span class="material-symbols-outlined">auto_awesome</span>
+<div class="absolute right-16 px-4 py-2 bg-inverse-surface text-inverse-on-surface text-label-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+            Pedir a IA optimizar estrategia
+        </div>
+</button>
+<script>
+        document.querySelectorAll('.premium-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body></html>
