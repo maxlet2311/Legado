@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/database/server";
 import { requireUser } from "@/lib/auth/session";
-import { mapSupabaseError } from "@/lib/utils/errors";
+import { mapSupabaseError, detectConflict } from "@/lib/utils/errors";
 import {
   proposalDetailsSchema,
   clientCreateSchema,
@@ -19,6 +19,8 @@ import type { WizardClient } from "@/types/wizard";
 interface ActionResult<T = undefined> {
   data?: T;
   error?: string;
+  conflict?: boolean;
+  currentRevision?: number | null;
 }
 
 /** Paso 1: crea un cliente sin salir del wizard y lo devuelve para seleccionarlo. */
@@ -74,7 +76,7 @@ async function createDraftFromClientAction(clientId: string): Promise<ActionResu
 /** Pasos 1 y 2: metadatos de la propuesta (cliente, título, tipo, producto, moneda, notas). */
 async function updateProposalDetailsAction(
   input: unknown,
-): Promise<ActionResult<{ updated_at: string }>> {
+): Promise<ActionResult<{ updated_at: string; revision: number }>> {
   await requireUser();
   const parsed = proposalDetailsSchema.safeParse(input);
   if (!parsed.success) {
@@ -92,19 +94,26 @@ async function updateProposalDetailsAction(
       p_product: parsed.data.product,
       p_currency: parsed.data.currency,
       p_internal_notes: parsed.data.internal_notes ?? "",
+      p_expected_revision: parsed.data.expected_revision,
     })
     .single();
 
   if (error || !data) {
+    const { isConflict, currentRevision } = detectConflict(error);
+    if (isConflict) {
+      return { conflict: true, currentRevision, error: "Se modificó en otra sesión." };
+    }
     return { error: error ? mapSupabaseError(error) : "Propuesta no encontrada o sin acceso." };
   }
 
   revalidatePath(`/proposal/${parsed.data.id}`);
-  return { data: { updated_at: data.updated_at } };
+  return { data: { updated_at: data.updated_at, revision: data.revision } };
 }
 
 /** Pasos 3 y 5: diagnóstico y recomendación (proposal_narratives). */
-async function upsertNarrativeAction(input: unknown): Promise<ActionResult<{ updated_at: string }>> {
+async function upsertNarrativeAction(
+  input: unknown,
+): Promise<ActionResult<{ updated_at: string; revision: number }>> {
   await requireUser();
   const parsed = narrativeSchema.safeParse(input);
   if (!parsed.success) {
@@ -121,18 +130,27 @@ async function upsertNarrativeAction(input: unknown): Promise<ActionResult<{ upd
       p_detected_risks: parsed.data.detected_risks ?? "",
       p_opportunities: parsed.data.opportunities ?? "",
       p_recommended_strategy: parsed.data.recommended_strategy ?? "",
+      // p_expected_revision es NULL-able en Postgres (todavía no existe fila);
+      // ver nota en saveAlternativeAction.
+      p_expected_revision: parsed.data.expected_revision as number,
     })
     .single();
 
   if (error || !data) {
+    const { isConflict, currentRevision } = detectConflict(error);
+    if (isConflict) {
+      return { conflict: true, currentRevision, error: "Se modificó en otra sesión." };
+    }
     return { error: error ? mapSupabaseError(error) : "Propuesta no encontrada o sin acceso." };
   }
 
-  return { data: { updated_at: data.updated_at } };
+  return { data: { updated_at: data.updated_at, revision: data.revision } };
 }
 
 /** Paso 4: alta/edición de una alternativa. */
-async function saveAlternativeAction(input: unknown): Promise<ActionResult<{ id: string }>> {
+async function saveAlternativeAction(
+  input: unknown,
+): Promise<ActionResult<{ id: string; revision: number }>> {
   await requireUser();
   const parsed = alternativeSchema.safeParse(input);
   if (!parsed.success) {
@@ -142,8 +160,9 @@ async function saveAlternativeAction(input: unknown): Promise<ActionResult<{ id:
   const supabase = await createClient();
   const { data, error } = await supabase
     .rpc("upsert_proposal_alternative", {
-      // p_id y p_monthly_premium son NULL-ables en Postgres (alta vs. edición, campo
-      // opcional); los tipos generados no reflejan esa nulabilidad de argumentos de RPC.
+      // p_id, p_monthly_premium y p_expected_revision son NULL-ables en Postgres
+      // (alta vs. edición, campo opcional); los tipos generados no reflejan esa
+      // nulabilidad de argumentos de RPC.
       p_id: parsed.data.id as string,
       p_proposal_id: parsed.data.proposal_id,
       p_title: parsed.data.title,
@@ -159,14 +178,19 @@ async function saveAlternativeAction(input: unknown): Promise<ActionResult<{ id:
         notes: parsed.data.notes ?? "",
       },
       p_display_order: parsed.data.display_order,
+      p_expected_revision: parsed.data.expected_revision as number,
     })
     .single();
 
   if (error || !data) {
+    const { isConflict, currentRevision } = detectConflict(error);
+    if (isConflict) {
+      return { conflict: true, currentRevision, error: "Se modificó en otra sesión." };
+    }
     return { error: error ? mapSupabaseError(error) : "No pudimos guardar la alternativa." };
   }
 
-  return { data: { id: data.id } };
+  return { data: { id: data.id, revision: data.revision } };
 }
 
 async function deleteAlternativeAction(proposalId: string, id: string): Promise<ActionResult> {
@@ -203,7 +227,9 @@ async function reorderAlternativesAction(input: unknown): Promise<ActionResult> 
 }
 
 /** Paso 6: alta/edición de un beneficio. */
-async function saveBenefitAction(input: unknown): Promise<ActionResult<{ id: string }>> {
+async function saveBenefitAction(
+  input: unknown,
+): Promise<ActionResult<{ id: string; revision: number }>> {
   await requireUser();
   const parsed = benefitSchema.safeParse(input);
   if (!parsed.success) {
@@ -213,7 +239,8 @@ async function saveBenefitAction(input: unknown): Promise<ActionResult<{ id: str
   const supabase = await createClient();
   const { data, error } = await supabase
     .rpc("upsert_proposal_benefit", {
-      // p_id es NULL-able en Postgres (alta vs. edición); ver nota en saveAlternativeAction.
+      // p_id y p_expected_revision son NULL-ables en Postgres (alta vs. edición);
+      // ver nota en saveAlternativeAction.
       p_id: parsed.data.id as string,
       p_proposal_id: parsed.data.proposal_id,
       p_title: parsed.data.title,
@@ -221,14 +248,19 @@ async function saveBenefitAction(input: unknown): Promise<ActionResult<{ id: str
       p_icon: parsed.data.icon,
       p_category: parsed.data.category,
       p_display_order: parsed.data.display_order,
+      p_expected_revision: parsed.data.expected_revision as number,
     })
     .single();
 
   if (error || !data) {
+    const { isConflict, currentRevision } = detectConflict(error);
+    if (isConflict) {
+      return { conflict: true, currentRevision, error: "Se modificó en otra sesión." };
+    }
     return { error: error ? mapSupabaseError(error) : "No pudimos guardar el beneficio." };
   }
 
-  return { data: { id: data.id } };
+  return { data: { id: data.id, revision: data.revision } };
 }
 
 async function deleteBenefitAction(proposalId: string, id: string): Promise<ActionResult> {
@@ -265,7 +297,9 @@ async function reorderBenefitsAction(input: unknown): Promise<ActionResult> {
 }
 
 /** Paso 7: comparativa (tabla dinámica). */
-async function upsertComparisonAction(input: unknown): Promise<ActionResult<{ updated_at: string }>> {
+async function upsertComparisonAction(
+  input: unknown,
+): Promise<ActionResult<{ updated_at: string; revision: number }>> {
   await requireUser();
   const parsed = comparisonSchema.safeParse(input);
   if (!parsed.success) {
@@ -278,14 +312,21 @@ async function upsertComparisonAction(input: unknown): Promise<ActionResult<{ up
       p_proposal_id: parsed.data.proposal_id,
       p_columns: parsed.data.columns,
       p_rows: parsed.data.rows,
+      // p_expected_revision es NULL-able en Postgres (todavía no existe fila);
+      // ver nota en saveAlternativeAction.
+      p_expected_revision: parsed.data.expected_revision as number,
     })
     .single();
 
   if (error || !data) {
+    const { isConflict, currentRevision } = detectConflict(error);
+    if (isConflict) {
+      return { conflict: true, currentRevision, error: "Se modificó en otra sesión." };
+    }
     return { error: error ? mapSupabaseError(error) : "Propuesta no encontrada o sin acceso." };
   }
 
-  return { data: { updated_at: data.updated_at } };
+  return { data: { updated_at: data.updated_at, revision: data.revision } };
 }
 
 /** Paso 8: cierre de la propuesta. El RPC valida en servidor los datos mínimos. */

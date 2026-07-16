@@ -19,6 +19,7 @@ function emptyBenefit(order: number): WizardBenefit {
     icon: "",
     category: "financial",
     display_order: order,
+    revision: null,
   };
 }
 
@@ -42,8 +43,8 @@ function StepBenefits() {
     setBenefits(benefits.map((item, i) => (i === index ? next : item)));
   }
 
-  function markSaved(index: number, id: string) {
-    setBenefits(benefits.map((item, i) => (i === index ? { ...item, id } : item)));
+  function markSaved(index: number, id: string, revision: number) {
+    setBenefits(benefits.map((item, i) => (i === index ? { ...item, id, revision } : item)));
   }
 
   async function removeItem(index: number) {
@@ -86,7 +87,7 @@ function StepBenefits() {
             proposalId={proposalId}
             item={item}
             onChange={(next) => updateItem(index, next)}
-            onSaved={(id) => markSaved(index, id)}
+            onSaved={(id, revision) => markSaved(index, id, revision)}
             onRemove={() => removeItem(index)}
           />
         )}

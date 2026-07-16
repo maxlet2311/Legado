@@ -94,6 +94,8 @@ function ProposalWizard({ initialData, availableClients }: ProposalWizardProps) 
           nextDisabled={!stepMeta.isValid}
           autosaveStatus={stepMeta.autosaveStatus}
           autosaveError={stepMeta.autosaveError}
+          onResolveKeepMine={stepMeta.resolveKeepMine}
+          onResolveReload={stepMeta.resolveReload}
         />
       }
     >

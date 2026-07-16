@@ -27,6 +27,7 @@ export interface WizardProposalMeta {
   status: "draft" | "completed" | "exported" | "archived";
   created_at: string;
   updated_at: string;
+  revision: number;
 }
 
 export interface WizardNarrative {
@@ -37,6 +38,7 @@ export interface WizardNarrative {
   opportunities: string;
   recommended_strategy: string;
   updated_at: string | null;
+  revision: number | null;
 }
 
 export type AlternativeCategory =
@@ -63,6 +65,7 @@ export interface WizardAlternative {
   monthly_premium: number | null;
   details: WizardAlternativeDetails;
   display_order: number;
+  revision: number | null;
 }
 
 export type BenefitCategory =
@@ -82,6 +85,7 @@ export interface WizardBenefit {
   icon: string;
   category: BenefitCategory;
   display_order: number;
+  revision: number | null;
 }
 
 export interface WizardComparisonColumn {
@@ -99,6 +103,7 @@ export interface WizardComparison {
   columns: WizardComparisonColumn[];
   rows: WizardComparisonRow[];
   updated_at: string | null;
+  revision: number | null;
 }
 
 export type AutosaveStatus = "idle" | "saving" | "saved" | "error" | "conflict";

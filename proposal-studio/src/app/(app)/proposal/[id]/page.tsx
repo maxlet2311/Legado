@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/database/server";
 import { EditTitleDialog, ArchiveButton } from "@/app/(app)/proposal/[id]/proposal-actions";
+import { VersionHistory } from "@/app/(app)/proposal/[id]/version-history";
 
 export const metadata: Metadata = {
   title: "Propuesta — Proposal Studio™",
@@ -41,6 +42,32 @@ export default async function ProposalDetailPage({
     .select("executive_summary")
     .eq("proposal_id", proposal.id)
     .maybeSingle();
+
+  const { data: versions } = await supabase
+    .from("proposal_versions")
+    .select("id, version_number, created_at, render_json")
+    .eq("proposal_id", proposal.id)
+    .order("version_number", { ascending: false });
+
+  const versionIds = (versions ?? []).map((version) => version.id);
+  const { data: artifacts } = versionIds.length
+    ? await supabase
+        .from("proposal_version_artifacts")
+        .select("proposal_version_id")
+        .in("proposal_version_id", versionIds)
+    : { data: [] as { proposal_version_id: string }[] };
+
+  const artifactVersionIds = new Set((artifacts ?? []).map((artifact) => artifact.proposal_version_id));
+  const versionListItems = (versions ?? []).map((version) => ({
+    id: version.id,
+    version_number: version.version_number,
+    created_at: version.created_at,
+    render_json: version.render_json as {
+      proposal?: { orientation?: string };
+      template?: { title?: string } | null;
+    },
+    hasArtifact: artifactVersionIds.has(version.id),
+  }));
 
   return (
     <ContentContainer className="max-w-240">
@@ -74,6 +101,8 @@ export default async function ProposalDetailPage({
           </p>
         </CardContent>
       </Card>
+
+      <VersionHistory proposalId={proposal.id} versions={versionListItems} />
     </ContentContainer>
   );
 }

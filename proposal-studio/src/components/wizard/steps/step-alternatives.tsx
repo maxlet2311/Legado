@@ -23,6 +23,7 @@ function emptyAlternative(order: number): WizardAlternative {
     monthly_premium: null,
     details: { advantages: [], disadvantages: [], notes: "" },
     display_order: order,
+    revision: null,
   };
 }
 
@@ -46,8 +47,10 @@ function StepAlternatives() {
     setAlternatives(alternatives.map((item, i) => (i === index ? next : item)));
   }
 
-  function markSaved(index: number, id: string) {
-    setAlternatives(alternatives.map((item, i) => (i === index ? { ...item, id } : item)));
+  function markSaved(index: number, id: string, revision: number) {
+    setAlternatives(
+      alternatives.map((item, i) => (i === index ? { ...item, id, revision } : item)),
+    );
   }
 
   async function removeItem(index: number) {
@@ -92,7 +95,7 @@ function StepAlternatives() {
             proposalId={proposalId}
             item={item}
             onChange={(next) => updateItem(index, next)}
-            onSaved={(id) => markSaved(index, id)}
+            onSaved={(id, revision) => markSaved(index, id, revision)}
             onRemove={() => removeItem(index)}
           />
         )}

@@ -30,7 +30,7 @@ export default async function ProposalEditPage({
       supabase
         .from("proposals")
         .select(
-          "id, proposal_number, client_id, title, proposal_type, primary_objective, product, currency, internal_notes, status, created_at, updated_at, clients(id, full_name, company_name, client_type, email, phone)",
+          "id, proposal_number, client_id, title, proposal_type, primary_objective, product, currency, internal_notes, status, created_at, updated_at, revision, clients(id, full_name, company_name, client_type, email, phone)",
         )
         .eq("id", id)
         .eq("user_id", user.id)
@@ -38,25 +38,25 @@ export default async function ProposalEditPage({
       supabase
         .from("proposal_narratives")
         .select(
-          "current_situation, detected_needs, objectives, detected_risks, opportunities, recommended_strategy, updated_at",
+          "current_situation, detected_needs, objectives, detected_risks, opportunities, recommended_strategy, updated_at, revision",
         )
         .eq("proposal_id", id)
         .maybeSingle(),
       supabase
         .from("proposal_alternatives")
         .select(
-          "id, title, description, category, insurance_company, product_name, currency, monthly_premium, financial_details, display_order",
+          "id, title, description, category, insurance_company, product_name, currency, monthly_premium, financial_details, display_order, revision",
         )
         .eq("proposal_id", id)
         .order("display_order", { ascending: true }),
       supabase
         .from("proposal_benefits")
-        .select("id, title, description, icon, category, display_order")
+        .select("id, title, description, icon, category, display_order, revision")
         .eq("proposal_id", id)
         .order("display_order", { ascending: true }),
       supabase
         .from("proposal_comparisons")
-        .select("columns, rows, updated_at")
+        .select("columns, rows, updated_at, revision")
         .eq("proposal_id", id)
         .maybeSingle(),
       supabase
@@ -93,6 +93,7 @@ export default async function ProposalEditPage({
         notes: details.notes ?? "",
       },
       display_order: row.display_order,
+      revision: row.revision,
     };
   });
 
@@ -103,12 +104,14 @@ export default async function ProposalEditPage({
     icon: row.icon,
     category: row.category as WizardBenefit["category"],
     display_order: row.display_order,
+    revision: row.revision,
   }));
 
   const comparison: WizardComparison = {
     columns: (comparisonResult.data?.columns as WizardComparison["columns"] | undefined) ?? [],
     rows: (comparisonResult.data?.rows as WizardComparison["rows"] | undefined) ?? [],
     updated_at: comparisonResult.data?.updated_at ?? null,
+    revision: comparisonResult.data?.revision ?? null,
   };
 
   const initialData: WizardData = {
@@ -135,6 +138,7 @@ export default async function ProposalEditPage({
       status: proposal.status as WizardData["meta"]["status"],
       created_at: proposal.created_at,
       updated_at: proposal.updated_at,
+      revision: proposal.revision,
     },
     narrative: {
       current_situation: narrativeResult.data?.current_situation ?? "",
@@ -144,6 +148,7 @@ export default async function ProposalEditPage({
       opportunities: narrativeResult.data?.opportunities ?? "",
       recommended_strategy: narrativeResult.data?.recommended_strategy ?? "",
       updated_at: narrativeResult.data?.updated_at ?? null,
+      revision: narrativeResult.data?.revision ?? null,
     },
     alternatives,
     benefits,

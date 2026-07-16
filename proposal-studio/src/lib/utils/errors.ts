@@ -8,6 +8,25 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   "weak_password": "La contraseña es demasiado débil. Usá al menos 8 caracteres.",
 };
 
+/** SQLSTATE custom levantado por los RPC de autosave cuando p_expected_revision no coincide. */
+const CONCURRENCY_CONFLICT_SQLSTATE = "PS409";
+
+interface ConflictInfo {
+  isConflict: boolean;
+  currentRevision: number | null;
+}
+
+/** Detecta el conflicto de concurrencia optimista y extrae la revision actual del `detail`. */
+function detectConflict(
+  error: { code?: string; details?: string } | null | undefined,
+): ConflictInfo {
+  if (!error || error.code !== CONCURRENCY_CONFLICT_SQLSTATE) {
+    return { isConflict: false, currentRevision: null };
+  }
+  const parsed = error.details ? Number.parseInt(error.details, 10) : NaN;
+  return { isConflict: true, currentRevision: Number.isFinite(parsed) ? parsed : null };
+}
+
 function mapSupabaseError(error: { code?: string; message?: string } | null | undefined): string {
   if (!error) return "Ocurrió un error inesperado. Intentá de nuevo.";
 
@@ -34,4 +53,4 @@ function mapSupabaseError(error: { code?: string; message?: string } | null | un
   return "Ocurrió un error inesperado. Intentá de nuevo.";
 }
 
-export { mapSupabaseError };
+export { mapSupabaseError, detectConflict };

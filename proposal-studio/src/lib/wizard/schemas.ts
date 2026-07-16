@@ -21,6 +21,7 @@ const proposalDetailsSchema = z.object({
   product: z.string().trim().min(1, "El producto es obligatorio.").max(200),
   currency: currencySchema,
   internal_notes: z.string().trim().max(4000).optional().default(""),
+  expected_revision: z.number().int().nonnegative(),
 });
 
 const clientCreateSchema = z.object({
@@ -40,6 +41,7 @@ const narrativeSchema = z.object({
   detected_risks: z.string().trim().max(8000).optional().default(""),
   opportunities: z.string().trim().max(8000).optional().default(""),
   recommended_strategy: z.string().trim().max(8000).optional().default(""),
+  expected_revision: z.number().int().nonnegative().nullable(),
 });
 
 const alternativeCategorySchema = z.enum([
@@ -64,6 +66,7 @@ const alternativeSchema = z.object({
   disadvantages: z.array(z.string().trim().max(500)).max(20).default([]),
   notes: z.string().trim().max(4000).optional().default(""),
   display_order: z.number().int().nonnegative(),
+  expected_revision: z.number().int().nonnegative().nullable(),
 });
 
 const benefitCategorySchema = z.enum([
@@ -85,6 +88,7 @@ const benefitSchema = z.object({
   icon: z.string().trim().min(1).max(60),
   category: benefitCategorySchema,
   display_order: z.number().int().nonnegative(),
+  expected_revision: z.number().int().nonnegative().nullable(),
 });
 
 // Sin HTML ni scripts: solo texto plano corto por celda, apto para el motor de PDF.
@@ -109,6 +113,7 @@ const comparisonSchema = z.object({
   proposal_id: z.string().uuid(),
   columns: z.array(comparisonColumnSchema).max(12),
   rows: z.array(comparisonRowSchema).max(50),
+  expected_revision: z.number().int().nonnegative().nullable(),
 });
 
 const reorderSchema = z.object({

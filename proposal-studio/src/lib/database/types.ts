@@ -246,6 +246,7 @@ export type Database = {
           proposal_id: string | null
           quotation_number: string | null
           recommended_reason: string | null
+          revision: number
           title: string
           updated_at: string
           user_id: string
@@ -269,6 +270,7 @@ export type Database = {
           proposal_id?: string | null
           quotation_number?: string | null
           recommended_reason?: string | null
+          revision?: number
           title: string
           updated_at?: string
           user_id: string
@@ -292,6 +294,7 @@ export type Database = {
           proposal_id?: string | null
           quotation_number?: string | null
           recommended_reason?: string | null
+          revision?: number
           title?: string
           updated_at?: string
           user_id?: string
@@ -323,6 +326,7 @@ export type Database = {
           id: string
           is_enabled: boolean
           proposal_id: string | null
+          revision: number
           title: string
           updated_at: string
           user_id: string
@@ -336,6 +340,7 @@ export type Database = {
           id?: string
           is_enabled?: boolean
           proposal_id?: string | null
+          revision?: number
           title: string
           updated_at?: string
           user_id: string
@@ -349,6 +354,7 @@ export type Database = {
           id?: string
           is_enabled?: boolean
           proposal_id?: string | null
+          revision?: number
           title?: string
           updated_at?: string
           user_id?: string
@@ -376,6 +382,7 @@ export type Database = {
           created_at: string
           id: string
           proposal_id: string
+          revision: number
           rows: Json
           updated_at: string
           user_id: string
@@ -385,6 +392,7 @@ export type Database = {
           created_at?: string
           id?: string
           proposal_id: string
+          revision?: number
           rows?: Json
           updated_at?: string
           user_id: string
@@ -394,6 +402,7 @@ export type Database = {
           created_at?: string
           id?: string
           proposal_id?: string
+          revision?: number
           rows?: Json
           updated_at?: string
           user_id?: string
@@ -534,6 +543,7 @@ export type Database = {
           opportunities: string | null
           proposal_id: string | null
           recommended_strategy: string | null
+          revision: number
           updated_at: string
           user_id: string
         }
@@ -550,6 +560,7 @@ export type Database = {
           opportunities?: string | null
           proposal_id?: string | null
           recommended_strategy?: string | null
+          revision?: number
           updated_at?: string
           user_id: string
         }
@@ -566,6 +577,7 @@ export type Database = {
           opportunities?: string | null
           proposal_id?: string | null
           recommended_strategy?: string | null
+          revision?: number
           updated_at?: string
           user_id?: string
         }
@@ -693,34 +705,97 @@ export type Database = {
           },
         ]
       }
+      proposal_version_artifacts: {
+        Row: {
+          artifact_type: string
+          byte_size: number
+          checksum: string
+          created_at: string
+          id: string
+          mime_type: string
+          proposal_version_id: string
+          render_engine: string
+          render_engine_version: string
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          artifact_type?: string
+          byte_size: number
+          checksum: string
+          created_at?: string
+          id?: string
+          mime_type?: string
+          proposal_version_id: string
+          render_engine: string
+          render_engine_version: string
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          artifact_type?: string
+          byte_size?: number
+          checksum?: string
+          created_at?: string
+          id?: string
+          mime_type?: string
+          proposal_version_id?: string
+          render_engine?: string
+          render_engine_version?: string
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_version_artifacts_proposal_version_id_fkey"
+            columns: ["proposal_version_id"]
+            isOneToOne: false
+            referencedRelation: "proposal_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_version_artifacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       proposal_versions: {
         Row: {
+          checksum: string | null
           content_json: Json
           created_at: string
           created_by: string | null
           id: string
           proposal_id: string | null
           render_json: Json
+          schema_version: number
           user_id: string
           version_number: number
         }
         Insert: {
+          checksum?: string | null
           content_json: Json
           created_at?: string
           created_by?: string | null
           id?: string
           proposal_id?: string | null
           render_json: Json
+          schema_version?: number
           user_id: string
           version_number: number
         }
         Update: {
+          checksum?: string | null
           content_json?: Json
           created_at?: string
           created_by?: string | null
           id?: string
           proposal_id?: string | null
           render_json?: Json
+          schema_version?: number
           user_id?: string
           version_number?: number
         }
@@ -768,6 +843,7 @@ export type Database = {
           product: string | null
           proposal_number: string
           proposal_type: string
+          revision: number
           secondary_color_override: string | null
           share_token: string
           show_cover: boolean
@@ -803,6 +879,7 @@ export type Database = {
           product?: string | null
           proposal_number: string
           proposal_type: string
+          revision?: number
           secondary_color_override?: string | null
           share_token?: string
           show_cover?: boolean
@@ -838,6 +915,7 @@ export type Database = {
           product?: string | null
           proposal_number?: string
           proposal_type?: string
+          revision?: number
           secondary_color_override?: string | null
           share_token?: string
           show_cover?: boolean
@@ -914,6 +992,15 @@ export type Database = {
           id: string
         }[]
       }
+      emit_proposal_version: {
+        Args: { p_proposal_id: string }
+        Returns: {
+          checksum: string
+          id: string
+          is_new: boolean
+          version_number: number
+        }[]
+      }
       finalize_proposal: {
         Args: { p_id: string }
         Returns: {
@@ -921,7 +1008,24 @@ export type Database = {
           status: string
         }[]
       }
-      generate_proposal_number: { Args: Record<PropertyKey, never>; Returns: string }
+      generate_proposal_number: { Args: never; Returns: string }
+      record_proposal_version_artifact: {
+        Args: {
+          p_byte_size: number
+          p_checksum: string
+          p_mime_type: string
+          p_proposal_version_id: string
+          p_render_engine: string
+          p_render_engine_version: string
+          p_storage_path: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          is_new: boolean
+          storage_path: string
+        }[]
+      }
       reorder_proposal_alternatives: {
         Args: { p_ordered_ids: string[]; p_proposal_id: string }
         Returns: undefined
@@ -934,6 +1038,7 @@ export type Database = {
         Args: {
           p_client_id: string
           p_currency: string
+          p_expected_revision: number
           p_id: string
           p_internal_notes: string
           p_primary_objective: string
@@ -943,6 +1048,7 @@ export type Database = {
         }
         Returns: {
           id: string
+          revision: number
           updated_at: string
         }[]
       }
@@ -958,6 +1064,7 @@ export type Database = {
           p_currency: string
           p_description: string
           p_display_order: number
+          p_expected_revision: number
           p_financial_details: Json
           p_id: string
           p_insurance_company: string
@@ -968,6 +1075,7 @@ export type Database = {
         }
         Returns: {
           id: string
+          revision: number
         }[]
       }
       upsert_proposal_benefit: {
@@ -975,6 +1083,7 @@ export type Database = {
           p_category: string
           p_description: string
           p_display_order: number
+          p_expected_revision: number
           p_icon: string
           p_id: string
           p_proposal_id: string
@@ -982,12 +1091,19 @@ export type Database = {
         }
         Returns: {
           id: string
+          revision: number
         }[]
       }
       upsert_proposal_comparison: {
-        Args: { p_columns: Json; p_proposal_id: string; p_rows: Json }
+        Args: {
+          p_columns: Json
+          p_expected_revision: number
+          p_proposal_id: string
+          p_rows: Json
+        }
         Returns: {
           id: string
+          revision: number
           updated_at: string
         }[]
       }
@@ -996,6 +1112,7 @@ export type Database = {
           p_current_situation: string
           p_detected_needs: string
           p_detected_risks: string
+          p_expected_revision: number
           p_objectives: string
           p_opportunities: string
           p_proposal_id: string
@@ -1003,6 +1120,7 @@ export type Database = {
         }
         Returns: {
           id: string
+          revision: number
           updated_at: string
         }[]
       }

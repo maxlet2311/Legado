@@ -16,6 +16,10 @@ interface StepMeta {
   autosaveStatus: AutosaveStatus;
   autosaveError?: string;
   saveNow?: () => void;
+  /** Solo presentes cuando autosaveStatus === "conflict" (ver hooks/use-autosave.ts). */
+  conflictRevision?: number | null;
+  resolveKeepMine?: () => void;
+  resolveReload?: () => void;
 }
 
 const DEFAULT_STEP_META: StepMeta = { isValid: true, autosaveStatus: "idle" };

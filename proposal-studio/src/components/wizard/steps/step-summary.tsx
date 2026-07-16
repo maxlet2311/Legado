@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2, Loader2, FileStack, Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SummaryCard } from "@/components/wizard/summary-card";
 import { finalizeProposalAction } from "@/lib/wizard/actions";
+import { emitProposalVersionAction } from "@/lib/versions/actions";
 import { useWizardStore } from "@/stores/wizard-store";
 import type { WizardStepProps } from "@/types/wizard";
 
@@ -15,6 +17,9 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
   const data = useWizardStore((state) => state.data);
   const [error, setError] = useState<string | undefined>();
   const [isPending, startTransition] = useTransition();
+  const [versionError, setVersionError] = useState<string | undefined>();
+  const [emittedVersionId, setEmittedVersionId] = useState<string | undefined>();
+  const [isEmitting, startEmitting] = useTransition();
 
   if (!data) return null;
 
@@ -30,6 +35,18 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
         return;
       }
       router.push(`/proposal/${proposalId}`);
+    });
+  }
+
+  function handleEmitVersion() {
+    setVersionError(undefined);
+    startEmitting(async () => {
+      const result = await emitProposalVersionAction(proposalId);
+      if (result.error || !result.data) {
+        setVersionError(result.error ?? "No pudimos emitir la versión.");
+        return;
+      }
+      setEmittedVersionId(result.data.id);
     });
   }
 
@@ -138,6 +155,28 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
             Finalizar propuesta
           </Button>
         )}
+      </div>
+
+      <div className="flex flex-col items-end gap-2 border-t border-outline-variant pt-6">
+        <p className="text-small text-on-surface-variant">
+          Emitir una versión congela un snapshot inmutable del documento (independiente de si la propuesta ya está
+          finalizada). Podés seguir editando el wizard después: no altera versiones ya emitidas.
+        </p>
+        {versionError && <p className="text-small text-error">{versionError}</p>}
+        <div className="flex items-center gap-3">
+          {emittedVersionId ? (
+            <Button variant="secondary" asChild>
+              <Link href={`/proposal/${proposalId}/versions/${emittedVersionId}/preview`}>
+                <Eye className="h-4 w-4" />
+                Ver preview
+              </Link>
+            </Button>
+          ) : null}
+          <Button type="button" variant="secondary" onClick={handleEmitVersion} disabled={isEmitting}>
+            {isEmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileStack className="h-4 w-4" />}
+            Emitir versión
+          </Button>
+        </div>
       </div>
     </div>
   );

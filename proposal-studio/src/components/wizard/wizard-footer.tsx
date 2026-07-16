@@ -13,6 +13,8 @@ interface WizardFooterProps {
   nextLoading?: boolean;
   autosaveStatus?: AutosaveStatus;
   autosaveError?: string;
+  onResolveKeepMine?: () => void;
+  onResolveReload?: () => void;
   extra?: ReactNode;
 }
 
@@ -24,6 +26,8 @@ function WizardFooter({
   nextLoading,
   autosaveStatus = "idle",
   autosaveError,
+  onResolveKeepMine,
+  onResolveReload,
   extra,
 }: WizardFooterProps) {
   return (
@@ -33,7 +37,12 @@ function WizardFooter({
           <ArrowLeft className="h-4 w-4" />
           Anterior
         </Button>
-        <AutosaveIndicator status={autosaveStatus} error={autosaveError} />
+        <AutosaveIndicator
+          status={autosaveStatus}
+          error={autosaveError}
+          onResolveKeepMine={onResolveKeepMine}
+          onResolveReload={onResolveReload}
+        />
       </div>
       <div className="flex items-center gap-3">
         {extra}
