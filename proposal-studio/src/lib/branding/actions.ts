@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { createClient } from "@/lib/database/server";
-import { requireUser } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { mapSupabaseError } from "@/lib/utils/errors";
 import type { TablesInsert } from "@/lib/database/types";
 
@@ -65,7 +65,7 @@ async function uploadBrandAsset(
 const SIGNED_URL_EXPIRY_SECONDS = 60 * 60;
 
 async function saveBrandAction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const user = await requireUser();
+  const { user } = await requireActiveUser();
 
   const parsed = brandSchema.safeParse({
     commercial_name: formData.get("commercial_name"),
@@ -122,7 +122,7 @@ async function saveBrandAction(_prevState: ActionResult, formData: FormData): Pr
  * `signatures`, nunca una URL pública.
  */
 async function getSignaturePreviewUrl(path: string): Promise<string | null> {
-  await requireUser();
+  await requireActiveUser();
   const supabase = await createClient();
 
   const { data } = await supabase.storage

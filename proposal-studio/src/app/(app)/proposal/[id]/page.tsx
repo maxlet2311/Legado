@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { StatusPill, type ProposalStatus } from "@/components/layout/status-pill";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireUser } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
 import { EditTitleDialog, ArchiveButton } from "@/app/(app)/proposal/[id]/proposal-actions";
 import { VersionHistory } from "@/app/(app)/proposal/[id]/version-history";
@@ -23,7 +23,7 @@ export default async function ProposalDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await requireUser();
+  const { user } = await requireActiveUser();
   const supabase = await createClient();
 
   const { data: proposal } = await supabase

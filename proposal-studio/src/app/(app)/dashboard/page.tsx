@@ -5,7 +5,7 @@ import { FileText, BookOpen, BadgeCheck, SlidersHorizontal, ChevronRight, MoreHo
 import { ContentContainer } from "@/components/layout/content-container";
 import { StatusPill, type ProposalStatus } from "@/components/layout/status-pill";
 import { EmptyState } from "@/components/ui/empty-state";
-import { requireSession } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
 import { NewProposalDialog } from "@/app/(app)/dashboard/new-proposal-dialog";
 
@@ -53,7 +53,7 @@ function formatDate(value: string) {
 }
 
 export default async function DashboardPage() {
-  const { user, profile } = await requireSession();
+  const { user, profile } = await requireActiveUser();
   const supabase = await createClient();
 
   const [{ data: proposals, error: proposalsError }, { data: clients }] = await Promise.all([

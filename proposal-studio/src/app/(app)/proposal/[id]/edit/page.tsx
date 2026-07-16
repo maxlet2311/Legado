@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { requireSession } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
 import { ProposalWizard } from "@/components/wizard/proposal-wizard";
 import type {
@@ -22,7 +22,7 @@ export default async function ProposalEditPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { user, profile } = await requireSession();
+  const { user, profile } = await requireActiveUser();
   const supabase = await createClient();
 
   const [proposalResult, narrativeResult, alternativesResult, benefitsResult, comparisonResult, clientsResult] =

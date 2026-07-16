@@ -3,7 +3,7 @@ import "server-only";
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/database/server";
-import { requireUser } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 
 export const runtime = "nodejs";
 
@@ -15,7 +15,7 @@ const DOWNLOAD_SIGNED_URL_TTL_SECONDS = 60;
  * filtro explícito por `user_id`, defensa en profundidad).
  */
 async function GET(_request: Request, { params }: { params: Promise<{ versionId: string }> }) {
-  const user = await requireUser();
+  const { user } = await requireActiveUser();
   const supabase = await createClient();
   const { versionId } = await params;
 

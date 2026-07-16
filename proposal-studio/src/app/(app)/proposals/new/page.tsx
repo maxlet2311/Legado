@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { ContentContainer } from "@/components/layout/content-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { WizardStepper } from "@/components/layout/wizard-stepper";
-import { requireUser } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
 import { NewProposalClientStep } from "@/app/(app)/proposals/new/new-proposal-client-step";
 import type { WizardClient } from "@/types/wizard";
@@ -24,7 +24,7 @@ const wizardSteps = [
 ];
 
 export default async function NewProposalPage() {
-  const user = await requireUser();
+  const { user } = await requireActiveUser();
   const supabase = await createClient();
 
   const { data: clients } = await supabase

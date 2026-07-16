@@ -5,7 +5,7 @@ import { Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { ContentContainer } from "@/components/layout/content-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
-import { requireUser } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
 import { NewClientDialog, EditClientDialog } from "@/app/(app)/clients/client-dialogs";
 
@@ -31,7 +31,7 @@ export default async function ClientsPage({
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
-  const user = await requireUser();
+  const { user } = await requireActiveUser();
   const supabase = await createClient();
 
   const {

@@ -137,4 +137,108 @@ Validado con `tsc --noEmit`, `eslint`, `next build`, advisors de seguridad
 (0 warnings) y pruebas RLS/atomicidad/concurrencia con dos usuarios reales
 temporales (creados y eliminados durante la auditoría).
 
+## Platform Owner — Estado
+
+Estado: ✅ Implementado (2026-07-16)
+
+Ver `docs/AUTH_AND_ROLES.md` para el detalle completo. Resumen:
+
+- `public.profiles.is_platform_owner` (boolean, default `false`) separa la
+  propiedad máxima de la plataforma del rol operativo (`role`).
+- Índice único parcial `profiles_single_platform_owner_idx`: como máximo un
+  owner activo a la vez.
+- Owner asignado: `98a388bb-5385-42e2-98d5-9db0b716af82` (`role='admin'`,
+  `is_platform_owner=true`, `is_active=true`).
+- `handle_new_user()` crea usuarios nuevos siempre con `role='advisor'`,
+  `is_active=true`, `is_platform_owner=false` — ignora cualquier campo
+  privilegiado enviado en `raw_user_meta_data` durante el signup.
+- Se revocó la policy de `UPDATE` amplia de `profiles` (permitía a un usuario
+  escribir su propio `role`/`is_active`/`is_platform_owner`/`user_id` sin
+  restricción). Reemplazada por la RPC `update_own_profile(p_full_name)`
+  (solo toca `full_name`, valida `auth.uid()`), sin uso desde el frontend
+  todavía.
+- Helpers centrales: `src/lib/auth/authorization.ts` (puros: `isAdmin`,
+  `isPlatformOwner`, `canAccessAdminArea`) y
+  `src/lib/auth/authorization-guards.ts` (server-only: `requireAdmin()`,
+  `requirePlatformOwner()`).
+- UI: el avatar del topbar (antes hardcodeado a "AM") ahora muestra el
+  nombre real y la etiqueta de rol ("Propietario de plataforma" /
+  "Administrador" / "Asesor").
+- Validado con 21 aserciones automatizadas (owner, admin operativo, advisor,
+  admin inactivo, intento de escalada de privilegios vía metadata de signup,
+  intento de escalada vía `UPDATE` directo bloqueado por RLS, RPC de
+  autoservicio, constraint de único owner) — usuarios temporales creados y
+  eliminados durante la prueba (`e2e/platform-owner-guards.mjs`).
+- No existe todavía ningún panel administrativo ni Server Action exclusiva
+  de admin/owner en el producto: los guards quedan preparados y documentados
+  para cuando se agregue uno.
+
+## Hardening final Platform Owner + Auth — Estado
+
+Estado: ✅ Completado (2026-07-16)
+
+Riesgo real encontrado: todas las Server Actions y Route Handlers privados
+(clientes, branding, propuestas, wizard, emisión de versiones, descarga y
+generación de PDF) usaban `requireUser()` (solo valida que exista sesión) en
+vez de exigir además `profile.is_active === true`. El middleware revalida
+`is_active` para navegación de página, pero **no cubre `/api/**`** — los dos
+Route Handlers de PDF/descarga dependían enteramente del guard interno, y ese
+guard no chequeaba `is_active`. Un usuario desactivado a mitad de sesión
+podía seguir generando/descargando PDFs y ejecutando mutaciones mientras su
+JWT siguiera vigente.
+
+Corrección:
+
+- Guard central nuevo `requireActiveUser()` en
+  `src/lib/auth/authorization-guards.ts`: exige sesión + `is_active`,
+  reutiliza la caché por request de `requireSession` (sin llamadas
+  duplicadas a Supabase Auth), y hace `signOut()` + redirect a
+  `/login?error=inactive` si el usuario está inactivo.
+- `requireAdmin()`/`requirePlatformOwner()` refactorizados para construirse
+  sobre `requireActiveUser()`.
+- `requireUser()` (el helper que solo validaba autenticación) se eliminó de
+  `session.ts` — ya no tiene ningún call site y era el foot-gun que permitía
+  saltear el chequeo de `is_active`.
+- Reemplazado en las 8 Server Actions/Route Handlers y 7 páginas del grupo
+  `(app)` que antes llamaban `requireUser()`/`requireSession()` directamente:
+  `src/lib/client/actions.ts`, `src/lib/branding/actions.ts`,
+  `src/lib/proposal/actions.ts`, `src/lib/wizard/actions.ts`,
+  `src/lib/versions/actions.ts`,
+  `src/app/api/proposal-versions/[versionId]/{pdf,download}/route.ts`,
+  `src/app/(app)/layout.tsx` y las páginas de dashboard, clientes, branding,
+  propuesta, edición, nueva propuesta y preview de versión.
+- No se tocaron migraciones históricas. `update_own_profile` y
+  `handle_new_user` remotos ya cumplían todos los requisitos de
+  endurecimiento (SECURITY DEFINER, `search_path` fijo, referencias
+  calificadas, solo `full_name` como parámetro, `REVOKE`/`GRANT` correctos)
+  — no se recrearon.
+- Verificado en DB real (proyecto `btgopvaztnttahyjejav`): un solo
+  `is_platform_owner = true`, índice único parcial intacto, sin policy de
+  `UPDATE` en `profiles`, `update_own_profile` sin `EXECUTE` para
+  `public`/`anon`.
+- Advisors de seguridad: sin warnings nuevos. Los dos existentes son
+  esperados y ya estaban documentados —
+  `authenticated_security_definer_function_executable` sobre
+  `update_own_profile` (función acotada a un solo campo, aceptado) y
+  `auth_leaked_password_protection` (acción manual pendiente en Supabase
+  Dashboard → Authentication → Attack Protection, no configurable por SQL).
+  Advisor de performance: solo `unused_index` informativos preexistentes en
+  tablas fuera de alcance de esta tarea.
+- `e2e/platform-owner-guards.mjs` ampliado con aserciones explícitas de
+  `requireActiveUser()` para cada perfil (owner, admin operativo, advisor,
+  admin inactivo) — 24 aserciones, todas en verde; usuarios temporales
+  creados y eliminados durante la corrida.
+- `tsc --noEmit`, `eslint` y `next build` sin errores ni warnings.
+
+Riesgos pendientes (fuera de alcance, no bloqueantes):
+
+- Leaked password protection sigue requiriendo activación manual en el
+  Dashboard de Supabase.
+- Los archivos `supabase/migrations/20260716010000_platform_owner.sql` y
+  `20260716010100_drop_redundant_platform_owner_index.sql` documentan (de
+  forma idempotente) el mismo cambio que ya está aplicado en remoto bajo
+  otros nombres de migración (`20260716025944_platform_owner_complete`,
+  `20260716030919_drop_redundant_platform_owner_index`). No se tocaron para
+  no reescribir historial: quedan como referencia versionada del cambio.
+
 

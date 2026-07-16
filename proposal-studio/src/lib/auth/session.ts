@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/database/server";
 import type { Tables } from "@/lib/database/types";
 
-type Profile = Pick<Tables<"profiles">, "id" | "full_name" | "role" | "is_active">;
+type Profile = Pick<Tables<"profiles">, "id" | "full_name" | "role" | "is_active" | "is_platform_owner">;
 
 interface Session {
   user: Awaited<ReturnType<typeof resolveSession>>["user"];
@@ -32,7 +32,7 @@ const resolveSession = cache(async () => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, full_name, role, is_active")
+    .select("id, full_name, role, is_active, is_platform_owner")
     .eq("id", user.id)
     .single();
 
@@ -53,16 +53,6 @@ async function getCurrentProfile(): Promise<Profile | null> {
   return profile;
 }
 
-async function requireUser() {
-  const { user } = await resolveSession();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  return user;
-}
-
 async function requireSession(): Promise<{ user: NonNullable<Session["user"]>; profile: Profile | null }> {
   const { user, profile } = await resolveSession();
 
@@ -73,4 +63,5 @@ async function requireSession(): Promise<{ user: NonNullable<Session["user"]>; p
   return { user, profile };
 }
 
-export { getSession, getCurrentUser, getCurrentProfile, requireUser, requireSession };
+export { getSession, getCurrentUser, getCurrentProfile, requireSession };
+export type { Profile };

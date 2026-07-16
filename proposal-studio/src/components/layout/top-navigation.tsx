@@ -2,12 +2,28 @@ import Link from "next/link";
 import { Bell, Search } from "lucide-react";
 
 import { cn } from "@/lib/utils/cn";
+import { isAdmin, isPlatformOwner } from "@/lib/auth/authorization";
+import type { Profile } from "@/lib/auth/session";
 
 export interface TopNavigationProps {
   collapsed: boolean;
+  profile: Profile | null;
 }
 
-function TopNavigation({ collapsed }: TopNavigationProps) {
+function getInitials(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  const initials = parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "");
+  return initials.join("") || "?";
+}
+
+/** "Propietario de plataforma" solo si `is_platform_owner`; si no, la etiqueta de `role`. */
+function getRoleLabel(profile: Profile): string {
+  if (isPlatformOwner(profile)) return "Propietario de plataforma";
+  if (isAdmin(profile)) return "Administrador";
+  return "Asesor";
+}
+
+function TopNavigation({ collapsed, profile }: TopNavigationProps) {
   return (
     <header
       className={cn(
@@ -52,9 +68,17 @@ function TopNavigation({ collapsed }: TopNavigationProps) {
           >
             <Bell className="h-5 w-5" />
           </button>
-          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-outline-variant bg-surface-container-highest text-caption font-semibold text-on-surface-variant">
-            AM
-          </div>
+          {profile && (
+            <div className="flex items-center gap-3">
+              <div className="hidden text-right sm:block">
+                <p className="text-small font-semibold leading-tight text-on-surface">{profile.full_name}</p>
+                <p className="text-caption leading-tight text-on-surface-variant">{getRoleLabel(profile)}</p>
+              </div>
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-outline-variant bg-surface-container-highest text-caption font-semibold text-on-surface-variant">
+                {getInitials(profile.full_name)}
+              </div>
+            </div>
+          )}
         </div>
       </nav>
     </header>

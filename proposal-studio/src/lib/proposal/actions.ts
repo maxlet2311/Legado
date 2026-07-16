@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { createClient } from "@/lib/database/server";
-import { requireUser } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { mapSupabaseError } from "@/lib/utils/errors";
 
 interface ActionResult {
@@ -33,7 +33,7 @@ async function createDraftProposalAction(
   _prevState: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireUser();
+  await requireActiveUser();
 
   const parsed = draftProposalSchema.safeParse({
     client_id: formData.get("client_id"),
@@ -78,7 +78,7 @@ async function updateProposalMetaAction(
   _prevState: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireUser();
+  await requireActiveUser();
 
   const parsed = updateProposalMetaSchema.safeParse({
     id: formData.get("id"),
@@ -103,7 +103,7 @@ async function updateProposalMetaAction(
 }
 
 async function archiveProposalAction(proposalId: string): Promise<ActionResult> {
-  await requireUser();
+  await requireActiveUser();
   const supabase = await createClient();
 
   const { data, error } = await supabase.rpc("archive_proposal", { p_id: proposalId }).single();

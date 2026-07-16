@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/database/server";
-import { requireUser } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { mapSupabaseError } from "@/lib/utils/errors";
 
 interface ActionResult<T = undefined> {
@@ -19,7 +19,7 @@ interface ActionResult<T = undefined> {
 async function emitProposalVersionAction(
   proposalId: string,
 ): Promise<ActionResult<{ id: string; versionNumber: number; isNew: boolean }>> {
-  await requireUser();
+  await requireActiveUser();
   const supabase = await createClient();
 
   const { data, error } = await supabase.rpc("emit_proposal_version", { p_proposal_id: proposalId }).single();

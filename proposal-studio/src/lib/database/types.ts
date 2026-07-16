@@ -202,6 +202,7 @@ export type Database = {
           full_name: string
           id: string
           is_active: boolean
+          is_platform_owner: boolean
           role: string
           updated_at: string
           user_id: string
@@ -211,6 +212,7 @@ export type Database = {
           full_name: string
           id: string
           is_active?: boolean
+          is_platform_owner?: boolean
           role?: string
           updated_at?: string
           user_id: string
@@ -220,6 +222,7 @@ export type Database = {
           full_name?: string
           id?: string
           is_active?: boolean
+          is_platform_owner?: boolean
           role?: string
           updated_at?: string
           user_id?: string
@@ -1034,6 +1037,25 @@ export type Database = {
         Args: { p_ordered_ids: string[]; p_proposal_id: string }
         Returns: undefined
       }
+      update_own_profile: {
+        Args: { p_full_name: string }
+        Returns: {
+          created_at: string
+          full_name: string
+          id: string
+          is_active: boolean
+          is_platform_owner: boolean
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       update_proposal_details: {
         Args: {
           p_client_id: string
@@ -1250,3 +1272,9 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

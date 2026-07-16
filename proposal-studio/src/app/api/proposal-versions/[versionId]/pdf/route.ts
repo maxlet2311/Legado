@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/database/server";
-import { requireUser } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { buildDocumentSnapshot } from "@/lib/render/build-snapshot";
 import { generateProposalVersionPdf, RENDER_ENGINE, RENDER_ENGINE_VERSION } from "@/lib/render/pdf";
 
@@ -20,7 +20,7 @@ export const runtime = "nodejs";
  */
 async function POST(_request: Request, { params }: { params: Promise<{ versionId: string }> }) {
   const { versionId } = await params;
-  const user = await requireUser();
+  const { user } = await requireActiveUser();
   const supabase = await createClient();
 
   const { data: existing } = await supabase

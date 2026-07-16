@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { ContentContainer } from "@/components/layout/content-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { requireUser } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
 import { getSignaturePreviewUrl } from "@/lib/branding/actions";
 import { BrandingForm } from "@/app/(app)/branding/branding-form";
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BrandingPage() {
-  const user = await requireUser();
+  const { user } = await requireActiveUser();
   const supabase = await createClient();
 
   const { data: brand } = await supabase

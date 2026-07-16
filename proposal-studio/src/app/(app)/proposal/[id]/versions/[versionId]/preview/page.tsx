@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ContentContainer } from "@/components/layout/content-container";
 import { PageHeader } from "@/components/layout/page-header";
-import { requireUser } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
 import { buildDocumentSnapshot } from "@/lib/render/build-snapshot";
 import { RenderDocument } from "@/lib/render/render-document";
@@ -25,7 +25,7 @@ export default async function VersionPreviewPage({
   params: Promise<{ id: string; versionId: string }>;
 }) {
   const { id, versionId } = await params;
-  const user = await requireUser();
+  const { user } = await requireActiveUser();
   const supabase = await createClient();
 
   const { data: versionRow } = await supabase

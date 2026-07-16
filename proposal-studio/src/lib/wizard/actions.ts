@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/database/server";
-import { requireUser } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { mapSupabaseError, detectConflict } from "@/lib/utils/errors";
 import {
   proposalDetailsSchema,
@@ -27,7 +27,7 @@ interface ActionResult<T = undefined> {
 async function createWizardClientAction(
   input: unknown,
 ): Promise<ActionResult<WizardClient>> {
-  const user = await requireUser();
+  const { user } = await requireActiveUser();
   const parsed = clientCreateSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message };
@@ -50,7 +50,7 @@ async function createWizardClientAction(
 
 /** Paso 1: crea el borrador de propuesta a partir del cliente elegido y abre el wizard. */
 async function createDraftFromClientAction(clientId: string): Promise<ActionResult<{ id: string }>> {
-  await requireUser();
+  await requireActiveUser();
   if (!clientId) {
     return { error: "Seleccioná un cliente." };
   }
@@ -77,7 +77,7 @@ async function createDraftFromClientAction(clientId: string): Promise<ActionResu
 async function updateProposalDetailsAction(
   input: unknown,
 ): Promise<ActionResult<{ updated_at: string; revision: number }>> {
-  await requireUser();
+  await requireActiveUser();
   const parsed = proposalDetailsSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message };
@@ -114,7 +114,7 @@ async function updateProposalDetailsAction(
 async function upsertNarrativeAction(
   input: unknown,
 ): Promise<ActionResult<{ updated_at: string; revision: number }>> {
-  await requireUser();
+  await requireActiveUser();
   const parsed = narrativeSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message };
@@ -151,7 +151,7 @@ async function upsertNarrativeAction(
 async function saveAlternativeAction(
   input: unknown,
 ): Promise<ActionResult<{ id: string; revision: number }>> {
-  await requireUser();
+  await requireActiveUser();
   const parsed = alternativeSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message };
@@ -194,7 +194,7 @@ async function saveAlternativeAction(
 }
 
 async function deleteAlternativeAction(proposalId: string, id: string): Promise<ActionResult> {
-  await requireUser();
+  await requireActiveUser();
   const supabase = await createClient();
   const { error } = await supabase.rpc("delete_proposal_alternative", {
     p_id: id,
@@ -208,7 +208,7 @@ async function deleteAlternativeAction(proposalId: string, id: string): Promise<
 }
 
 async function reorderAlternativesAction(input: unknown): Promise<ActionResult> {
-  await requireUser();
+  await requireActiveUser();
   const parsed = reorderSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message };
@@ -230,7 +230,7 @@ async function reorderAlternativesAction(input: unknown): Promise<ActionResult> 
 async function saveBenefitAction(
   input: unknown,
 ): Promise<ActionResult<{ id: string; revision: number }>> {
-  await requireUser();
+  await requireActiveUser();
   const parsed = benefitSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message };
@@ -264,7 +264,7 @@ async function saveBenefitAction(
 }
 
 async function deleteBenefitAction(proposalId: string, id: string): Promise<ActionResult> {
-  await requireUser();
+  await requireActiveUser();
   const supabase = await createClient();
   const { error } = await supabase.rpc("delete_proposal_benefit", {
     p_id: id,
@@ -278,7 +278,7 @@ async function deleteBenefitAction(proposalId: string, id: string): Promise<Acti
 }
 
 async function reorderBenefitsAction(input: unknown): Promise<ActionResult> {
-  await requireUser();
+  await requireActiveUser();
   const parsed = reorderSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message };
@@ -300,7 +300,7 @@ async function reorderBenefitsAction(input: unknown): Promise<ActionResult> {
 async function upsertComparisonAction(
   input: unknown,
 ): Promise<ActionResult<{ updated_at: string; revision: number }>> {
-  await requireUser();
+  await requireActiveUser();
   const parsed = comparisonSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message };
@@ -331,7 +331,7 @@ async function upsertComparisonAction(
 
 /** Paso 8: cierre de la propuesta. El RPC valida en servidor los datos mínimos. */
 async function finalizeProposalAction(proposalId: string): Promise<ActionResult<{ status: string }>> {
-  await requireUser();
+  await requireActiveUser();
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("finalize_proposal", { p_id: proposalId }).single();
 

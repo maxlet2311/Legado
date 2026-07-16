@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { createClient } from "@/lib/database/server";
-import { requireUser } from "@/lib/auth/session";
+import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { mapSupabaseError } from "@/lib/utils/errors";
 
 interface ActionResult {
@@ -21,7 +21,7 @@ const clientSchema = z.object({
 });
 
 async function createClientAction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const user = await requireUser();
+  const { user } = await requireActiveUser();
 
   const parsed = clientSchema.safeParse({
     full_name: formData.get("full_name"),
@@ -53,7 +53,7 @@ const updateClientSchema = clientSchema.extend({
 });
 
 async function updateClientAction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const user = await requireUser();
+  const { user } = await requireActiveUser();
 
   const parsed = updateClientSchema.safeParse({
     id: formData.get("id"),
