@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import { getSubscriptionProvider } from "@/lib/payments";
 import { recordIncomingEvent, markEventStatus } from "@/lib/payments/webhook-events";
+import { isReprocessable } from "@/lib/payments/webhook-event-status";
 import { reconcileMercadoPagoPreapproval } from "@/lib/payments/reconciliation";
 import { logServerError } from "@/lib/utils/errors";
 import { checkRateLimit } from "@/lib/utils/rate-limit";
@@ -55,8 +56,13 @@ async function POST(request: Request) {
     payload: event.payload,
   });
 
-  if (!recorded.isNew) {
-    // Reintento/duplicado ya procesado (o ya rechazado) en un intento previo.
+  if (!recorded.isNew && !isReprocessable(recorded.processingStatus)) {
+    // Reintento/duplicado ya resuelto (procesado, ignorado o unmatched) en un
+    // intento previo — nunca se reprocesa. Si en cambio quedó "failed" (o se
+    // cayó el proceso a mitad de camino, dejándolo en "received"/"processing"),
+    // se sigue de largo y se reintenta: de lo contrario, una falla transitoria
+    // nuestra en el primer intento dejaría el evento huérfano para siempre,
+    // porque Mercado Pago solo reintenta un número acotado de veces.
     return NextResponse.json({ status: "duplicate" });
   }
 

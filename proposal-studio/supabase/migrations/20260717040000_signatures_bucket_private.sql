@@ -1,0 +1,23 @@
+-- Sprint 4 (hardening, P0): revierte el bucket `signatures` a privado.
+--
+-- 20260715170018_storage_buckets_public_assets.sql marcó `brand-assets` y
+-- `signatures` como públicos por igual, con el comentario "no contienen
+-- datos de clientes" — correcto para `brand-assets` (logos, pensados para
+-- aparecer en documentos compartibles), pero equivocado para `signatures`:
+-- el propio código de aplicación (`src/lib/branding/actions.ts`) documenta
+-- la firma del asesor como "dato sensible" y deliberadamente solo guarda el
+-- path interno, nunca una URL pública, resolviendo siempre una signed URL de
+-- 60 minutos recién al mostrar la preview.
+--
+-- Un bucket público en Supabase Storage se sirve desde
+-- /storage/v1/object/public/{bucket}/{path} sin pasar por RLS en absoluto:
+-- mientras `signatures` siguiera público, la policy owner-only
+-- `signatures_owner_rw` (20260715170017_storage_buckets.sql) no ofrecía
+-- ninguna protección real, y el mecanismo de signed URL de corta duración
+-- que ya implementa el código era inútil en la práctica — cualquiera que
+-- conociera u obtuviera el path del objeto podía acceder a la firma de forma
+-- indefinida, sin firma ni expiración.
+--
+-- No requiere cambios de código: `createSignedUrl` (branding/actions.ts,
+-- render/build-snapshot.ts) ya asume que el bucket es privado.
+update storage.buckets set public = false where id = 'signatures';

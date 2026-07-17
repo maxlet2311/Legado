@@ -7,6 +7,7 @@ import { createClient } from "@/lib/database/server";
 import { requireActiveMembershipForRoute } from "@/lib/memberships/route-guard";
 import { buildDocumentSnapshot } from "@/lib/render/build-snapshot";
 import { generateProposalVersionPdf, RENDER_ENGINE, RENDER_ENGINE_VERSION } from "@/lib/render/pdf";
+import { checkRateLimit } from "@/lib/utils/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -23,6 +24,13 @@ async function POST(_request: Request, { params }: { params: Promise<{ versionId
   const guard = await requireActiveMembershipForRoute({ surface: "pdf.generate" });
   if (guard.response) return guard.response;
   const { user } = guard.context;
+
+  // Límite más estricto que la descarga: cada intento sin "reused" dispara un
+  // render real de Puppeteer + upload a Storage (costo de CPU/red real).
+  if (!checkRateLimit(`pdf:generate:${user.id}`, 10, 60_000)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes. Esperá unos segundos." }, { status: 429 });
+  }
+
   const supabase = await createClient();
 
   const { data: existing } = await supabase
@@ -30,6 +38,7 @@ async function POST(_request: Request, { params }: { params: Promise<{ versionId
     .select("id, storage_path, byte_size, created_at")
     .eq("proposal_version_id", versionId)
     .eq("artifact_type", "pdf")
+    .eq("user_id", user.id)
     .maybeSingle();
 
   if (existing) {

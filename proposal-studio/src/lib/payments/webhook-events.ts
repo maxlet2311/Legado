@@ -3,8 +3,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/database/admin";
 import type { Database } from "@/lib/database/types";
 import type { ProviderName } from "@/lib/payments/types";
-
-type ProcessingStatus = Database["public"]["Tables"]["payment_provider_events"]["Row"]["processing_status"];
+import type { ProcessingStatus } from "@/lib/payments/webhook-event-status";
 
 const MAX_ERROR_MESSAGE_LENGTH = 500;
 
@@ -28,14 +27,26 @@ interface RecordedEvent {
   /** `true` si esta llamada insertó la fila; `false` si ya existía (evento repetido — no reprocesar). */
   isNew: boolean;
   attemptCount: number;
+  /** Estado de la fila existente cuando `isNew` es `false` — el llamador lo usa para decidir si reprocesar. */
+  processingStatus: ProcessingStatus;
 }
 
 /**
  * Inserta el evento crudo con idempotencia por `(provider, provider_event_id)`
  * (ver índice único en la migración). Si el evento ya existía (reintento real
- * de Mercado Pago, o un duplicado de red), incrementa `attempt_count` y
- * devuelve `isNew: false` — el llamador nunca debe reprocesar la transición
- * de membresía en ese caso, solo responder 200 igual.
+ * de Mercado Pago, o un duplicado de red) y quedó en un estado terminal
+ * (`processed`/`ignored`/`unmatched`), incrementa `attempt_count` y devuelve
+ * `isNew: false` — el llamador no debe reprocesar la transición de membresía
+ * en ese caso, solo responder 200 igual.
+ *
+ * Si en cambio quedó en `failed` (o se cayó el proceso a mitad de camino,
+ * dejándolo en `received`/`processing`), el reintento SÍ debe reprocesarse:
+ * de lo contrario, un evento que falló una vez por una falla transitoria
+ * nuestra (ej. Supabase caído durante ese webhook puntual) queda huérfano
+ * para siempre, porque Mercado Pago solo reintenta un puñado de veces y cada
+ * reintento pasaría a caer en la rama "duplicado" sin jamás volver a
+ * aplicarse. `processingStatus` viaja en el resultado para que el llamador
+ * decida.
  */
 async function recordIncomingEvent(params: RecordEventParams): Promise<RecordedEvent> {
   const admin = createAdminClient();
@@ -55,7 +66,7 @@ async function recordIncomingEvent(params: RecordEventParams): Promise<RecordedE
     .single();
 
   if (!insertError && inserted) {
-    return { id: inserted.id, isNew: true, attemptCount: inserted.attempt_count };
+    return { id: inserted.id, isNew: true, attemptCount: inserted.attempt_count, processingStatus: "received" };
   }
 
   // 23505 = unique_violation: el evento ya existía. Se busca la fila existente
@@ -67,7 +78,7 @@ async function recordIncomingEvent(params: RecordEventParams): Promise<RecordedE
 
   const { data: existing, error: selectError } = await admin
     .from("payment_provider_events")
-    .select("id, attempt_count")
+    .select("id, attempt_count, processing_status")
     .eq("provider", params.provider)
     .eq("provider_event_id", params.idempotencyKey)
     .single();
@@ -81,7 +92,12 @@ async function recordIncomingEvent(params: RecordEventParams): Promise<RecordedE
     .update({ attempt_count: existing.attempt_count + 1 })
     .eq("id", existing.id);
 
-  return { id: existing.id, isNew: false, attemptCount: existing.attempt_count + 1 };
+  return {
+    id: existing.id,
+    isNew: false,
+    attemptCount: existing.attempt_count + 1,
+    processingStatus: existing.processing_status,
+  };
 }
 
 async function markEventStatus(

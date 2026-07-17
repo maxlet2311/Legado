@@ -1,5 +1,7 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
+
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -51,7 +53,13 @@ async function uploadBrandAsset(
 
   const supabase = await createClient();
   const extension = file.name.split(".").pop();
-  const path = `${userId}/${bucket === "brand-assets" ? "logo" : "signature"}-${Date.now()}.${extension}`;
+  // Sufijo aleatorio (no `Date.now()`): un timestamp en milisegundos es
+  // enumerable dentro de una ventana de tiempo plausible si el path llegara a
+  // filtrarse (logs, historial del navegador) — irrelevante para RLS/signed
+  // URLs mientras funcionen, pero es la única barrera real si el bucket
+  // llegara a quedar público por error (ver 20260717040000_signatures_bucket_private.sql).
+  const randomSuffix = randomBytes(8).toString("hex");
+  const path = `${userId}/${bucket === "brand-assets" ? "logo" : "signature"}-${randomSuffix}.${extension}`;
 
   const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
 
@@ -126,6 +134,16 @@ async function saveBrandAction(_prevState: ActionResult, formData: FormData): Pr
 async function getSignaturePreviewUrl(path: string): Promise<string | null> {
   const guard = await requireActiveMembershipForAction({ surface: "branding.signature_preview" });
   if (!guard.ok) return null;
+
+  // Defensa en profundidad: los paths de este bucket siempre empiezan con el
+  // user_id del dueño (ver uploadBrandAsset). Es un Server Action exportado —
+  // si alguna vez se importa desde un Client Component, Next.js lo expone
+  // como invocable directo con cualquier `path`; este chequeo evita que sirva
+  // la firma de otro usuario aunque eso llegue a pasar.
+  if (!path.startsWith(`${guard.context.user.id}/`)) {
+    return null;
+  }
+
   const supabase = await createClient();
 
   const { data } = await supabase.storage

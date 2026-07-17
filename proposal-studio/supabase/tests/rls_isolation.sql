@@ -314,3 +314,34 @@ begin;
     end;
   end $$;
 rollback;
+
+-- 10) proposal_versions (Sprint 4, hardening 20260717030000): la fotografía
+--     emitida es inmutable — su dueño puede seguir viéndola (SELECT) pero ya
+--     no puede modificarla ni borrarla directamente vía PostgREST (antes la
+--     policy "proposal_versions_all_own" con `for all` lo permitía).
+begin;
+  do $$
+  declare v_version_id uuid;
+  begin
+    insert into public.proposal_versions (proposal_id, user_id, version_number, content_json, render_json)
+      values (null, '98a388bb-5385-42e2-98d5-9db0b716af82', 1, '{}'::jsonb, '{}'::jsonb)
+      returning id into v_version_id;
+
+    set local role authenticated;
+    perform set_config('request.jwt.claims', '{"sub": "98a388bb-5385-42e2-98d5-9db0b716af82"}', true);
+
+    if (select count(*) from public.proposal_versions where id = v_version_id) <> 1 then
+      raise exception 'FAIL PV-1: el dueño debería poder ver su propia versión emitida';
+    end if;
+
+    update public.proposal_versions set version_number = 99 where id = v_version_id;
+    if (select version_number from public.proposal_versions where id = v_version_id) = 99 then
+      raise exception 'FAIL PV-2: la versión emitida no debería poder modificarse (debe ser inmutable)';
+    end if;
+
+    delete from public.proposal_versions where id = v_version_id;
+    if (select count(*) from public.proposal_versions where id = v_version_id) <> 1 then
+      raise exception 'FAIL PV-3: la versión emitida no debería poder borrarse por su dueño';
+    end if;
+  end $$;
+rollback;

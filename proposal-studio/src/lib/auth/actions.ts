@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -7,6 +8,7 @@ import { createClient } from "@/lib/database/server";
 import { mapSupabaseError, logServerError } from "@/lib/utils/errors";
 import { getSiteUrl } from "@/lib/utils/env";
 import { sanitizeRedirectPath } from "@/lib/utils/safe-redirect";
+import { checkRateLimit } from "@/lib/utils/rate-limit";
 
 interface ActionResult {
   error?: string;
@@ -15,6 +17,12 @@ interface ActionResult {
 /** Mensaje neutral: nunca debe permitir distinguir "no existe" de "contraseña incorrecta". */
 const INVALID_CREDENTIALS_MESSAGE = "El correo o la contraseña no son correctos.";
 const INACTIVE_ACCOUNT_MESSAGE = "Tu acceso se encuentra deshabilitado. Contactá al administrador.";
+const RATE_LIMITED_MESSAGE = "Demasiados intentos. Esperá unos minutos e intentá de nuevo.";
+
+async function requestIp(): Promise<string> {
+  const headerList = await headers();
+  return headerList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+}
 
 const signInSchema = z.object({
   email: z
@@ -33,6 +41,14 @@ async function signInAction(_prevState: ActionResult, formData: FormData): Promi
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message };
+  }
+
+  const ip = await requestIp();
+  // Doble clave (IP + email), mismo criterio que request-activation-action.ts:
+  // frena tanto un flood genérico como un ataque de fuerza bruta dirigido a
+  // una única cuenta desde muchas IPs distintas.
+  if (!checkRateLimit(`sign-in:ip:${ip}`, 20, 15 * 60_000) || !checkRateLimit(`sign-in:email:${parsed.data.email}`, 10, 15 * 60_000)) {
+    return { error: RATE_LIMITED_MESSAGE };
   }
 
   const redirectPath = sanitizeRedirectPath(formData.get("redirectTo"));
@@ -91,6 +107,12 @@ async function requestPasswordResetAction(
     return { error: parsed.error.issues[0]?.message };
   }
 
+  const ip = await requestIp();
+  if (!checkRateLimit(`request-password-reset:ip:${ip}`, 10, 15 * 60_000) || !checkRateLimit(`request-password-reset:email:${parsed.data.email}`, 3, 15 * 60_000)) {
+    // Mismo mensaje neutral de éxito: no debe distinguirse un rate limit de un envío real.
+    return { success: true };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
     redirectTo: `${getSiteUrl()}/update-password`,
@@ -126,6 +148,11 @@ async function updatePasswordAction(_prevState: ActionResult, formData: FormData
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message };
+  }
+
+  const ip = await requestIp();
+  if (!checkRateLimit(`update-password:ip:${ip}`, 10, 15 * 60_000)) {
+    return { error: RATE_LIMITED_MESSAGE };
   }
 
   const supabase = await createClient();

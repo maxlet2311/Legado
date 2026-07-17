@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/database/server";
 import { requireActiveMembershipForRoute } from "@/lib/memberships/route-guard";
+import { checkRateLimit } from "@/lib/utils/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -18,6 +19,11 @@ async function GET(_request: Request, { params }: { params: Promise<{ versionId:
   const guard = await requireActiveMembershipForRoute({ surface: "pdf.download" });
   if (guard.response) return guard.response;
   const { user } = guard.context;
+
+  if (!checkRateLimit(`pdf:download:${user.id}`, 30, 60_000)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes. Esperá unos segundos." }, { status: 429 });
+  }
+
   const supabase = await createClient();
   const { versionId } = await params;
 
