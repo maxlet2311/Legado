@@ -16,6 +16,106 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_activation_invitations: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          email: string
+          expires_at: string
+          id: string
+          membership_id: string | null
+          metadata: Json
+          status: string
+          token_hash: string
+          updated_at: string
+          used_at: string | null
+          used_by_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          membership_id?: string | null
+          metadata?: Json
+          status?: string
+          token_hash: string
+          updated_at?: string
+          used_at?: string | null
+          used_by_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          membership_id?: string | null
+          metadata?: Json
+          status?: string
+          token_hash?: string
+          updated_at?: string
+          used_at?: string | null
+          used_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_activation_invitations_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_audit_events: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          after_data: Json | null
+          before_data: Json | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_audit_events_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brands: {
         Row: {
           accent_color: string
@@ -195,6 +295,246 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      membership_plans: {
+        Row: {
+          billing_interval: string
+          billing_interval_count: number
+          code: string
+          created_at: string
+          currency: string
+          description: string | null
+          features: Json
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          provider: string | null
+          provider_plan_id: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          billing_interval: string
+          billing_interval_count?: number
+          code: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number
+          provider?: string | null
+          provider_plan_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          billing_interval?: string
+          billing_interval_count?: number
+          code?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          provider?: string | null
+          provider_plan_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      membership_status_history: {
+        Row: {
+          actor_user_id: string | null
+          created_at: string
+          external_event_id: string | null
+          id: string
+          membership_id: string
+          metadata: Json
+          new_status: string
+          previous_status: string | null
+          reason: string | null
+          source: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          created_at?: string
+          external_event_id?: string | null
+          id?: string
+          membership_id: string
+          metadata?: Json
+          new_status: string
+          previous_status?: string | null
+          reason?: string | null
+          source: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          created_at?: string
+          external_event_id?: string | null
+          id?: string
+          membership_id?: string
+          metadata?: Json
+          new_status?: string
+          previous_status?: string | null
+          reason?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_status_history_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membership_status_history_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memberships: {
+        Row: {
+          activated_at: string | null
+          cancel_at_period_end: boolean
+          canceled_at: string | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          email: string
+          grace_period_end: string | null
+          id: string
+          last_payment_at: string | null
+          metadata: Json
+          plan_id: string
+          provider: string | null
+          provider_customer_id: string | null
+          provider_status: string | null
+          provider_subscription_id: string | null
+          status: string
+          suspended_at: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          cancel_at_period_end?: boolean
+          canceled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          email: string
+          grace_period_end?: string | null
+          id?: string
+          last_payment_at?: string | null
+          metadata?: Json
+          plan_id: string
+          provider?: string | null
+          provider_customer_id?: string | null
+          provider_status?: string | null
+          provider_subscription_id?: string | null
+          status?: string
+          suspended_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          cancel_at_period_end?: boolean
+          canceled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          email?: string
+          grace_period_end?: string | null
+          id?: string
+          last_payment_at?: string | null
+          metadata?: Json
+          plan_id?: string
+          provider?: string | null
+          provider_customer_id?: string | null
+          provider_status?: string | null
+          provider_subscription_id?: string | null
+          status?: string
+          suspended_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "membership_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_provider_events: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          error_message: string | null
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+          processing_status: string
+          provider: string
+          provider_event_id: string | null
+          provider_resource_id: string | null
+          signature_valid: boolean
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          processing_status?: string
+          provider: string
+          provider_event_id?: string | null
+          provider_resource_id?: string | null
+          signature_valid?: boolean
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          processing_status?: string
+          provider?: string
+          provider_event_id?: string | null
+          provider_resource_id?: string | null
+          signature_valid?: boolean
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -970,6 +1310,10 @@ export type Database = {
           id: string
         }[]
       }
+      before_user_created_check_membership: {
+        Args: { event: Json }
+        Returns: Json
+      }
       create_draft_proposal: {
         Args: {
           p_client_id: string
@@ -982,6 +1326,53 @@ export type Database = {
           id: string
           proposal_number: string
         }[]
+      }
+      create_membership: {
+        Args: {
+          p_actor_user_id?: string
+          p_current_period_end?: string
+          p_current_period_start?: string
+          p_email: string
+          p_id?: string
+          p_metadata?: Json
+          p_plan_id: string
+          p_provider?: string
+          p_provider_customer_id?: string
+          p_provider_status?: string
+          p_provider_subscription_id?: string
+          p_reason?: string
+          p_source: string
+          p_status: string
+          p_user_id?: string
+        }
+        Returns: {
+          activated_at: string | null
+          cancel_at_period_end: boolean
+          canceled_at: string | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          email: string
+          grace_period_end: string | null
+          id: string
+          last_payment_at: string | null
+          metadata: Json
+          plan_id: string
+          provider: string | null
+          provider_customer_id: string | null
+          provider_status: string | null
+          provider_subscription_id: string | null
+          status: string
+          suspended_at: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "memberships"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       delete_proposal_alternative: {
         Args: { p_id: string; p_proposal_id: string }
@@ -1012,6 +1403,44 @@ export type Database = {
         }[]
       }
       generate_proposal_number: { Args: never; Returns: string }
+      has_active_membership: { Args: { p_user_id: string }; Returns: boolean }
+      link_membership_to_user: {
+        Args: {
+          p_actor_user_id?: string
+          p_email: string
+          p_membership_id: string
+          p_source?: string
+          p_user_id: string
+        }
+        Returns: {
+          activated_at: string | null
+          cancel_at_period_end: boolean
+          canceled_at: string | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          email: string
+          grace_period_end: string | null
+          id: string
+          last_payment_at: string | null
+          metadata: Json
+          plan_id: string
+          provider: string | null
+          provider_customer_id: string | null
+          provider_status: string | null
+          provider_subscription_id: string | null
+          status: string
+          suspended_at: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "memberships"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       record_proposal_version_artifact: {
         Args: {
           p_byte_size: number
@@ -1036,6 +1465,56 @@ export type Database = {
       reorder_proposal_benefits: {
         Args: { p_ordered_ids: string[]; p_proposal_id: string }
         Returns: undefined
+      }
+      transition_membership_status: {
+        Args: {
+          p_activated_at?: string
+          p_actor_user_id?: string
+          p_cancel_at_period_end?: boolean
+          p_canceled_at?: string
+          p_clear_grace_period_end?: boolean
+          p_current_period_end?: string
+          p_current_period_start?: string
+          p_expected_current_status: string
+          p_external_event_id?: string
+          p_grace_period_end?: string
+          p_last_payment_at?: string
+          p_membership_id: string
+          p_metadata?: Json
+          p_new_status: string
+          p_provider_status?: string
+          p_reason?: string
+          p_source: string
+          p_suspended_at?: string
+        }
+        Returns: {
+          activated_at: string | null
+          cancel_at_period_end: boolean
+          canceled_at: string | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          email: string
+          grace_period_end: string | null
+          id: string
+          last_payment_at: string | null
+          metadata: Json
+          plan_id: string
+          provider: string | null
+          provider_customer_id: string | null
+          provider_status: string | null
+          provider_subscription_id: string | null
+          status: string
+          suspended_at: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "memberships"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       update_own_profile: {
         Args: { p_full_name: string }

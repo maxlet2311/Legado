@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/database/server";
-import { requireActiveUser } from "@/lib/auth/authorization-guards";
+import { requireActiveMembershipForRoute } from "@/lib/memberships/route-guard";
 import { buildDocumentSnapshot } from "@/lib/render/build-snapshot";
 import { generateProposalVersionPdf, RENDER_ENGINE, RENDER_ENGINE_VERSION } from "@/lib/render/pdf";
 
@@ -20,7 +20,9 @@ export const runtime = "nodejs";
  */
 async function POST(_request: Request, { params }: { params: Promise<{ versionId: string }> }) {
   const { versionId } = await params;
-  const { user } = await requireActiveUser();
+  const guard = await requireActiveMembershipForRoute({ surface: "pdf.generate" });
+  if (guard.response) return guard.response;
+  const { user } = guard.context;
   const supabase = await createClient();
 
   const { data: existing } = await supabase

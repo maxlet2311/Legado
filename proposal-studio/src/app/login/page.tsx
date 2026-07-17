@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; updated?: string; activated?: string; redirectTo?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, updated, activated, redirectTo } = await searchParams;
 
   return (
     <main className="flex min-h-screen w-full overflow-hidden bg-background">
@@ -29,11 +29,32 @@ export default async function LoginPage({
           <div className="rounded-xl border border-outline-variant/30 bg-surface p-8 shadow-sm md:p-10">
             <h2 className="mb-8 text-h4 text-on-surface">Iniciar sesión</h2>
             {error === "inactive" && (
-              <p className="mb-6 rounded-md bg-error-container px-4 py-3 text-small text-error">
-                Tu cuenta está desactivada. Contactá a tu administrador.
+              <p role="alert" className="mb-6 rounded-md bg-error-container px-4 py-3 text-small text-error">
+                Tu acceso se encuentra deshabilitado. Contactá al administrador.
               </p>
             )}
-            <LoginForm />
+            {(error === "oauth_failed" || error === "oauth_invalid") && (
+              <p role="alert" className="mb-6 rounded-md bg-error-container px-4 py-3 text-small text-error">
+                No pudimos completar el inicio de sesión con Google. Intentá de nuevo.
+              </p>
+            )}
+            {updated === "1" && (
+              <p
+                role="status"
+                className="mb-6 rounded-md bg-primary-container px-4 py-3 text-small text-on-surface"
+              >
+                Tu contraseña fue actualizada. Iniciá sesión con tu nueva contraseña.
+              </p>
+            )}
+            {activated === "1" && (
+              <p
+                role="status"
+                className="mb-6 rounded-md bg-primary-container px-4 py-3 text-small text-on-surface"
+              >
+                Tu cuenta fue activada correctamente. Ya podés iniciar sesión.
+              </p>
+            )}
+            <LoginForm redirectTo={redirectTo} />
           </div>
         </div>
       </div>

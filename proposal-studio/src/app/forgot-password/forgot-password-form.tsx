@@ -44,10 +44,10 @@ function ForgotPasswordForm() {
 
   if (success) {
     return (
-      <div className="flex flex-col items-center gap-3 py-6 text-center">
+      <div role="status" className="flex flex-col items-center gap-3 py-6 text-center">
         <CircleCheck className="h-8 w-8 text-primary" />
         <p className="text-body text-on-surface">
-          Si el correo existe en nuestro sistema, vas a recibir un enlace para restablecer tu
+          Si existe una cuenta asociada a ese correo, recibirás instrucciones para restablecer tu
           contraseña.
         </p>
       </div>
@@ -58,11 +58,27 @@ function ForgotPasswordForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
       <div className="space-y-2">
         <Label htmlFor="email">Correo Electrónico</Label>
-        <Input id="email" type="email" placeholder="nombre@empresa.com" {...register("email")} />
-        {errors.email && <p className="text-small text-error">{errors.email.message}</p>}
+        <Input
+          id="email"
+          type="email"
+          autoComplete="email"
+          placeholder="nombre@empresa.com"
+          aria-invalid={!!errors.email}
+          aria-describedby={errors.email ? "email-error" : undefined}
+          {...register("email")}
+        />
+        {errors.email && (
+          <p id="email-error" role="alert" className="text-small text-error">
+            {errors.email.message}
+          </p>
+        )}
       </div>
 
-      {serverError && <p className="text-small text-error">{serverError}</p>}
+      {serverError && (
+        <p role="alert" className="text-small text-error">
+          {serverError}
+        </p>
+      )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

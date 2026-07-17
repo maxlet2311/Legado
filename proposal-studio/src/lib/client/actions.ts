@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { createClient } from "@/lib/database/server";
-import { requireActiveUser } from "@/lib/auth/authorization-guards";
+import { requireActiveMembershipForAction } from "@/lib/memberships/action-guard";
 import { mapSupabaseError } from "@/lib/utils/errors";
 
 interface ActionResult {
@@ -21,7 +21,9 @@ const clientSchema = z.object({
 });
 
 async function createClientAction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { user } = await requireActiveUser();
+  const guard = await requireActiveMembershipForAction({ surface: "client.create" });
+  if (!guard.ok) return { error: guard.error };
+  const { user } = guard.context;
 
   const parsed = clientSchema.safeParse({
     full_name: formData.get("full_name"),
@@ -53,7 +55,9 @@ const updateClientSchema = clientSchema.extend({
 });
 
 async function updateClientAction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { user } = await requireActiveUser();
+  const guard = await requireActiveMembershipForAction({ surface: "client.update" });
+  if (!guard.ok) return { error: guard.error };
+  const { user } = guard.context;
 
   const parsed = updateClientSchema.safeParse({
     id: formData.get("id"),

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { createClient } from "@/lib/database/server";
-import { requireActiveUser } from "@/lib/auth/authorization-guards";
+import { requireActiveMembershipForAction } from "@/lib/memberships/action-guard";
 import { mapSupabaseError } from "@/lib/utils/errors";
 import type { TablesInsert } from "@/lib/database/types";
 
@@ -65,7 +65,9 @@ async function uploadBrandAsset(
 const SIGNED_URL_EXPIRY_SECONDS = 60 * 60;
 
 async function saveBrandAction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { user } = await requireActiveUser();
+  const guard = await requireActiveMembershipForAction({ surface: "branding.save" });
+  if (!guard.ok) return { error: guard.error };
+  const { user } = guard.context;
 
   const parsed = brandSchema.safeParse({
     commercial_name: formData.get("commercial_name"),
@@ -122,7 +124,8 @@ async function saveBrandAction(_prevState: ActionResult, formData: FormData): Pr
  * `signatures`, nunca una URL pública.
  */
 async function getSignaturePreviewUrl(path: string): Promise<string | null> {
-  await requireActiveUser();
+  const guard = await requireActiveMembershipForAction({ surface: "branding.signature_preview" });
+  if (!guard.ok) return null;
   const supabase = await createClient();
 
   const { data } = await supabase.storage

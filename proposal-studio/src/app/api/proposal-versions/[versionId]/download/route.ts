@@ -3,7 +3,7 @@ import "server-only";
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/database/server";
-import { requireActiveUser } from "@/lib/auth/authorization-guards";
+import { requireActiveMembershipForRoute } from "@/lib/memberships/route-guard";
 
 export const runtime = "nodejs";
 
@@ -15,7 +15,9 @@ const DOWNLOAD_SIGNED_URL_TTL_SECONDS = 60;
  * filtro explícito por `user_id`, defensa en profundidad).
  */
 async function GET(_request: Request, { params }: { params: Promise<{ versionId: string }> }) {
-  const { user } = await requireActiveUser();
+  const guard = await requireActiveMembershipForRoute({ surface: "pdf.download" });
+  if (guard.response) return guard.response;
+  const { user } = guard.context;
   const supabase = await createClient();
   const { versionId } = await params;
 

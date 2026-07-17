@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { createClient } from "@/lib/database/server";
-import { requireActiveUser } from "@/lib/auth/authorization-guards";
+import { requireActiveMembershipForAction } from "@/lib/memberships/action-guard";
 import { mapSupabaseError } from "@/lib/utils/errors";
 
 interface ActionResult {
@@ -33,7 +33,8 @@ async function createDraftProposalAction(
   _prevState: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireActiveUser();
+  const guard = await requireActiveMembershipForAction({ surface: "proposal.create_draft" });
+  if (!guard.ok) return { error: guard.error };
 
   const parsed = draftProposalSchema.safeParse({
     client_id: formData.get("client_id"),
@@ -78,7 +79,8 @@ async function updateProposalMetaAction(
   _prevState: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireActiveUser();
+  const guard = await requireActiveMembershipForAction({ surface: "proposal.update_meta" });
+  if (!guard.ok) return { error: guard.error };
 
   const parsed = updateProposalMetaSchema.safeParse({
     id: formData.get("id"),
@@ -103,7 +105,8 @@ async function updateProposalMetaAction(
 }
 
 async function archiveProposalAction(proposalId: string): Promise<ActionResult> {
-  await requireActiveUser();
+  const guard = await requireActiveMembershipForAction({ surface: "proposal.archive" });
+  if (!guard.ok) return { error: guard.error };
   const supabase = await createClient();
 
   const { data, error } = await supabase.rpc("archive_proposal", { p_id: proposalId }).single();

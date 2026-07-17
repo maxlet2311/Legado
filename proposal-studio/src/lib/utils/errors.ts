@@ -1,8 +1,10 @@
+// Deliberadamente NO incluye códigos que revelen si una cuenta existe
+// (ej. "user_not_found", "email_not_confirmed"): los flujos de login y reset
+// de contraseña nunca deben poder distinguir "no existe" de "credenciales
+// incorrectas" a partir de este mapa.
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   "invalid_credentials": "Correo o contraseña incorrectos.",
   "invalid_login_credentials": "Correo o contraseña incorrectos.",
-  "email_not_confirmed": "Tu cuenta todavía no fue confirmada. Contactá a tu administrador.",
-  "user_not_found": "No encontramos una cuenta con ese correo.",
   "over_request_rate_limit": "Demasiados intentos. Esperá unos minutos e intentá de nuevo.",
   "same_password": "La nueva contraseña debe ser distinta a la actual.",
   "weak_password": "La contraseña es demasiado débil. Usá al menos 8 caracteres.",
@@ -53,4 +55,18 @@ function mapSupabaseError(error: { code?: string; message?: string } | null | un
   return "Ocurrió un error inesperado. Intentá de nuevo.";
 }
 
-export { mapSupabaseError, detectConflict };
+/**
+ * Registra un error técnico server-side (consola/log del server) sin
+ * exponerlo nunca al cliente. Usar en vez de dejar que `error.message`/`code`
+ * de Supabase lleguen crudos a la respuesta de una Server Action.
+ */
+function logServerError(context: string, error: unknown): void {
+  if (error && typeof error === "object") {
+    const { code, message } = error as { code?: string; message?: string };
+    console.error(`[${context}]`, { code, message });
+    return;
+  }
+  console.error(`[${context}]`, error);
+}
+
+export { mapSupabaseError, detectConflict, logServerError };
