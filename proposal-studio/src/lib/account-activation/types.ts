@@ -32,6 +32,24 @@ interface CreateActivationInvitationResult {
   email: string;
 }
 
+/** `emailSent: false` con `success: true` significa "omitido a propósito" (`EMAIL_ENABLED=false`), no una falla. */
+interface IssueAndSendActivationInvitationResult {
+  success: boolean;
+  emailSent: boolean;
+}
+
+type AdminInvitationStatus = "pending" | "used" | "revoked" | "expired";
+
+interface AdminInvitationSummary {
+  id: string;
+  email: string;
+  status: AdminInvitationStatus;
+  expiresAt: string;
+  usedAt: string | null;
+  createdAt: string;
+  membershipId: string | null;
+}
+
 class ActivationServiceError extends Error {
   code:
     | "invalid_email"
@@ -39,6 +57,8 @@ class ActivationServiceError extends Error {
     | "membership_not_found"
     | "membership_not_eligible"
     | "membership_email_mismatch"
+    | "invitation_not_found"
+    | "invitation_not_pending"
     | "internal_error";
 
   constructor(code: ActivationServiceError["code"], message: string) {
@@ -56,4 +76,7 @@ export type {
   ActivateAccountResult,
   CreateActivationInvitationParams,
   CreateActivationInvitationResult,
+  IssueAndSendActivationInvitationResult,
+  AdminInvitationStatus,
+  AdminInvitationSummary,
 };

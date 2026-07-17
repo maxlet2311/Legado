@@ -5,12 +5,36 @@ import { z } from "zod";
 
 import { requirePlatformOwner } from "@/lib/auth/authorization-guards";
 import { ForbiddenError } from "@/lib/auth/authorization";
-import { issueAndSendActivationInvitation } from "@/lib/account-activation/service";
+import { issueAndSendActivationInvitation, listActivationInvitations } from "@/lib/account-activation/service";
 import { ActivationServiceError } from "@/lib/account-activation/types";
 import { logServerError } from "@/lib/utils/errors";
 import { checkRateLimit } from "@/lib/utils/rate-limit";
 
 export const runtime = "nodejs";
+
+/**
+ * Lista invitaciones para el panel administrativo (Sprint 3, "ver estado").
+ * Nunca incluye `token_hash`: `listActivationInvitations` ya lo excluye del
+ * select.
+ */
+async function GET() {
+  let profile;
+  try {
+    profile = await requirePlatformOwner();
+  } catch (error) {
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: "Requiere ser el propietario de la plataforma." }, { status: 403 });
+    }
+    throw error;
+  }
+
+  if (!checkRateLimit(`activation-invitation:list:${profile.id}`, 60, 60_000)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes. Esperá unos minutos." }, { status: 429 });
+  }
+
+  const invitations = await listActivationInvitations();
+  return NextResponse.json({ invitations });
+}
 
 const bodySchema = z
   .object({
@@ -79,7 +103,9 @@ async function POST(request: Request) {
 
     // Ya no se devuelve el enlace/token en la respuesta (Etapa 5, sección 2):
     // el canal de entrega es el email, nunca la respuesta HTTP de este endpoint.
-    return NextResponse.json({ sent: true });
+    // `emailSent: false` (Sprint 3, EMAIL_ENABLED=false) es éxito igual: la
+    // invitación quedó creada y auditada, solo se omitió el envío real.
+    return NextResponse.json({ sent: true, emailSent: result.emailSent });
   } catch (error) {
     if (error instanceof ActivationServiceError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
@@ -89,4 +115,4 @@ async function POST(request: Request) {
   }
 }
 
-export { POST };
+export { GET, POST };

@@ -13,12 +13,17 @@ import type {
   ActivateAccountResult,
   CreateActivationInvitationParams,
   CreateActivationInvitationResult,
+  IssueAndSendActivationInvitationResult,
+  AdminInvitationSummary,
 } from "@/lib/account-activation/types";
 import { getMembershipById, linkMembershipToUser } from "@/lib/memberships/service";
 import { ACTIVATION_ELIGIBLE_STATUSES } from "@/lib/memberships/types";
 import type { Membership } from "@/lib/memberships/types";
 import { sendActivationEmail } from "@/lib/email/activation-email";
-import { EmailDeliveryError } from "@/lib/email/client";
+import { sendActivationSuccessEmail } from "@/lib/email/activation-success-email";
+import { sendInvitationExpiredEmail } from "@/lib/email/invitation-expired-email";
+import { EmailDeliveryError, EmailDisabledError } from "@/lib/email/client";
+import { recordAdminAuditEvent } from "@/lib/admin/audit";
 
 const DEFAULT_EXPIRES_IN_HOURS = 48;
 
@@ -122,6 +127,7 @@ async function createActivationInvitation({
 
   // Auditoría: nunca se loguea el token, solo metadata no sensible.
   console.log("[account-activation] invitation_created", {
+    event: "invitation.created",
     invitationId: data.id,
     email: normalizedEmail,
   });
@@ -219,9 +225,14 @@ async function activateAccount(params: {
     // Se reutiliza validateActivationToken solo para loguear la razón real;
     // el llamador igual debe mostrar el mensaje neutral genérico.
     const details = await validateActivationToken(token);
-    console.warn("[account-activation] activation_attempt_failed", { reason: details.reason ?? "invalid" });
+    console.warn("[account-activation] activation_attempt_failed", {
+      event: "activation.failed",
+      reason: details.reason ?? "invalid",
+    });
     return { success: false, reason: details.reason ?? "invalid" };
   }
+
+  console.log("[account-activation] invitation_used", { event: "invitation.used", invitationId: claimed.id });
 
   // Etapa 3: si la invitación viene de una contratación comercial, la
   // membresía se revalida acá con datos frescos (nunca se confía en el
@@ -326,7 +337,27 @@ async function activateAccount(params: {
     }
   }
 
-  console.log("[account-activation] activation_completed", { invitationId: claimed.id, userId: created.user.id });
+  console.log("[account-activation] activation_completed", {
+    event: "activation.completed",
+    invitationId: claimed.id,
+    userId: created.user.id,
+  });
+
+  await recordAdminAuditEvent({
+    actorUserId: created.user.id,
+    action: "activation.completed",
+    entityType: "account_activation_invitation",
+    entityId: claimed.id,
+  });
+
+  // Best-effort: nunca revierte la activación si el correo de confirmación falla.
+  try {
+    await sendActivationSuccessEmail({ email: claimed.email });
+  } catch (error) {
+    if (!(error instanceof EmailDisabledError)) {
+      logServerError("activateAccount:success_email_failed", { invitationId: claimed.id });
+    }
+  }
 
   return { success: true };
 }
@@ -431,21 +462,35 @@ async function consumeActivationInvitationForOAuthUser(params: {
  * garantiza `createActivationInvitation`) y nunca se devuelve al llamador —
  * esta función no retorna el token, solo si la operación tuvo éxito.
  *
- * Si el envío de email falla, la invitación recién creada se revoca de
- * inmediato (nunca queda un token entregable "flotando" sin que nadie lo
- * haya recibido) y se permite reintentar — el próximo llamado a esta misma
- * función revoca cualquier pendiente previa y emite una nueva (mismo
- * mecanismo que ya usa `createActivationInvitation` para no duplicar
+ * Si el envío de email falla de verdad, la invitación recién creada se
+ * revoca de inmediato (nunca queda un token entregable "flotando" sin que
+ * nadie lo haya recibido) y se permite reintentar — el próximo llamado a
+ * esta misma función revoca cualquier pendiente previa y emite una nueva
+ * (mismo mecanismo que ya usa `createActivationInvitation` para no duplicar
  * invitaciones activas).
+ *
+ * Sprint 3 — `EMAIL_ENABLED=false`: es un caso distinto de una falla real.
+ * La invitación queda vigente (no se revoca) y la operación se considera
+ * exitosa (`success: true, emailSent: false`) — el token existe y es válido,
+ * solo no se entregó por email; el propio administrador es responsable de
+ * hacerlo llegar por otro medio mientras Resend no esté habilitado.
  */
 async function issueAndSendActivationInvitation(
   params: CreateActivationInvitationParams,
-): Promise<{ success: boolean }> {
+): Promise<IssueAndSendActivationInvitationResult> {
   const result = await createActivationInvitation(params);
 
   try {
-    await sendActivationEmail({ email: result.email, token: result.token });
+    await sendActivationEmail({ email: result.email, token: result.token, expiresAt: result.expiresAt });
   } catch (error) {
+    if (error instanceof EmailDisabledError) {
+      console.log("[account-activation] invitation_send_skipped", {
+        event: "invitation.send_skipped",
+        invitationId: result.invitationId,
+      });
+      return { success: true, emailSent: false };
+    }
+
     const admin = createAdminClient();
     await admin
       .from("account_activation_invitations")
@@ -459,11 +504,156 @@ async function issueAndSendActivationInvitation(
       logServerError("issueAndSendActivationInvitation:unexpected_error", error);
     }
 
-    return { success: false };
+    return { success: false, emailSent: false };
   }
 
-  console.log("[account-activation] invitation_sent", { invitationId: result.invitationId });
-  return { success: true };
+  console.log("[account-activation] invitation_sent", { event: "invitation.sent", invitationId: result.invitationId });
+  return { success: true, emailSent: true };
+}
+
+/**
+ * Devuelve las invitaciones para el panel administrativo. Nunca selecciona
+ * `token_hash` — el estado se calcula igual que en `validateActivationToken`
+ * (una invitación `pending` cuyo `expires_at` ya pasó se reporta como
+ * `expired` aunque la columna `status` siga en `pending`).
+ */
+async function listActivationInvitations(limit = 100): Promise<AdminInvitationSummary[]> {
+  const admin = createAdminClient();
+  const nowIso = new Date().toISOString();
+
+  const { data, error } = await admin
+    .from("account_activation_invitations")
+    .select("id, email, status, expires_at, used_at, created_at, membership_id")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error || !data) {
+    logServerError("listActivationInvitations", error);
+    return [];
+  }
+
+  return data.map((row) => ({
+    id: row.id,
+    email: row.email,
+    status:
+      row.status === "pending" && row.expires_at <= nowIso
+        ? ("expired" as const)
+        : (row.status as AdminInvitationSummary["status"]),
+    expiresAt: row.expires_at,
+    usedAt: row.used_at,
+    createdAt: row.created_at,
+    membershipId: row.membership_id,
+  }));
+}
+
+async function getPendingInvitationOrThrow(
+  invitationId: string,
+): Promise<{ id: string; email: string; membership_id: string | null }> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("account_activation_invitations")
+    .select("id, email, status, membership_id")
+    .eq("id", invitationId)
+    .maybeSingle();
+
+  if (error || !data) {
+    throw new ActivationServiceError("invitation_not_found", "La invitación indicada no existe.");
+  }
+  if (data.status !== "pending") {
+    throw new ActivationServiceError("invitation_not_pending", "La invitación ya no está pendiente.");
+  }
+  return data;
+}
+
+/**
+ * Reenvía una invitación pendiente: invalida el token anterior y emite uno
+ * nuevo para el mismo destinatario (nunca reutiliza el token viejo, mismo
+ * mecanismo de `createActivationInvitation`). Acción exclusiva de Platform
+ * Owner — queda auditada en `admin_audit_events`.
+ */
+async function resendActivationInvitation(params: {
+  invitationId: string;
+  actorUserId: string;
+}): Promise<IssueAndSendActivationInvitationResult> {
+  const invitation = await getPendingInvitationOrThrow(params.invitationId);
+
+  const result = await issueAndSendActivationInvitation({
+    email: invitation.membership_id ? undefined : invitation.email,
+    membershipId: invitation.membership_id ?? undefined,
+    createdByUserId: params.actorUserId,
+  });
+
+  await recordAdminAuditEvent({
+    actorUserId: params.actorUserId,
+    action: "activation_invitation.resent",
+    entityType: "account_activation_invitation",
+    entityId: params.invitationId,
+    metadata: { emailSent: result.emailSent },
+  });
+
+  console.log("[account-activation] invitation_resent", { event: "invitation.resent", invitationId: params.invitationId });
+  return result;
+}
+
+/** Cancela una invitación pendiente (el token deja de ser válido de inmediato). Acción exclusiva de Platform Owner. */
+async function cancelActivationInvitation(params: { invitationId: string; actorUserId: string }): Promise<void> {
+  await getPendingInvitationOrThrow(params.invitationId);
+
+  const admin = createAdminClient();
+  await admin
+    .from("account_activation_invitations")
+    .update({ status: "revoked", updated_at: new Date().toISOString() })
+    .eq("id", params.invitationId)
+    .eq("status", "pending");
+
+  await recordAdminAuditEvent({
+    actorUserId: params.actorUserId,
+    action: "activation_invitation.canceled",
+    entityType: "account_activation_invitation",
+    entityId: params.invitationId,
+  });
+}
+
+/**
+ * Fuerza el vencimiento inmediato de una invitación pendiente. En vez de
+ * escribir `status = 'expired'` (que rompería la distinción interna que ya
+ * hace `validateActivationToken` entre "revocada" e "inválida"), retrocede
+ * `expires_at` al presente y deja `status = 'pending'`: así el mismo chequeo
+ * de expiración que ya usa el resto del sistema lo reporta como vencido de
+ * forma consistente. Notifica al destinatario por email (best-effort: si el
+ * envío falla o está deshabilitado por `EMAIL_ENABLED=false`, la expiración
+ * igual se aplica).
+ */
+async function forceExpireActivationInvitation(params: { invitationId: string; actorUserId: string }): Promise<void> {
+  const invitation = await getPendingInvitationOrThrow(params.invitationId);
+  const nowIso = new Date().toISOString();
+
+  const admin = createAdminClient();
+  await admin
+    .from("account_activation_invitations")
+    .update({ expires_at: nowIso, updated_at: nowIso })
+    .eq("id", params.invitationId)
+    .eq("status", "pending");
+
+  await recordAdminAuditEvent({
+    actorUserId: params.actorUserId,
+    action: "activation_invitation.force_expired",
+    entityType: "account_activation_invitation",
+    entityId: params.invitationId,
+  });
+
+  console.log("[account-activation] invitation_expired", {
+    event: "invitation.expired",
+    invitationId: params.invitationId,
+  });
+
+  try {
+    await sendInvitationExpiredEmail({ email: invitation.email });
+  } catch (error) {
+    if (!(error instanceof EmailDisabledError)) {
+      logServerError("forceExpireActivationInvitation:notify_failed", { invitationId: params.invitationId });
+    }
+  }
 }
 
 export {
@@ -472,4 +662,8 @@ export {
   validateActivationToken,
   activateAccount,
   consumeActivationInvitationForOAuthUser,
+  listActivationInvitations,
+  resendActivationInvitation,
+  cancelActivationInvitation,
+  forceExpireActivationInvitation,
 };

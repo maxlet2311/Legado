@@ -7,7 +7,7 @@ import { requirePlatformOwner } from "@/lib/auth/authorization-guards";
 import { ForbiddenError } from "@/lib/auth/authorization";
 import { checkRateLimit } from "@/lib/utils/rate-limit";
 import { recordAdminAuditEvent } from "@/lib/admin/audit";
-import { sendTransactionalEmail, EmailDeliveryError } from "@/lib/email/client";
+import { sendTransactionalEmail, EmailDeliveryError, EmailDisabledError } from "@/lib/email/client";
 import { logServerError } from "@/lib/utils/errors";
 
 export const runtime = "nodejs";
@@ -57,6 +57,12 @@ async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof EmailDisabledError) {
+      return NextResponse.json(
+        { error: "EMAIL_ENABLED=false: el envío real está deshabilitado. Activalo cuando Resend marque el dominio como VERIFIED." },
+        { status: 503 },
+      );
+    }
     if (error instanceof EmailDeliveryError) {
       logServerError("POST /api/admin/test-email", { message: error.message });
       return NextResponse.json(

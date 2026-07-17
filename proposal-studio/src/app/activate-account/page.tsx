@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 const INVALID_TOKEN_MESSAGE = "El enlace de activación no es válido o ya venció. Solicitá uno nuevo al administrador.";
+const EXPIRED_TOKEN_MESSAGE = "Tu invitación venció. Solicitá una nueva para poder activar tu cuenta.";
 
 async function requestIp(): Promise<string> {
   const headerList = await headers();
@@ -52,6 +53,13 @@ export default async function ActivateAccountPage({
               )}
               <ActivateAccountForm token={token} email={result.email!} />
             </>
+          ) : "reason" in result && result.reason === "expired" ? (
+            <div role="alert" className="space-y-4 text-center">
+              <p className="text-small text-error">{EXPIRED_TOKEN_MESSAGE}</p>
+              <Link href="/request-activation" className="text-small font-medium text-primary hover:underline">
+                Solicitar nueva invitación
+              </Link>
+            </div>
           ) : (
             <div role="alert" className="space-y-4 text-center">
               <p className="text-small text-error">{INVALID_TOKEN_MESSAGE}</p>

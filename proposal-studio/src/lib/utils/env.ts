@@ -107,6 +107,22 @@ function isDeterministicCheckoutEnabled(): boolean {
   return process.env.MERCADO_PAGO_DETERMINISTIC_CHECKOUT === "true";
 }
 
+/**
+ * Interruptor maestro de envío real de correo (Sprint 3). Default `false`:
+ * mientras Resend siga con el dominio en "Checking DNS" (o no haya API key
+ * definitiva), todo el sistema de invitaciones debe seguir funcionando
+ * (crear, persistir, auditar) sin intentar el envío real — ver
+ * `sendTransactionalEmail` en `lib/email/client.ts`.
+ */
+function isEmailEnabled(): boolean {
+  return process.env.EMAIL_ENABLED === "true";
+}
+
+/** Reply-To opcional para correos transaccionales. `undefined` si no está configurado. */
+function getEmailReplyTo(): string | undefined {
+  return process.env.EMAIL_REPLY_TO?.trim() || undefined;
+}
+
 const DEFAULT_MEMBERSHIP_GRACE_PERIOD_DAYS = 5;
 
 /** Días de gracia tras un pago rechazado/mora antes de perder acceso (`past_due` → `access: grace`). */
@@ -127,4 +143,6 @@ export {
   allowUnsignedMercadoPagoWebhooks,
   getMembershipGracePeriodDays,
   isDeterministicCheckoutEnabled,
+  isEmailEnabled,
+  getEmailReplyTo,
 };

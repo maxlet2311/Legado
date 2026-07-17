@@ -1,5 +1,8 @@
 import "server-only";
 
+import { isEmailEnabled, getEmailReplyTo } from "@/lib/utils/env";
+import { buildResendRequestBody } from "@/lib/email/resend-request-body";
+
 const RESEND_API_URL = "https://api.resend.com/emails";
 const REQUEST_TIMEOUT_MS = 10_000;
 
@@ -10,11 +13,21 @@ class EmailDeliveryError extends Error {
   }
 }
 
+/** Señaliza que el envío se omitió a propósito por `EMAIL_ENABLED=false` — no es una falla de entrega. */
+class EmailDisabledError extends Error {
+  constructor() {
+    super("EMAIL_ENABLED=false: el envío real de correo está deshabilitado.");
+    this.name = "EmailDisabledError";
+  }
+}
+
 interface SendEmailParams {
   to: string;
   subject: string;
   html: string;
   text: string;
+  replyTo?: string;
+  headers?: Record<string, string>;
 }
 
 function getResendApiKey(): string {
@@ -44,10 +57,21 @@ function getEmailFrom(): string {
  * Nunca loguea el destinatario completo, el asunto real, ni el cuerpo del
  * mensaje (puede contener el enlace de activación) — solo éxito/fallo y el
  * id de mensaje que devuelve Resend.
+ *
+ * `EMAIL_ENABLED=false` (default, Sprint 3): no intenta la llamada de red y
+ * lanza `EmailDisabledError` de inmediato — el llamador es responsable de
+ * distinguirlo de `EmailDeliveryError` (omisión intencional, no falla) y
+ * seguir el flujo sin romperse (crear/persistir/auditar igual).
  */
 async function sendTransactionalEmail(params: SendEmailParams): Promise<void> {
+  if (!isEmailEnabled()) {
+    console.log("[email] delivery_skipped", { reason: "EMAIL_ENABLED=false" });
+    throw new EmailDisabledError();
+  }
+
   const apiKey = getResendApiKey();
   const from = getEmailFrom();
+  const replyTo = params.replyTo ?? getEmailReplyTo();
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -59,13 +83,17 @@ async function sendTransactionalEmail(params: SendEmailParams): Promise<void> {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        from,
-        to: params.to,
-        subject: params.subject,
-        html: params.html,
-        text: params.text,
-      }),
+      body: JSON.stringify(
+        buildResendRequestBody({
+          from,
+          to: params.to,
+          subject: params.subject,
+          html: params.html,
+          text: params.text,
+          replyTo,
+          headers: params.headers,
+        }),
+      ),
       signal: controller.signal,
     });
 
@@ -89,4 +117,4 @@ async function sendTransactionalEmail(params: SendEmailParams): Promise<void> {
   }
 }
 
-export { sendTransactionalEmail, EmailDeliveryError };
+export { sendTransactionalEmail, EmailDeliveryError, EmailDisabledError };
