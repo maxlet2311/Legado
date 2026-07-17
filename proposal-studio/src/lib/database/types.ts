@@ -1,5 +1,3 @@
-// Generado desde el esquema real de Supabase (mcp: generate_typescript_types).
-// No editar a mano — regenerar tras cada migración.
 export type Json =
   | string
   | number
@@ -292,6 +290,78 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      membership_checkout_attempts: {
+        Row: {
+          canceled_at: string | null
+          completed_at: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          locked_at: string | null
+          membership_id: string
+          membership_plan_id: string
+          metadata: Json
+          payer_id: string | null
+          provider: string
+          provider_checkout_plan_id: string | null
+          provider_event_id: string | null
+          provider_subscription_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          canceled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          locked_at?: string | null
+          membership_id: string
+          membership_plan_id: string
+          metadata?: Json
+          payer_id?: string | null
+          provider: string
+          provider_checkout_plan_id?: string | null
+          provider_event_id?: string | null
+          provider_subscription_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          canceled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          locked_at?: string | null
+          membership_id?: string
+          membership_plan_id?: string
+          metadata?: Json
+          payer_id?: string | null
+          provider?: string
+          provider_checkout_plan_id?: string | null
+          provider_event_id?: string | null
+          provider_subscription_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_checkout_attempts_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membership_checkout_attempts_membership_plan_id_fkey"
+            columns: ["membership_plan_id"]
+            isOneToOne: false
+            referencedRelation: "membership_plans"
             referencedColumns: ["id"]
           },
         ]
@@ -1313,6 +1383,37 @@ export type Database = {
       before_user_created_check_membership: {
         Args: { event: Json }
         Returns: Json
+      }
+      begin_membership_checkout_attempt: {
+        Args: {
+          p_membership_id: string
+          p_membership_plan_id: string
+          p_provider: string
+        }
+        Returns: {
+          canceled_at: string | null
+          completed_at: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          locked_at: string | null
+          membership_id: string
+          membership_plan_id: string
+          metadata: Json
+          payer_id: string | null
+          provider: string
+          provider_checkout_plan_id: string | null
+          provider_event_id: string | null
+          provider_subscription_id: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "membership_checkout_attempts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       create_draft_proposal: {
         Args: {

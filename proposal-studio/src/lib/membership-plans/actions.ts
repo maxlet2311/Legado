@@ -9,6 +9,8 @@ import { createAdminClient } from "@/lib/database/admin";
 import { recordAdminAuditEvent } from "@/lib/admin/audit";
 import { logServerError, mapSupabaseError } from "@/lib/utils/errors";
 import { getPlanById } from "@/lib/memberships/repository";
+import { syncPlanWithProvider, PlanProvisioningError } from "@/lib/payments/plan-provisioning";
+import { PaymentProviderError } from "@/lib/payments/errors";
 import type { Json } from "@/lib/database/types";
 
 interface ActionResult {
@@ -185,4 +187,70 @@ async function togglePlanActiveAction(_prevState: ActionResult, formData: FormDa
   return { success: true };
 }
 
-export { createPlanAction, updatePlanAction, togglePlanActiveAction };
+/**
+ * Crea (o verifica, si ya existe) el plan equivalente en Mercado Pago para un
+ * plan local y persiste la asociación. Solo recibe `planId` — los valores
+ * financieros siempre se leen del plan ya guardado, nunca del cliente. No
+ * activa el plan: eso queda a criterio del Platform Owner vía
+ * `togglePlanActiveAction`, para no publicar un plan de prueba por accidente.
+ */
+async function syncPlanWithProviderAction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
+  const guard = await requirePlatformOwnerOrError();
+  if ("error" in guard) return { error: guard.error };
+  const { profile } = guard;
+
+  const id = z.string().uuid().safeParse(formData.get("planId"));
+  if (!id.success) return { error: "Id de plan inválido." };
+
+  const before = await getPlanById(id.data);
+  if (!before) return { error: "El plan indicado no existe." };
+
+  let result;
+  try {
+    result = await syncPlanWithProvider(before);
+  } catch (error) {
+    if (error instanceof PlanProvisioningError) {
+      logServerError("syncPlanWithProviderAction:mismatch", { code: error.code });
+      return { error: "El plan remoto no coincide con el plan local. Revisá el log del servidor y no reintentes automáticamente." };
+    }
+    if (error instanceof PaymentProviderError) {
+      logServerError("syncPlanWithProviderAction:provider_error", { code: error.code });
+      return { error: "No se pudo comunicar con Mercado Pago. Verificá las credenciales configuradas." };
+    }
+    logServerError("syncPlanWithProviderAction", error);
+    return { error: "Error inesperado al asociar el plan con Mercado Pago." };
+  }
+
+  const admin = createAdminClient();
+  const { error: updateError } = await admin
+    .from("membership_plans")
+    .update({ provider: "mercado_pago", provider_plan_id: result.providerPlanId })
+    .eq("id", id.data);
+
+  if (updateError) {
+    // El plan externo ya existe en Mercado Pago pero la asociación local
+    // falló: se registra en el log operativo para reparación manual — nunca
+    // se reintenta automáticamente para no crear un segundo plan externo.
+    logServerError("syncPlanWithProviderAction:persist_failed", {
+      planId: id.data,
+      providerPlanIdMasked: result.providerPlanIdMasked,
+    });
+    return {
+      error: "Mercado Pago creó el plan pero no se pudo guardar la asociación local. Contactá soporte con el id del plan.",
+    };
+  }
+
+  await recordAdminAuditEvent({
+    actorUserId: profile.id,
+    action: result.wasAlreadyAssociated ? "membership_plan.provider_resync" : "membership_plan.provider_associate",
+    entityType: "membership_plan",
+    entityId: id.data,
+    beforeData: { provider: before.provider, providerPlanId: before.providerPlanId ? "***" : null },
+    afterData: { provider: "mercado_pago", providerPlanId: result.providerPlanIdMasked, status: result.status },
+  });
+
+  revalidatePath("/admin/membership-plans");
+  return { success: true };
+}
+
+export { createPlanAction, updatePlanAction, togglePlanActiveAction, syncPlanWithProviderAction };

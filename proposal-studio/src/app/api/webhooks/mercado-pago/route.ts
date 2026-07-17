@@ -4,28 +4,28 @@ import { NextResponse } from "next/server";
 
 import { getSubscriptionProvider } from "@/lib/payments";
 import { recordIncomingEvent, markEventStatus } from "@/lib/payments/webhook-events";
-import { applyNormalizedSubscriptionEvent } from "@/lib/payments/subscription-sync";
-import { getMembershipByProviderSubscriptionId } from "@/lib/memberships/service";
+import { reconcileMercadoPagoPreapproval } from "@/lib/payments/reconciliation";
 import { logServerError } from "@/lib/utils/errors";
 import { checkRateLimit } from "@/lib/utils/rate-limit";
 
 export const runtime = "nodejs";
 
 /**
- * Webhook público de Mercado Pago (Etapa 4). Público solo a nivel de red —
- * la protección real es la validación de firma (`x-signature`), nunca sesión
- * de usuario ni CSRF (no aplica a un llamador externo sin cookies). No
- * confía en el payload del evento: siempre vuelve a consultar el recurso
- * real vía `getSubscription` antes de tocar una membresía (sección 14 del
- * alcance de Etapa 4).
+ * Webhook público de Mercado Pago. Público solo a nivel de red — la
+ * protección real es la validación de firma (`x-signature`), nunca sesión de
+ * usuario ni CSRF. No confía en el payload del evento: siempre vuelve a
+ * consultar el recurso real (`GET /preapproval/{id}`) antes de tocar una
+ * membresía, y la correlación con la membership local vive exclusivamente en
+ * `reconcileMercadoPagoPreapproval` (Paso 2.1) — nunca por email, orden
+ * temporal ni monto. Un evento correctamente firmado que no puede
+ * correlacionarse a ningún checkout attempt queda `unmatched`, disponible
+ * para reconciliación administrativa posterior; nunca se selecciona una
+ * membership por fallback.
  *
  * Idempotente por `(provider, provider_event_id)` — ver
  * `src/lib/payments/webhook-events.ts`. Responde 200 tan pronto como el
- * evento queda registrado y clasificado, incluso cuando se ignora
- * (recurso no relacionado a suscripciones, membresía inexistente, o
- * transición no aplicable) — Mercado Pago solo debe reintentar ante una
- * falla real de nuestro lado (5xx), no ante eventos que ya entendimos y
- * decidimos no aplicar.
+ * evento queda registrado y clasificado, incluso cuando se ignora — Mercado
+ * Pago solo debe reintentar ante una falla real de nuestro lado (5xx).
  */
 async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
@@ -73,27 +73,21 @@ async function POST(request: Request) {
   }
 
   try {
-    const membership = await getMembershipByProviderSubscriptionId("mercado_pago", event.providerSubscriptionId);
-
-    if (!membership) {
-      logServerError("mercadoPagoWebhook:membership_not_found", { providerSubscriptionId: event.providerSubscriptionId });
-      await markEventStatus(recorded.id, "failed", "membership_not_found");
-      return NextResponse.json({ status: "ignored" });
-    }
-
-    const remote = await provider.getSubscription(event.providerSubscriptionId);
-
-    const result = await applyNormalizedSubscriptionEvent({
-      membership,
-      remote,
-      paymentSignal: event.paymentSignal,
+    const outcome = await reconcileMercadoPagoPreapproval(event.providerSubscriptionId, {
       source: "payment_provider",
       externalEventId: event.idempotencyKey,
     });
 
-    await markEventStatus(recorded.id, result.applied ? "processed" : "ignored", result.skipReason ?? null);
+    if (!outcome.matched) {
+      // Nunca se toca ninguna membership acá: el evento queda disponible
+      // para reconciliación administrativa posterior
+      // (`reconcileMercadoPagoPreapproval` vía panel admin).
+      await markEventStatus(recorded.id, "unmatched", outcome.reason);
+      return NextResponse.json({ status: "unmatched" });
+    }
 
-    return NextResponse.json({ status: result.applied ? "processed" : "ignored" });
+    await markEventStatus(recorded.id, outcome.applied ? "processed" : "ignored", outcome.skipReason ?? null);
+    return NextResponse.json({ status: outcome.applied ? "processed" : "ignored" });
   } catch (error) {
     logServerError("mercadoPagoWebhook:processing_failed", error);
     await markEventStatus(recorded.id, "failed", error instanceof Error ? error.message : "unknown_error");

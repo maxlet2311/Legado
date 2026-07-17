@@ -6,8 +6,8 @@ import { z } from "zod";
 import { requirePlatformOwner } from "@/lib/auth/authorization-guards";
 import { ForbiddenError } from "@/lib/auth/authorization";
 import { getMembershipById } from "@/lib/memberships/service";
-import { getSubscriptionProvider, PaymentProviderError } from "@/lib/payments";
-import { applyNormalizedSubscriptionEvent } from "@/lib/payments/subscription-sync";
+import { PaymentProviderError } from "@/lib/payments";
+import { reconcileMercadoPagoPreapproval } from "@/lib/payments/reconciliation";
 import { logServerError } from "@/lib/utils/errors";
 import { checkRateLimit } from "@/lib/utils/rate-limit";
 
@@ -53,22 +53,19 @@ async function POST(_request: Request, { params }: { params: Promise<{ id: strin
   }
 
   try {
-    const provider = getSubscriptionProvider("mercado_pago");
-    const remote = await provider.getSubscription(membership.providerSubscriptionId);
-
-    const result = await applyNormalizedSubscriptionEvent({
-      membership,
-      remote,
-      paymentSignal: null,
-      source: "payment_provider",
+    const outcome = await reconcileMercadoPagoPreapproval(membership.providerSubscriptionId, {
+      source: "admin",
       actorUserId: profile.id,
     });
 
+    if (!outcome.matched) {
+      return NextResponse.json({ error: "No se pudo correlacionar la suscripción con ningún checkout attempt." }, { status: 409 });
+    }
+
     return NextResponse.json({
-      applied: result.applied,
-      skipReason: result.skipReason ?? null,
-      status: result.membership.status,
-      providerStatus: remote.rawStatus,
+      applied: outcome.applied,
+      skipReason: outcome.skipReason ?? null,
+      status: outcome.membership.status,
     });
   } catch (error) {
     if (error instanceof PaymentProviderError) {

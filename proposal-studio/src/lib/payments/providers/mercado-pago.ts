@@ -15,6 +15,9 @@ import type {
   CreateSubscriptionResult,
   NormalizedProviderSubscription,
   NormalizedSubscriptionEvent,
+  CreateSubscriptionPlanInput,
+  CreatedProviderPlan,
+  NormalizedProviderPlan,
 } from "@/lib/payments/types";
 
 const MP_API_BASE = "https://api.mercadopago.com";
@@ -35,6 +38,8 @@ interface MercadoPagoPreapprovalResponse {
   id: string;
   status: string;
   payer_email?: string | null;
+  payer_id?: number | string | null;
+  preapproval_plan_id?: string | null;
   external_reference?: string | null;
   init_point?: string;
   sandbox_init_point?: string;
@@ -49,6 +54,33 @@ interface MercadoPagoAuthorizedPaymentResponse {
   preapproval_id: string;
   status: string;
   date_created?: string | null;
+}
+
+interface MercadoPagoPreapprovalPlanResponse {
+  id: string;
+  status: string;
+  reason: string;
+  back_url?: string | null;
+  init_point?: string | null;
+  auto_recurring?: {
+    frequency: number;
+    frequency_type: string;
+    transaction_amount: number;
+    currency_id: string;
+  };
+}
+
+function toNormalizedProviderPlan(data: MercadoPagoPreapprovalPlanResponse): NormalizedProviderPlan {
+  return {
+    providerPlanId: data.id,
+    reason: data.reason,
+    amount: data.auto_recurring?.transaction_amount ?? 0,
+    currency: data.auto_recurring?.currency_id ?? "",
+    frequency: data.auto_recurring?.frequency ?? 0,
+    frequencyType: data.auto_recurring?.frequency_type ?? "",
+    status: data.status,
+    initPoint: data.init_point ?? null,
+  };
 }
 
 /** Cliente HTTP centralizado: única función que hace `fetch` contra la API de Mercado Pago. */
@@ -101,6 +133,8 @@ function toNormalizedSubscription(data: MercadoPagoPreapprovalResponse): Normali
     status: mapMercadoPagoSubscriptionStatus(data.status),
     rawStatus: data.status,
     payerEmail: data.payer_email ?? null,
+    payerId: data.payer_id != null ? String(data.payer_id) : null,
+    providerPlanId: data.preapproval_plan_id ?? null,
     externalReference: data.external_reference ?? null,
     currentPeriodStart: data.auto_recurring?.start_date ?? null,
     currentPeriodEnd: data.auto_recurring?.end_date ?? null,
@@ -158,6 +192,45 @@ async function cancelSubscription(providerSubscriptionId: string): Promise<void>
     method: "PUT",
     body: JSON.stringify({ status: "cancelled" }),
   });
+}
+
+/**
+ * Crea un plan en el catálogo de suscripciones de Mercado Pago
+ * (`POST /preapproval_plan`) — distinto de `createSubscription`, que crea una
+ * suscripción individual de un pagador contra un plan ya existente. Uso
+ * exclusivamente administrativo (Platform Owner vía panel), nunca desde el
+ * flujo de checkout de un usuario. Los valores financieros deben venir
+ * siempre del plan local (`membership_plans`), nunca del llamador.
+ */
+async function createSubscriptionPlan(input: CreateSubscriptionPlanInput): Promise<CreatedProviderPlan> {
+  const data = await mpFetch<MercadoPagoPreapprovalPlanResponse>("/preapproval_plan", {
+    method: "POST",
+    body: JSON.stringify({
+      reason: input.reason,
+      auto_recurring: {
+        frequency: input.frequency,
+        frequency_type: input.frequencyType,
+        transaction_amount: input.amount,
+        currency_id: input.currency,
+      },
+      ...(input.backUrl ? { back_url: input.backUrl } : {}),
+    }),
+  });
+
+  if (!data.id) {
+    throw new PaymentProviderError(
+      "provider_request_failed",
+      "Mercado Pago no devolvió un id para el plan de suscripción creado.",
+    );
+  }
+
+  return { providerPlanId: data.id, status: data.status };
+}
+
+/** Consulta un plan de suscripción existente (`GET /preapproval_plan/{id}`) — usado para verificar la correspondencia contra el plan local antes y después de asociarlo. */
+async function getSubscriptionPlan(providerPlanId: string): Promise<NormalizedProviderPlan> {
+  const data = await mpFetch<MercadoPagoPreapprovalPlanResponse>(`/preapproval_plan/${providerPlanId}`);
+  return toNormalizedProviderPlan(data);
 }
 
 /** Resuelve a qué preapproval pertenece un pago recurrente puntual (topic `subscription_authorized_payment`). */
@@ -264,4 +337,4 @@ const mercadoPagoProvider: SubscriptionProvider = {
   parseWebhook,
 };
 
-export { mercadoPagoProvider, buildIdempotencyKey };
+export { mercadoPagoProvider, buildIdempotencyKey, createSubscriptionPlan, getSubscriptionPlan };

@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { listAllPlans } from "@/lib/memberships/repository";
-import { PlanDialog, ToggleActiveButton } from "@/app/(app)/admin/membership-plans/plan-dialogs";
+import { PlanDialog, ToggleActiveButton, SyncProviderButton } from "@/app/(app)/admin/membership-plans/plan-dialogs";
 
 export const metadata: Metadata = { title: "Planes de membresía — Admin" };
 
@@ -60,6 +60,11 @@ export default async function AdminMembershipPlansPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-3">
+                        <SyncProviderButton
+                          planId={plan.id}
+                          provider={plan.provider}
+                          hasProviderPlanId={Boolean(plan.providerPlanId)}
+                        />
                         <PlanDialog mode="edit" plan={plan} />
                         <ToggleActiveButton planId={plan.id} isActive={plan.isActive} />
                       </div>

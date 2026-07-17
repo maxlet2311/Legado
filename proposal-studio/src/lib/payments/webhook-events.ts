@@ -100,4 +100,49 @@ async function markEventStatus(
     .eq("id", eventId);
 }
 
-export { recordIncomingEvent, markEventStatus };
+interface UnmatchedEventSummary {
+  id: string;
+  provider: string;
+  eventType: string;
+  /** Enmascarado: nunca se expone el id completo del recurso, ni siquiera al Platform Owner. */
+  providerResourceIdMasked: string | null;
+  errorMessage: string | null;
+  attemptCount: number;
+  createdAt: string;
+}
+
+function maskResourceId(id: string | null): string | null {
+  if (!id) return null;
+  if (id.length <= 6) return "***";
+  return `${id.slice(0, 4)}...${id.slice(-2)}`;
+}
+
+/**
+ * Eventos de webhook correctamente firmados que no pudieron correlacionarse
+ * a ningún checkout attempt (Paso 2.1, sección 7). Uso exclusivamente
+ * administrativo — nunca se filtra el id completo del recurso.
+ */
+async function listUnmatchedEvents(limit = 50): Promise<UnmatchedEventSummary[]> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("payment_provider_events")
+    .select("id, provider, event_type, provider_resource_id, error_message, attempt_count, created_at")
+    .eq("processing_status", "unmatched")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    provider: row.provider,
+    eventType: row.event_type,
+    providerResourceIdMasked: maskResourceId(row.provider_resource_id),
+    errorMessage: row.error_message,
+    attemptCount: row.attempt_count,
+    createdAt: row.created_at,
+  }));
+}
+
+export { recordIncomingEvent, markEventStatus, listUnmatchedEvents };
+export type { UnmatchedEventSummary };

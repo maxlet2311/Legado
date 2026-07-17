@@ -63,6 +63,17 @@ async function getPlanByCode(code: string): Promise<MembershipPlan | null> {
   return data ? mapPlanRow(data) : null;
 }
 
+async function getPlanByProviderPlanId(provider: string, providerPlanId: string): Promise<MembershipPlan | null> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("membership_plans")
+    .select("*")
+    .eq("provider", provider)
+    .eq("provider_plan_id", providerPlanId)
+    .maybeSingle();
+  return data ? mapPlanRow(data) : null;
+}
+
 async function listActivePlans(): Promise<MembershipPlan[]> {
   const admin = createAdminClient();
   const { data } = await admin
@@ -120,6 +131,31 @@ async function getMembershipByProviderSubscriptionId(
     .select("*")
     .eq("provider", provider)
     .eq("provider_subscription_id", providerSubscriptionId)
+    .maybeSingle();
+  return data ? mapMembershipRow(data) : null;
+}
+
+/**
+ * Fija `provider_subscription_id`/`provider_status` sobre una membership.
+ * Idempotente por diseño: el filtro `provider_subscription_id is null` hace
+ * que un reintento del mismo webhook (la membresía ya vinculada) no pise
+ * nada — el llamador re-resuelve por `getMembershipByProviderSubscriptionId`
+ * en ese caso. La resolución de a qué membership vincular es siempre por
+ * `provider_checkout_plan_id` (ver `src/lib/payments/reconciliation.ts`),
+ * nunca por email/plan.
+ */
+async function linkMembershipProviderSubscription(
+  membershipId: string,
+  providerSubscriptionId: string,
+  providerStatus: string | null,
+): Promise<Membership | null> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("memberships")
+    .update({ provider_subscription_id: providerSubscriptionId, provider_status: providerStatus })
+    .eq("id", membershipId)
+    .is("provider_subscription_id", null)
+    .select("*")
     .maybeSingle();
   return data ? mapMembershipRow(data) : null;
 }
@@ -355,10 +391,12 @@ async function listMembershipsForAdmin(params: ListMembershipsForAdminParams): P
 export {
   getPlanById,
   getPlanByCode,
+  getPlanByProviderPlanId,
   listActivePlans,
   listAllPlans,
   getMembershipById,
   getMembershipByProviderSubscriptionId,
+  linkMembershipProviderSubscription,
   getCurrentMembershipForUser,
   getCurrentMembershipForEmail,
   callCreateMembership,

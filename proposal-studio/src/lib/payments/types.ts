@@ -44,6 +44,10 @@ interface NormalizedProviderSubscription {
   /** Estado crudo tal cual lo devuelve el proveedor, para auditoría (`memberships.provider_status`). */
   rawStatus: string;
   payerEmail: string | null;
+  /** `payer_id` devuelto por Mercado Pago — identificador externo del pagador. Nunca se usa para correlacionar (la correlación determinística es siempre por `providerPlanId`, ver Paso 2.1) ni como identidad local: solo se persiste para auditoría en `membership_checkout_attempts.payer_id`. */
+  payerId: string | null;
+  /** `preapproval_plan_id` del plan asociado — clave real de correlación determinística: se busca contra `membership_checkout_attempts.provider_checkout_plan_id` (ver `src/lib/payments/reconciliation.ts`). Nunca se correlaciona por email, orden temporal ni monto. */
+  providerPlanId: string | null;
   externalReference: string | null;
   currentPeriodStart: string | null;
   currentPeriodEnd: string | null;
@@ -75,6 +79,34 @@ interface NormalizedSubscriptionEvent {
   payload: Record<string, unknown>;
 }
 
+/** Input para crear un plan de suscripción en el catálogo del proveedor (`POST /preapproval_plan` en Mercado Pago). Los valores financieros deben salir siempre del plan local — nunca del navegador. */
+interface CreateSubscriptionPlanInput {
+  reason: string;
+  amount: number;
+  currency: string;
+  frequency: number;
+  frequencyType: "months" | "days";
+  backUrl?: string;
+}
+
+interface CreatedProviderPlan {
+  providerPlanId: string;
+  status: string;
+}
+
+/** Vista normalizada de un plan de suscripción consultado contra el proveedor (`GET /preapproval_plan/{id}`), usada para comparar contra el plan local antes de asociarlo. */
+interface NormalizedProviderPlan {
+  providerPlanId: string;
+  reason: string;
+  amount: number;
+  currency: string;
+  frequency: number;
+  frequencyType: string;
+  status: string;
+  /** URL de checkout hospedada por el proveedor para este plan (`init_point` en Mercado Pago) — `null` si el proveedor no la expone. */
+  initPoint: string | null;
+}
+
 export { PROVIDER_NAMES, NORMALIZED_SUBSCRIPTION_STATUSES };
 export type {
   ProviderName,
@@ -83,4 +115,7 @@ export type {
   CreateSubscriptionResult,
   NormalizedProviderSubscription,
   NormalizedSubscriptionEvent,
+  CreateSubscriptionPlanInput,
+  CreatedProviderPlan,
+  NormalizedProviderPlan,
 };

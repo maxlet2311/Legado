@@ -17,7 +17,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { createPlanAction, updatePlanAction, togglePlanActiveAction } from "@/lib/membership-plans/actions";
+import { createPlanAction, updatePlanAction, togglePlanActiveAction, syncPlanWithProviderAction } from "@/lib/membership-plans/actions";
 import type { MembershipPlan } from "@/lib/memberships/types";
 
 function PlanForm({
@@ -202,4 +202,42 @@ function ToggleActiveButton({ planId, isActive }: { planId: string; isActive: bo
   );
 }
 
-export { PlanDialog, ToggleActiveButton };
+/** Crea o verifica el plan equivalente en Mercado Pago. Requiere confirmación explícita porque crea un recurso externo. */
+function SyncProviderButton({ planId, provider, hasProviderPlanId }: { planId: string; provider: string | null; hasProviderPlanId: boolean }) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | undefined>();
+
+  const label = provider && hasProviderPlanId ? "Verificar en Mercado Pago" : "Crear en Mercado Pago";
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        disabled={isPending}
+        onClick={() => {
+          const confirmed = window.confirm(
+            provider && hasProviderPlanId
+              ? "Esto va a consultar el plan ya asociado en Mercado Pago y comparar los valores. No crea ningún recurso nuevo. ¿Continuar?"
+              : "Esto va a crear un plan de suscripción real (de prueba) en Mercado Pago con las credenciales configuradas en el servidor. ¿Continuar?",
+          );
+          if (!confirmed) return;
+          const formData = new FormData();
+          formData.set("planId", planId);
+          setError(undefined);
+          startTransition(async () => {
+            const result = await syncPlanWithProviderAction({}, formData);
+            if (result?.error) setError(result.error);
+          });
+        }}
+      >
+        {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+        {label}
+      </Button>
+      {error && <p className="text-small text-error">{error}</p>}
+    </div>
+  );
+}
+
+export { PlanDialog, ToggleActiveButton, SyncProviderButton };

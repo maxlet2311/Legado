@@ -1,8 +1,12 @@
 import "server-only";
 
-import { mercadoPagoProvider } from "@/lib/payments/providers/mercado-pago";
+import {
+  mercadoPagoProvider,
+  createSubscriptionPlan as createMercadoPagoSubscriptionPlan,
+  getSubscriptionPlan as getMercadoPagoSubscriptionPlan,
+} from "@/lib/payments/providers/mercado-pago";
 import type { SubscriptionProvider } from "@/lib/payments/provider";
-import type { ProviderName } from "@/lib/payments/types";
+import type { CreatedProviderPlan, CreateSubscriptionPlanInput, NormalizedProviderPlan, ProviderName } from "@/lib/payments/types";
 
 const MEMBERSHIP_EXTERNAL_REFERENCE_PREFIX = "membership:";
 
@@ -34,7 +38,40 @@ function getSubscriptionProvider(provider: ProviderName = "mercado_pago"): Subsc
   }
 }
 
-export { getSubscriptionProvider, buildMembershipExternalReference, parseMembershipExternalReference };
+/**
+ * Provisión de planes en el catálogo del proveedor (`preapproval_plan`) — uso
+ * exclusivamente administrativo. Separado de `getSubscriptionProvider`
+ * (checkout de un pagador) porque ningún otro proveedor lo implementa todavía
+ * y no forma parte del contrato `SubscriptionProvider`.
+ */
+function createProviderSubscriptionPlan(
+  provider: ProviderName,
+  input: CreateSubscriptionPlanInput,
+): Promise<CreatedProviderPlan> {
+  switch (provider) {
+    case "mercado_pago":
+      return createMercadoPagoSubscriptionPlan(input);
+    default:
+      throw new Error(`Proveedor de pagos no soportado: ${provider}`);
+  }
+}
+
+function getProviderSubscriptionPlan(provider: ProviderName, providerPlanId: string): Promise<NormalizedProviderPlan> {
+  switch (provider) {
+    case "mercado_pago":
+      return getMercadoPagoSubscriptionPlan(providerPlanId);
+    default:
+      throw new Error(`Proveedor de pagos no soportado: ${provider}`);
+  }
+}
+
+export {
+  getSubscriptionProvider,
+  buildMembershipExternalReference,
+  parseMembershipExternalReference,
+  createProviderSubscriptionPlan,
+  getProviderSubscriptionPlan,
+};
 export { PaymentProviderError } from "@/lib/payments/errors";
 export { mapMercadoPagoSubscriptionStatus } from "@/lib/payments/status-map";
 export type { SubscriptionProvider } from "@/lib/payments/provider";
@@ -45,4 +82,7 @@ export type {
   CreateSubscriptionResult,
   NormalizedProviderSubscription,
   NormalizedSubscriptionEvent,
+  CreateSubscriptionPlanInput,
+  CreatedProviderPlan,
+  NormalizedProviderPlan,
 } from "@/lib/payments/types";

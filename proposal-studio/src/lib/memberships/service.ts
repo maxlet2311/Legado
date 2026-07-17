@@ -7,8 +7,10 @@ import { logServerError } from "@/lib/utils/errors";
 import { evaluateMembershipAccess, canTransitionMembershipStatus } from "@/lib/memberships/access";
 import {
   getPlanById,
+  getPlanByProviderPlanId as repoGetPlanByProviderPlanId,
   getMembershipById as repoGetMembershipById,
   getMembershipByProviderSubscriptionId as repoGetMembershipByProviderSubscriptionId,
+  linkMembershipProviderSubscription as repoLinkMembershipProviderSubscription,
   getCurrentMembershipForUser as repoGetCurrentMembershipForUser,
   getCurrentMembershipForEmail as repoGetCurrentMembershipForEmail,
   callCreateMembership,
@@ -194,6 +196,19 @@ async function getCurrentMembershipForEmail(email: string): Promise<Membership |
 
 async function getMembershipByProviderSubscriptionId(provider: string, providerSubscriptionId: string): Promise<Membership | null> {
   return repoGetMembershipByProviderSubscriptionId(provider, providerSubscriptionId);
+}
+
+async function getPlanByProviderPlanId(provider: string, providerPlanId: string) {
+  return repoGetPlanByProviderPlanId(provider, providerPlanId);
+}
+
+/** Ver `repository.linkMembershipProviderSubscription` — idempotente, no pisa una membresía ya vinculada. */
+async function linkMembershipProviderSubscription(
+  membershipId: string,
+  providerSubscriptionId: string,
+  providerStatus: string | null,
+): Promise<Membership | null> {
+  return repoLinkMembershipProviderSubscription(membershipId, providerSubscriptionId, providerStatus);
 }
 
 interface LinkMembershipToUserParams {
@@ -386,6 +401,8 @@ export {
   createMigratedMembership,
   getMembershipById,
   getMembershipByProviderSubscriptionId,
+  getPlanByProviderPlanId,
+  linkMembershipProviderSubscription,
   getCurrentMembershipForUser,
   getCurrentMembershipForEmail,
   linkMembershipToUser,

@@ -10,10 +10,15 @@ import { checkRateLimit } from "@/lib/utils/rate-limit";
 
 export const runtime = "nodejs";
 
-const bodySchema = z.object({
-  planId: z.string().uuid(),
-  email: z.string().trim().toLowerCase().email(),
-});
+// .strict(): rechaza explícitamente cualquier campo no listado (precio,
+// moneda, provider_plan_id, back_url, status, payer_id, etc. — sección 4 y 12
+// del alcance de Paso 2.1) en vez de simplemente ignorarlo.
+const bodySchema = z
+  .object({
+    planId: z.string().uuid(),
+    email: z.string().trim().toLowerCase().email(),
+  })
+  .strict();
 
 async function requestIp(): Promise<string> {
   const headerList = await headers();
@@ -44,7 +49,14 @@ async function POST(request: Request) {
     return NextResponse.json({ checkoutUrl: result.checkoutUrl });
   } catch (error) {
     if (error instanceof CheckoutError) {
-      const status = error.code === "membership_already_active" ? 409 : 400;
+      const status =
+        error.code === "membership_already_active"
+          ? 409
+          : error.code === "checkout_in_progress"
+            ? 409
+            : error.code === "sandbox_checkout_disabled" || error.code === "deterministic_checkout_disabled"
+              ? 503
+              : 400;
       return NextResponse.json({ error: error.message }, { status });
     }
     logServerError("POST /api/memberships/checkout", error);
