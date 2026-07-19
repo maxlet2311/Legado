@@ -2,6 +2,10 @@
 
 Este archivo no existía antes del Lote A (admin: navegación + invitaciones + auditoría, 2026-07-18); se crea acá con el estado mínimo relevante a ese trabajo. No pretende ser un changelog completo del proyecto — para el historial de sprints/etapas previos ver `docs/MEMBERSHIP_OPERATIONS.md` y los mensajes de commit.
 
+## Fase 1 — Preparación operativa para pruebas controladas (2026-07-19)
+
+Post-RC1. Reporte completo: `docs/GO_LIVE_PHASE_1_REPORT.md`. Resumen: se agregó una barrera temporal de acceso (`TEMP_ACCESS_MODE`/`TEMP_ACCESS_ALLOWLIST` en `src/middleware.ts`, off por defecto), se inventariaron variables de entorno, se auditó Google OAuth/Auth Hook/Mercado Pago/Resend/rate limiting/mobile/reproducibilidad contra el código y el proyecto Supabase real. Dato nuevo: `membership_plans` ya tiene 1 fila (`sandbox-monthly`, inactiva) — RC1 la reportó vacía, cambió después de esa auditoría. `MEMBERSHIP_ENFORCEMENT_MODE` sigue en `audit`. `npx tsc --noEmit`/`npm run lint`/`npm test` (116/116)/`npm run build` verdes. Conclusión: **Fase 1 incompleta** — Auth Hook de Google, credenciales TEST de Mercado Pago, dominio verificado de Resend y decisión de mobile siguen pendientes de confirmación/decisión humana, no de código.
+
 ## Lote A — Admin: navegación, invitaciones, auditoría (2026-07-18)
 
 Implementado (ver `docs/ADMIN_UI_MAP.md` sección 10 para el detalle técnico completo):

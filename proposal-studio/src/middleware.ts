@@ -123,6 +123,25 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
 
+    // Fase 1 Go-Live: barrera temporal de acceso mientras se prepara el
+    // entorno para pruebas controladas. Off por defecto (sin variable, no
+    // cambia el comportamiento actual). Solo aplica a rutas ya protegidas
+    // (nunca a /auth/callback ni /api/webhooks, que no están en
+    // PROTECTED_PREFIXES). Reversible: quitar TEMP_ACCESS_MODE del entorno.
+    if (process.env.TEMP_ACCESS_MODE === "allowlist") {
+      const allowlist = (process.env.TEMP_ACCESS_ALLOWLIST ?? "")
+        .split(",")
+        .map((entry) => entry.trim().toLowerCase())
+        .filter(Boolean);
+      const userEmail = user.email?.toLowerCase();
+
+      if (!userEmail || !allowlist.includes(userEmail)) {
+        const redirectUrl = new URL("/login", request.url);
+        redirectUrl.searchParams.set("error", "restricted_access");
+        return NextResponse.redirect(redirectUrl);
+      }
+    }
+
     // Sección 6/11: solo se consulta membresía en `enforce` — en `off`/`audit`
     // esto sería una consulta desperdiciada, ya que ninguno de los dos modos
     // bloquea navegación (el propio guard tampoco lo haría). Evita el costo

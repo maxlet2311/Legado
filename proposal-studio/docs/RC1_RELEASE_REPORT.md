@@ -142,3 +142,12 @@ El código está listo. El producto, no. Ningún hallazgo de esta auditoría es 
 APROBADO PARA STAGING
 NO APROBADO PARA PRODUCCIÓN
 ```
+
+## Adenda — Fase 1 de preparación operativa (2026-07-19)
+
+Esta sección se agrega en una etapa posterior; no altera la conclusión original de arriba. Reporte completo: `docs/GO_LIVE_PHASE_1_REPORT.md`.
+
+- Se implementó una barrera temporal de acceso controlada por variable de entorno (`TEMP_ACCESS_MODE`/`TEMP_ACCESS_ALLOWLIST`, off por defecto) — cambio de código pequeño y reversible, no un rediseño de acceso.
+- **Corrección a un dato de esta auditoría**: el Hallazgo 2 y la Matriz de riesgo (P0 #3) decían "cero planes de membresía configurados (`membership_plans` vacía)". Confirmado contra el proyecto Supabase real el 2026-07-19 que eso **ya no es así**: existe 1 plan (`sandbox-monthly`, `is_active=false`, creado 2026-07-17, un día después de esta auditoría) — cambio posterior a esta certificación, no un error de la auditoría original en su momento.
+- Los demás P0/P1 de este reporte (Auth Hook de Google sin confirmar, Mercado Pago sin validar de punta a punta, `MEMBERSHIP_ENFORCEMENT_MODE` en `audit`, Resend sin confirmar, rate limiting en memoria, mobile roto, reproducibilidad sin verificación empírica) **siguen sin resolverse** al cierre de la Fase 1 — confirmado de nuevo, no heredado sin revisar. Docker Desktop sigue sin estar disponible; la CLI de Supabase sí está disponible en este entorno (dato nuevo, no cambia el resultado: sin Docker no alcanza para `db reset`).
+- La conclusión `APROBADO PARA STAGING / NO APROBADO PARA PRODUCCIÓN` sigue vigente sin cambios.

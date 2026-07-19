@@ -38,6 +38,11 @@ export default async function LoginPage({
                 No pudimos completar el inicio de sesión con Google. Intentá de nuevo.
               </p>
             )}
+            {error === "restricted_access" && (
+              <p role="alert" className="mb-6 rounded-md bg-error-container px-4 py-3 text-small text-error">
+                El acceso está temporalmente restringido mientras se preparan pruebas controladas.
+              </p>
+            )}
             {updated === "1" && (
               <p
                 role="status"
