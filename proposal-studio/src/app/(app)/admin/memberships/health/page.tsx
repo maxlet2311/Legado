@@ -34,7 +34,7 @@ export default async function MembershipHealthPage() {
       <PageHeader
         title="Centro de salud"
         description={`Recalculado al cargar la página — ${new Date(report.generatedAt).toLocaleString("es-AR")}.`}
-        breadcrumbs={[{ label: "Admin" }, { label: "Membresías", href: "/admin/memberships" }, { label: "Salud" }]}
+        breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Membresías", href: "/admin/memberships" }, { label: "Salud" }]}
         actions={
           <div className="flex gap-2">
             <Link

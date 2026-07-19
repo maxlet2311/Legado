@@ -13,6 +13,7 @@ import {
   getMembershipById,
   linkMembershipToUser,
   transitionMembershipStatus,
+  createAuthorizedMembership,
 } from "@/lib/memberships/service";
 import { canTransitionMembershipStatus } from "@/lib/memberships/access";
 import { MembershipServiceError, ACTIVATION_ELIGIBLE_STATUSES } from "@/lib/memberships/types";
@@ -400,6 +401,64 @@ async function resyncMembershipAction(_prevState: ActionResult, formData: FormDa
   }
 }
 
+interface CreateMembershipActionResult {
+  error?: string;
+  membershipId?: string;
+}
+
+/**
+ * Alta manual de membresía fuera del checkout de Mercado Pago (mismo
+ * contrato que `POST /api/admin/memberships`, ver `createAuthorizedMembership`
+ * en `service.ts`). Siempre crea en estado `authorized`, nunca `active` — eso
+ * requiere un pago real confirmado por el proveedor.
+ */
+async function createMembershipAction(
+  _prevState: CreateMembershipActionResult,
+  formData: FormData,
+): Promise<CreateMembershipActionResult> {
+  const guard = await requirePlatformOwnerOrError();
+  if ("error" in guard) return { error: guard.error };
+  const { profile } = guard;
+
+  const emailParsed = z.string().trim().toLowerCase().email().safeParse(formData.get("email"));
+  const planIdParsed = z.string().uuid().safeParse(formData.get("planId"));
+  const currentPeriodEndRaw = String(formData.get("currentPeriodEnd") ?? "").trim();
+  const reason = String(formData.get("reason") ?? "").trim();
+
+  if (!emailParsed.success) return { error: "El email ingresado no es válido." };
+  if (!planIdParsed.success) return { error: "Seleccioná un plan válido." };
+  if (!reason) return { error: "El motivo es obligatorio." };
+
+  if (!checkRateLimit(`admin:membership:create:${profile.id}`, 20, 60 * 60_000)) {
+    return { error: "Demasiadas membresías creadas. Esperá unos minutos." };
+  }
+
+  try {
+    const membership = await createAuthorizedMembership({
+      email: emailParsed.data,
+      planId: planIdParsed.data,
+      currentPeriodEnd: currentPeriodEndRaw || undefined,
+      actorUserId: profile.id,
+    });
+
+    await recordAdminAuditEvent({
+      actorUserId: profile.id,
+      action: "membership.create_manual",
+      entityType: "membership",
+      entityId: membership.id,
+      reason,
+      afterData: { email: membership.email, planId: membership.planId, status: membership.status },
+    });
+
+    revalidatePath("/admin/memberships");
+    return { membershipId: membership.id };
+  } catch (error) {
+    if (error instanceof MembershipServiceError) return { error: error.message };
+    logServerError("createMembershipAction", error);
+    return { error: "No se pudo crear la membresía." };
+  }
+}
+
 export {
   suspendMembershipAction,
   reactivateMembershipAction,
@@ -407,4 +466,5 @@ export {
   linkMembershipAction,
   resendActivationAction,
   resyncMembershipAction,
+  createMembershipAction,
 };

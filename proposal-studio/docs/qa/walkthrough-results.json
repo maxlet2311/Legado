@@ -1,0 +1,332 @@
+[
+  {
+    "route": "/admin",
+    "viewport": "mobile-390x844",
+    "screenshot": "_admin__mobile-390x844.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": true,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/memberships",
+    "viewport": "mobile-390x844",
+    "screenshot": "_admin_memberships__mobile-390x844.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": true,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/memberships/new",
+    "viewport": "mobile-390x844",
+    "screenshot": "_admin_memberships_new__mobile-390x844.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": true,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/memberships/health",
+    "viewport": "mobile-390x844",
+    "screenshot": "_admin_memberships_health__mobile-390x844.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": true,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/membership-plans",
+    "viewport": "mobile-390x844",
+    "screenshot": "_admin_membership-plans__mobile-390x844.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": true,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/invitations",
+    "viewport": "mobile-390x844",
+    "screenshot": "_admin_invitations__mobile-390x844.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": true,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/audit",
+    "viewport": "mobile-390x844",
+    "screenshot": "_admin_audit__mobile-390x844.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": true,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/payments",
+    "viewport": "mobile-390x844",
+    "screenshot": "_admin_payments__mobile-390x844.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": true,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/payments/events",
+    "viewport": "mobile-390x844",
+    "screenshot": "_admin_payments_events__mobile-390x844.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": true,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/payments/checkouts",
+    "viewport": "mobile-390x844",
+    "screenshot": "_admin_payments_checkouts__mobile-390x844.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": true,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/settings",
+    "viewport": "mobile-390x844",
+    "screenshot": "_admin_settings__mobile-390x844.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": true,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin",
+    "viewport": "desktop-1440x900",
+    "screenshot": "_admin__desktop-1440x900.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": false,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/memberships",
+    "viewport": "desktop-1440x900",
+    "screenshot": "_admin_memberships__desktop-1440x900.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": false,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/memberships/new",
+    "viewport": "desktop-1440x900",
+    "screenshot": "_admin_memberships_new__desktop-1440x900.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": false,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/memberships/health",
+    "viewport": "desktop-1440x900",
+    "screenshot": "_admin_memberships_health__desktop-1440x900.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": false,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/membership-plans",
+    "viewport": "desktop-1440x900",
+    "screenshot": "_admin_membership-plans__desktop-1440x900.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": false,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/invitations",
+    "viewport": "desktop-1440x900",
+    "screenshot": "_admin_invitations__desktop-1440x900.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": false,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/audit",
+    "viewport": "desktop-1440x900",
+    "screenshot": "_admin_audit__desktop-1440x900.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": false,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/payments",
+    "viewport": "desktop-1440x900",
+    "screenshot": "_admin_payments__desktop-1440x900.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": false,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/payments/events",
+    "viewport": "desktop-1440x900",
+    "screenshot": "_admin_payments_events__desktop-1440x900.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": false,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/payments/checkouts",
+    "viewport": "desktop-1440x900",
+    "screenshot": "_admin_payments_checkouts__desktop-1440x900.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": false,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  },
+  {
+    "route": "/admin/settings",
+    "viewport": "desktop-1440x900",
+    "screenshot": "_admin_settings__desktop-1440x900.png",
+    "possibleLeaks": [],
+    "a11y": {
+      "iconButtonsWithoutLabel": 0,
+      "headingOrderIssue": false,
+      "imgsWithoutAlt": 0
+    },
+    "horizontalScroll": false,
+    "status": "ok",
+    "consoleIssues": [],
+    "networkIssues": []
+  }
+]

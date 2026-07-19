@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CreditCard, ChevronLeft, ChevronRight, AlertTriangle, Download } from "lucide-react";
+import { CreditCard, ChevronLeft, ChevronRight, AlertTriangle, Download, Plus } from "lucide-react";
 
 import { ContentContainer } from "@/components/layout/content-container";
 import { PageHeader } from "@/components/layout/page-header";
@@ -75,9 +75,15 @@ export default async function AdminMembershipsPage({
       <PageHeader
         title="Membresías"
         description="Administración de membresías comerciales — Platform Owner."
-        breadcrumbs={[{ label: "Admin" }, { label: "Membresías" }]}
+        breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Membresías" }]}
         actions={
           <div className="flex gap-2">
+            <Link
+              href="/admin/memberships/new"
+              className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-small font-medium text-on-primary hover:opacity-90"
+            >
+              <Plus className="h-4 w-4" /> Nueva membresía
+            </Link>
             <a
               href="/api/admin/exports/memberships"
               className="flex items-center gap-2 rounded-md border border-outline-variant px-4 py-2 text-small font-medium text-on-surface hover:border-primary hover:text-primary"

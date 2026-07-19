@@ -30,7 +30,7 @@ function EmptyState({
           <Icon className="h-6 w-6" />
         </div>
       ) : null}
-      <h3 className="text-h4 font-semibold text-on-surface">{title}</h3>
+      <h2 className="text-h4 font-semibold text-on-surface">{title}</h2>
       {description ? (
         <p className="max-w-sm text-small text-on-surface-variant">{description}</p>
       ) : null}

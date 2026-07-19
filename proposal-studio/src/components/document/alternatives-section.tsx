@@ -6,6 +6,9 @@ import { DocumentSection } from "@/components/document/document-section";
 function AlternativeCard({ alternative }: { alternative: SnapshotAlternative }) {
   const monthly = formatCurrency(alternative.monthly_premium, alternative.currency);
   const insured = formatCurrency(alternative.insured_amount, alternative.currency);
+  const advantages = alternative.financial_details?.advantages?.filter((item) => item.trim()) ?? [];
+  const disadvantages = alternative.financial_details?.disadvantages?.filter((item) => item.trim()) ?? [];
+  const notes = alternative.financial_details?.notes?.trim();
 
   return (
     <div
@@ -67,6 +70,39 @@ function AlternativeCard({ alternative }: { alternative: SnapshotAlternative }) 
         <p style={{ fontSize: "9pt", marginTop: "3mm", color: "var(--ps-primary)", whiteSpace: "pre-wrap" }}>
           {alternative.recommended_reason}
         </p>
+      ) : null}
+
+      {advantages.length > 0 || disadvantages.length > 0 ? (
+        <div style={{ display: "flex", gap: "8mm", marginTop: "3mm", fontSize: "9pt" }}>
+          {advantages.length > 0 ? (
+            <div style={{ flex: 1 }}>
+              <p style={{ margin: "0 0 1mm 0", fontWeight: 600, color: "#3F6B4F" }}>Ventajas</p>
+              <ul style={{ margin: 0, paddingLeft: "4mm" }}>
+                {advantages.map((item, index) => (
+                  <li key={index} style={{ marginBottom: "0.5mm" }}>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {disadvantages.length > 0 ? (
+            <div style={{ flex: 1 }}>
+              <p style={{ margin: "0 0 1mm 0", fontWeight: 600, color: "#9C4B3F" }}>Desventajas</p>
+              <ul style={{ margin: 0, paddingLeft: "4mm" }}>
+                {disadvantages.map((item, index) => (
+                  <li key={index} style={{ marginBottom: "0.5mm" }}>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {notes ? (
+        <p style={{ fontSize: "8.5pt", marginTop: "3mm", color: "#5A6259", whiteSpace: "pre-wrap" }}>{notes}</p>
       ) : null}
     </div>
   );

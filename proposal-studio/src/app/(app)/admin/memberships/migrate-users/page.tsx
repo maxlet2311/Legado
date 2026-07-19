@@ -15,7 +15,7 @@ export default async function MigrateUsersPage() {
       <PageHeader
         title="Migrar usuarios existentes"
         description="Otorga una membresía `authorized` a usuarios activos que todavía no tienen ninguna — necesario antes de pasar a `enforce`. Nunca crea pagos ficticios ni IDs de Mercado Pago."
-        breadcrumbs={[{ label: "Admin" }, { label: "Membresías", href: "/admin/memberships" }, { label: "Migrar usuarios" }]}
+        breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Membresías", href: "/admin/memberships" }, { label: "Migrar usuarios" }]}
       />
       <MigrateUsersForm plans={plans.map((p) => ({ id: p.id, name: p.name, isActive: p.isActive }))} />
     </ContentContainer>

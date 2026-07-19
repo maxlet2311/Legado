@@ -62,8 +62,16 @@ const alternativeSchema = z.object({
   product_name: z.string().trim().min(1, "El nombre del producto es obligatorio.").max(200),
   currency: currencySchema,
   monthly_premium: z.number().nonnegative().nullable(),
-  advantages: z.array(z.string().trim().max(500)).max(20).default([]),
-  disadvantages: z.array(z.string().trim().max(500)).max(20).default([]),
+  advantages: z
+    .array(z.string().trim().max(500))
+    .max(20)
+    .default([])
+    .transform((items) => items.filter((item) => item.length > 0)),
+  disadvantages: z
+    .array(z.string().trim().max(500))
+    .max(20)
+    .default([])
+    .transform((items) => items.filter((item) => item.length > 0)),
   notes: z.string().trim().max(4000).optional().default(""),
   display_order: z.number().int().nonnegative(),
   expected_revision: z.number().int().nonnegative().nullable(),

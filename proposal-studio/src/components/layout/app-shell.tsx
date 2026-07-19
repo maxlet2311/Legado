@@ -17,7 +17,7 @@ function AppShell({ children, profile }: AppShellProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
+      <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} profile={profile} />
       <TopNavigation collapsed={collapsed} profile={profile} />
       <main
         className={cn(

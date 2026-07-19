@@ -49,7 +49,7 @@ export default async function MembershipDetailPage({ params }: { params: Promise
       <PageHeader
         title={membership.email}
         description="Ficha de membresía."
-        breadcrumbs={[{ label: "Admin" }, { label: "Membresías", href: "/admin/memberships" }, { label: membership.email }]}
+        breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Membresías", href: "/admin/memberships" }, { label: membership.email }]}
       />
 
       <div className="grid gap-6 lg:grid-cols-3">

@@ -22,7 +22,7 @@ export default async function AdminMembershipPlansPage() {
       <PageHeader
         title="Planes de membresía"
         description="Catálogo comercial de planes — solo los activos y con proveedor configurado aparecen en /planes."
-        breadcrumbs={[{ label: "Admin" }, { label: "Planes" }]}
+        breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Planes" }]}
         actions={<PlanDialog mode="create" />}
       />
 

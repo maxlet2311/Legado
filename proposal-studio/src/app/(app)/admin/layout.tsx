@@ -8,6 +8,9 @@ import { ForbiddenError } from "@/lib/auth/authorization";
 
 const ADMIN_NAV = [
   { label: "Membresías", href: "/admin/memberships" },
+  { label: "Invitaciones", href: "/admin/invitations" },
+  { label: "Auditoría", href: "/admin/audit" },
+  { label: "Pagos", href: "/admin/payments" },
   { label: "Planes", href: "/admin/membership-plans" },
   { label: "Salud", href: "/admin/memberships/health" },
   { label: "Migrar usuarios", href: "/admin/memberships/migrate-users" },

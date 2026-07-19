@@ -7,33 +7,35 @@ import {
   LayoutDashboard,
   BookOpen,
   Palette,
-  Settings,
   Plus,
-  HelpCircle,
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
   Users,
+  ShieldCheck,
 } from "lucide-react";
 
 import { signOutAction } from "@/lib/auth/actions";
 import { cn } from "@/lib/utils/cn";
+import { isPlatformOwner } from "@/lib/auth/authorization";
+import type { Profile } from "@/lib/auth/session";
 
 const navItems = [
   { href: "/dashboard", label: "Panel de Control", icon: LayoutDashboard },
   { href: "/clients", label: "Clientes", icon: Users },
   { href: "/library", label: "Biblioteca", icon: BookOpen },
   { href: "/branding", label: "Mi Marca", icon: Palette },
-  { href: "/proposals/new", label: "Configuración", icon: Settings },
 ];
 
 export interface SidebarProps {
   collapsed: boolean;
   onCollapsedChange: (collapsed: boolean) => void;
+  profile: Profile | null;
 }
 
-function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
+function Sidebar({ collapsed, onCollapsedChange, profile }: SidebarProps) {
   const pathname = usePathname();
+  const showAdminLink = Boolean(profile && isPlatformOwner(profile));
 
   return (
     <aside
@@ -78,6 +80,20 @@ function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
             </Link>
           );
         })}
+        {showAdminLink && (
+          <Link
+            href="/admin"
+            className={cn(
+              "flex items-center gap-3 rounded-md px-4 py-3 text-small font-medium transition-colors duration-fast ease-premium",
+              pathname?.startsWith("/admin")
+                ? "border-l-4 border-primary bg-surface-container-high font-bold text-primary"
+                : "text-on-surface-variant hover:bg-surface-container-highest",
+            )}
+          >
+            <ShieldCheck className="h-5 w-5 shrink-0" />
+            {!collapsed && <span>Administración</span>}
+          </Link>
+        )}
       </nav>
 
       <div className="space-y-6 border-t border-outline-variant px-4 py-6">
@@ -89,13 +105,6 @@ function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
           {!collapsed && <span>Nueva Propuesta</span>}
         </Link>
         <div className="space-y-1">
-          <Link
-            href="#"
-            className="flex items-center gap-3 px-4 py-2 text-small font-medium text-on-surface-variant transition-colors hover:text-primary"
-          >
-            <HelpCircle className="h-4 w-4" />
-            {!collapsed && <span>Soporte</span>}
-          </Link>
           <form action={signOutAction}>
             <button
               type="submit"

@@ -160,5 +160,117 @@ async function listUnmatchedEvents(limit = 50): Promise<UnmatchedEventSummary[]>
   }));
 }
 
-export { recordIncomingEvent, markEventStatus, listUnmatchedEvents };
-export type { UnmatchedEventSummary };
+interface PaymentProviderEventAdminItem {
+  id: string;
+  provider: string;
+  eventType: string;
+  providerResourceIdMasked: string | null;
+  processingStatus: ProcessingStatus;
+  signatureValid: boolean;
+  errorMessage: string | null;
+  attemptCount: number;
+  payload: Record<string, unknown>;
+  createdAt: string;
+  processedAt: string | null;
+}
+
+interface ListPaymentProviderEventsParams {
+  page: number;
+  pageSize: number;
+  provider?: string;
+  eventType?: string;
+  processingStatus?: ProcessingStatus;
+  /** `true` = `error_message` no nulo. No existe columna dedicada de "último error" fuera de esta — se deriva de la misma. */
+  hasError?: boolean;
+  dateFrom?: string;
+  dateTo?: string;
+  /** Búsqueda exacta por el id interno (uuid) de la fila — nunca por `provider_resource_id` completo, que no se persiste sin enmascarar en la UI. */
+  eventId?: string;
+}
+
+interface ListPaymentProviderEventsResult {
+  items: PaymentProviderEventAdminItem[];
+  total: number;
+}
+
+/**
+ * Lectura administrativa general de `payment_provider_events` (Lote B, Paso
+ * 8) — hasta ahora solo existía `listUnmatchedEvents` (fijo a
+ * `processing_status = 'unmatched'`, sin paginación real). Esta función cubre
+ * la pantalla `/admin/payments/events` completa, con `processing_status`
+ * como uno más de los filtros (incluyendo `unmatched`, que la UI resalta
+ * como vista "No asociados"). Nunca se expone `provider_resource_id`
+ * completo — siempre enmascarado con `maskResourceId`.
+ *
+ * Esta tabla no tiene ninguna columna que la vincule a `memberships` o
+ * `membership_checkout_attempts` (confirmado contra la migración — ver
+ * `Relationships: []` en los tipos generados): la única correlación posible
+ * es indirecta, vía `provider_resource_id` contra
+ * `membership_checkout_attempts.provider_checkout_plan_id`/
+ * `provider_subscription_id`, y esa correlación ya la hace
+ * `reconcileMercadoPagoPreapproval` — no se inventa acá un join que no existe
+ * en el esquema real.
+ */
+async function listPaymentProviderEvents(
+  params: ListPaymentProviderEventsParams,
+): Promise<ListPaymentProviderEventsResult> {
+  const admin = createAdminClient();
+  const from = (params.page - 1) * params.pageSize;
+  const to = from + params.pageSize - 1;
+
+  let query = admin
+    .from("payment_provider_events")
+    .select("id, provider, event_type, provider_resource_id, processing_status, signature_valid, error_message, attempt_count, payload, created_at, processed_at", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (params.provider) query = query.eq("provider", params.provider);
+  if (params.eventType) query = query.eq("event_type", params.eventType);
+  if (params.processingStatus) query = query.eq("processing_status", params.processingStatus);
+  if (params.hasError === true) query = query.not("error_message", "is", null);
+  if (params.hasError === false) query = query.is("error_message", null);
+  if (params.dateFrom) query = query.gte("created_at", params.dateFrom);
+  if (params.dateTo) query = query.lte("created_at", params.dateTo);
+  if (params.eventId) query = query.eq("id", params.eventId);
+
+  const { data, count, error } = await query;
+  if (error) throw error;
+
+  const items: PaymentProviderEventAdminItem[] = (data ?? []).map((row) => ({
+    id: row.id,
+    provider: row.provider,
+    eventType: row.event_type,
+    providerResourceIdMasked: maskResourceId(row.provider_resource_id),
+    processingStatus: row.processing_status as ProcessingStatus,
+    signatureValid: row.signature_valid,
+    errorMessage: row.error_message,
+    attemptCount: row.attempt_count,
+    payload: (row.payload as Record<string, unknown>) ?? {},
+    createdAt: row.created_at,
+    processedAt: row.processed_at,
+  }));
+
+  return { items, total: count ?? 0 };
+}
+
+/** Cuenta por `processing_status`, sin traer filas — usado por el resumen de `/admin/payments`. */
+async function countPaymentProviderEventsByStatus(status: ProcessingStatus): Promise<number> {
+  const admin = createAdminClient();
+  const { count, error } = await admin
+    .from("payment_provider_events")
+    .select("id", { count: "exact", head: true })
+    .eq("processing_status", status);
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export {
+  recordIncomingEvent,
+  markEventStatus,
+  listUnmatchedEvents,
+  listPaymentProviderEvents,
+  countPaymentProviderEventsByStatus,
+  maskResourceId,
+};
+export type { UnmatchedEventSummary, PaymentProviderEventAdminItem, ListPaymentProviderEventsParams };

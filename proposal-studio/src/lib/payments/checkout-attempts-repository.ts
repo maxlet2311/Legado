@@ -233,6 +233,160 @@ async function expireStaleCheckoutAttempts(): Promise<number> {
   return (data ?? []).length;
 }
 
+/** Enmascarado, mismo criterio que `maskExternalId` de membresías: nunca se expone un id externo completo en la UI administrativa. */
+function maskId(value: string | null): string | null {
+  if (!value) return null;
+  if (value.length <= 4) return "••••";
+  return `••••${value.slice(-4)}`;
+}
+
+interface CheckoutAttemptAdminItem {
+  id: string;
+  membershipId: string;
+  membershipEmail: string | null;
+  membershipUserId: string | null;
+  planName: string | null;
+  planCode: string | null;
+  provider: string;
+  providerCheckoutPlanIdMasked: string | null;
+  providerSubscriptionIdMasked: string | null;
+  payerIdMasked: string | null;
+  status: CheckoutAttemptStatus;
+  lockedAt: string | null;
+  expiresAt: string | null;
+  completedAt: string | null;
+  canceledAt: string | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ListCheckoutAttemptsAdminParams {
+  page: number;
+  pageSize: number;
+  status?: CheckoutAttemptStatus;
+  provider?: string;
+  planId?: string;
+  /** `true` = ya tiene `provider_subscription_id` vinculado; `false` = todavía no. */
+  linked?: boolean;
+  /** Búsqueda por email de la membresía asociada (resuelta en un paso previo, ver comentario abajo). */
+  email?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+interface ListCheckoutAttemptsAdminResult {
+  items: CheckoutAttemptAdminItem[];
+  total: number;
+}
+
+/**
+ * Lectura administrativa paginada (Lote B, Paso 8) — no existía ninguna
+ * función de listado sobre `membership_checkout_attempts` hasta ahora (solo
+ * lecturas puntuales por id/correlación). Sigue el mismo criterio que
+ * `listMembershipsForAdmin`/`listAdminAuditEvents`: llamada directo desde el
+ * Server Component, sin ruta API nueva, paginación obligatoria server-side.
+ *
+ * El filtro por email no puede resolverse con un embed filtrado en una sola
+ * query de forma simple con el cliente admin tal como está tipado acá, así
+ * que se resuelve en dos pasos: primero se buscan los `membership_id` cuyo
+ * email matchea (`ilike` sobre `memberships.email`), y luego se filtra
+ * `membership_checkout_attempts.membership_id in (...)`. Nunca se expone
+ * `provider_checkout_plan_id`/`provider_subscription_id`/`payer_id`
+ * completos — siempre enmascarados antes de salir de esta función.
+ */
+async function listCheckoutAttemptsForAdmin(
+  params: ListCheckoutAttemptsAdminParams,
+): Promise<ListCheckoutAttemptsAdminResult> {
+  const admin = createAdminClient();
+
+  let membershipIdFilter: string[] | undefined;
+  if (params.email && params.email.trim().length > 0) {
+    const sanitizedEmail = params.email.trim().replace(/[%,]/g, "");
+    const { data: matchingMemberships, error: membershipError } = await admin
+      .from("memberships")
+      .select("id")
+      .ilike("email", `%${sanitizedEmail}%`)
+      .limit(500);
+
+    if (membershipError) throw membershipError;
+
+    membershipIdFilter = (matchingMemberships ?? []).map((row) => row.id);
+    if (membershipIdFilter.length === 0) {
+      return { items: [], total: 0 };
+    }
+  }
+
+  const from = (params.page - 1) * params.pageSize;
+  const to = from + params.pageSize - 1;
+
+  let query = admin
+    .from("membership_checkout_attempts")
+    .select("*, memberships(email, user_id), membership_plans(name, code)", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (params.status) query = query.eq("status", params.status);
+  if (params.provider) query = query.eq("provider", params.provider);
+  if (params.planId) query = query.eq("membership_plan_id", params.planId);
+  if (params.linked === true) query = query.not("provider_subscription_id", "is", null);
+  if (params.linked === false) query = query.is("provider_subscription_id", null);
+  if (params.dateFrom) query = query.gte("created_at", params.dateFrom);
+  if (params.dateTo) query = query.lte("created_at", params.dateTo);
+  if (membershipIdFilter) query = query.in("membership_id", membershipIdFilter);
+
+  const { data, count, error } = await query;
+  if (error) throw error;
+
+  const items: CheckoutAttemptAdminItem[] = (data ?? []).map((row) => ({
+    id: row.id,
+    membershipId: row.membership_id,
+    membershipEmail: row.memberships?.email ?? null,
+    membershipUserId: row.memberships?.user_id ?? null,
+    planName: row.membership_plans?.name ?? null,
+    planCode: row.membership_plans?.code ?? null,
+    provider: row.provider,
+    providerCheckoutPlanIdMasked: maskId(row.provider_checkout_plan_id),
+    providerSubscriptionIdMasked: maskId(row.provider_subscription_id),
+    payerIdMasked: maskId(row.payer_id),
+    status: row.status as CheckoutAttemptStatus,
+    lockedAt: row.locked_at,
+    expiresAt: row.expires_at,
+    completedAt: row.completed_at,
+    canceledAt: row.canceled_at,
+    metadata: (row.metadata as Record<string, unknown>) ?? {},
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
+
+  return { items, total: count ?? 0 };
+}
+
+/** Cuenta intentos abiertos (`creating`/`ready`/`redirected`) cuyo `expires_at` ya pasó — candidatos a limpieza, sin traer filas. */
+async function countExpiredPendingCheckoutAttempts(): Promise<number> {
+  const admin = createAdminClient();
+  const { count, error } = await admin
+    .from("membership_checkout_attempts")
+    .select("id", { count: "exact", head: true })
+    .in("status", OPEN_CHECKOUT_ATTEMPT_STATUSES as unknown as string[])
+    .lt("expires_at", new Date().toISOString());
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
+/** Cuenta intentos ya expirados/limpiados (`status = 'expired'`), sin traer filas. */
+async function countExpiredCheckoutAttempts(): Promise<number> {
+  const admin = createAdminClient();
+  const { count, error } = await admin
+    .from("membership_checkout_attempts")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "expired");
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export {
   beginCheckoutAttempt,
   claimCheckoutAttemptForProvisioning,
@@ -245,6 +399,9 @@ export {
   linkCheckoutAttemptSubscription,
   updateCheckoutAttemptLifecycleStatus,
   expireStaleCheckoutAttempts,
+  listCheckoutAttemptsForAdmin,
+  countExpiredPendingCheckoutAttempts,
+  countExpiredCheckoutAttempts,
   OPEN_CHECKOUT_ATTEMPT_STATUSES,
 };
-export type { CheckoutAttempt, CheckoutAttemptStatus };
+export type { CheckoutAttempt, CheckoutAttemptStatus, CheckoutAttemptAdminItem, ListCheckoutAttemptsAdminParams };

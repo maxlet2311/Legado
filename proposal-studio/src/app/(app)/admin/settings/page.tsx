@@ -29,7 +29,7 @@ export default function AdminSettingsPage() {
       <PageHeader
         title="Configuración"
         description="Solo se verifica la presencia de variables — nunca se muestran sus valores."
-        breadcrumbs={[{ label: "Admin" }, { label: "Configuración" }]}
+        breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Configuración" }]}
       />
 
       <section className="rounded-xl border border-outline-variant bg-surface p-6">
