@@ -22,14 +22,17 @@ type CheckoutValues = z.infer<typeof checkoutSchema>;
  * el servidor vuelve a resolver todo contra `membership_plans`. Al recibir
  * `checkoutUrl` se redirige de inmediato al checkout oficial de Mercado Pago.
  */
-function PlanCheckoutForm({ planId }: { planId: string }) {
+function PlanCheckoutForm({ planId, userEmail }: { planId: string; userEmail: string | null }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<CheckoutValues>({ resolver: zodResolver(checkoutSchema) });
+  } = useForm<CheckoutValues>({
+    resolver: zodResolver(checkoutSchema),
+    defaultValues: { email: userEmail ?? "" },
+  });
 
   async function onSubmit(values: CheckoutValues) {
     setError(null);
@@ -58,22 +61,26 @@ function PlanCheckoutForm({ planId }: { planId: string }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-      <div className="space-y-2">
-        <Label htmlFor={`email-${planId}`}>Correo Electrónico</Label>
-        <Input
-          id={`email-${planId}`}
-          type="email"
-          autoComplete="email"
-          placeholder="nombre@empresa.com"
-          aria-invalid={!!errors.email}
-          {...register("email")}
-        />
-        {errors.email && (
-          <p role="alert" className="text-small text-error">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
+      {userEmail ? (
+        <input type="hidden" {...register("email")} value={userEmail} />
+      ) : (
+        <div className="space-y-2">
+          <Label htmlFor={`email-${planId}`}>Correo Electrónico</Label>
+          <Input
+            id={`email-${planId}`}
+            type="email"
+            autoComplete="email"
+            placeholder="nombre@empresa.com"
+            aria-invalid={!!errors.email}
+            {...register("email")}
+          />
+          {errors.email && (
+            <p role="alert" className="text-small text-error">
+              {errors.email.message}
+            </p>
+          )}
+        </div>
+      )}
 
       {error && (
         <p role="alert" className="rounded-md bg-error-container px-4 py-3 text-small text-error">

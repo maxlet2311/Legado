@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { listActivePlans } from "@/lib/memberships/repository";
 import { PlanCheckoutForm } from "@/app/planes/plan-checkout-form";
+import { getCurrentUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Planes — Proposal Studio™",
@@ -29,7 +30,8 @@ export default async function PlansPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const { error } = await searchParams;
-  const plans = await listActivePlans();
+  const [plans, user] = await Promise.all([listActivePlans(), getCurrentUser()]);
+  const userEmail = user?.email ?? null;
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-16">
@@ -85,7 +87,7 @@ export default async function PlansPage({
 
                 <div className="mt-8">
                   {providerReady ? (
-                    <PlanCheckoutForm planId={plan.id} />
+                    <PlanCheckoutForm planId={plan.id} userEmail={userEmail} />
                   ) : (
                     <p className="text-center text-small text-on-surface-variant/70">Próximamente disponible</p>
                   )}
