@@ -8,6 +8,9 @@ import { renderToStaticMarkup } from "react-dom/server.node";
 import { PDFDocument } from "pdf-lib";
 
 import { RenderDocument } from "@/lib/render/render-document";
+import { DocumentHeader } from "@/components/document/document-header";
+import { DocumentFooter } from "@/components/document/document-footer";
+import { MARGIN_MM } from "@/lib/render/page-geometry";
 import type { DocumentSnapshot } from "@/lib/render/types";
 
 const RENDER_ENGINE = "chromium-puppeteer";
@@ -17,39 +20,22 @@ function wrapHtml(bodyMarkup: string): string {
   return `<!doctype html><html lang="es-AR"><head><meta charset="utf-8" /></head><body>${bodyMarkup}</body></html>`;
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+/**
+ * `DocumentHeader`/`DocumentFooter` son la única fuente de verdad del
+ * header/footer del PDF — antes existían strings HTML duplicados acá que
+ * podían divergir de los componentes React sin que nadie lo notara.
+ * Puppeteer renderiza `headerTemplate`/`footerTemplate` en un documento
+ * aislado (sin el `<style>` del documento principal), por eso se les pasa
+ * `marginMm` ya resuelto en vez de depender de `var(--ps-margin)`.
+ */
+function buildHeaderTemplate(snapshot: DocumentSnapshot): string {
+  const marginMm = MARGIN_MM[snapshot.proposal.margin_size];
+  return renderToStaticMarkup(DocumentHeader({ snapshot, marginMm }));
 }
 
 function buildFooterTemplate(snapshot: DocumentSnapshot): string {
-  const { brand } = snapshot;
-  const parts = [brand?.advisor_name, brand?.license_number ? `Mat. ${brand.license_number}` : null, brand?.phone, brand?.email]
-    .filter((part): part is string => Boolean(part))
-    .map(escapeHtml)
-    .join(" &middot; ");
-
-  return `
-    <div style="width:100%; font-size:7.5px; color:#5A6259; padding:0 14mm; display:flex; justify-content:space-between; align-items:center; font-family:Arial,sans-serif;">
-      <span>${parts}</span>
-      <span><span class="pageNumber"></span> / <span class="totalPages"></span></span>
-    </div>
-  `;
-}
-
-function buildHeaderTemplate(snapshot: DocumentSnapshot): string {
-  const title = escapeHtml(snapshot.proposal.title);
-  const client = snapshot.client?.full_name ? escapeHtml(snapshot.client.full_name) : "";
-
-  return `
-    <div style="width:100%; font-size:7.5px; color:#5A6259; padding:0 14mm; display:flex; justify-content:space-between; font-family:Arial,sans-serif;">
-      <span>${title}</span>
-      <span>${client}</span>
-    </div>
-  `;
+  const marginMm = MARGIN_MM[snapshot.proposal.margin_size];
+  return renderToStaticMarkup(DocumentFooter({ snapshot, marginMm }));
 }
 
 async function launchBrowser() {

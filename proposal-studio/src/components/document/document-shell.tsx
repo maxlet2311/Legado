@@ -1,31 +1,31 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import type { DocumentSnapshot } from "@/lib/render/types";
+import { getPageSizeMm, MARGIN_MM } from "@/lib/render/page-geometry";
+import { getEmbeddedFontFacesCss, DISPLAY_FONT, BODY_FONT } from "@/lib/render/fonts";
 
 interface DocumentShellProps {
   snapshot: DocumentSnapshot;
   children: ReactNode;
 }
 
-const MARGIN_MM: Record<DocumentSnapshot["proposal"]["margin_size"], number> = {
-  small: 14,
-  medium: 20,
-  large: 28,
-};
-
 /**
- * Contenedor raíz del documento. Un único bloque de CSS (sin Tailwind:
- * el mismo HTML se reutiliza tal cual dentro de Puppeteer para generar el PDF,
- * fuera del pipeline de build de Next) define tamaño de página, orientación,
- * márgenes y las reglas de salto de página de 06_PDF_ENGINE.md (nunca títulos
- * huérfanos, nunca tablas ni Cards partidas).
+ * Contenedor raíz del documento. Un único bloque de CSS (sin Tailwind: el
+ * mismo HTML se reutiliza tal cual dentro de Puppeteer para generar el PDF,
+ * fuera del pipeline de build de Next) define tokens de marca, tipografía
+ * embebida, tamaño real de página según `pdf_format`+`orientation`, y las
+ * reglas de flujo/salto de página: la portada es siempre una hoja propia;
+ * el resto del documento fluye de forma continua y solo las secciones
+ * protagonistas (Alternativas, Comparativa) fuerzan inicio de página nueva
+ * — nunca "una sección = una hoja" fija (06_PDF_ENGINE.md § Paginación).
  */
 function DocumentShell({ snapshot, children }: DocumentShellProps) {
   const { proposal, brand } = snapshot;
   const marginMm = MARGIN_MM[proposal.margin_size];
-  const primaryColor = proposal.primary_color_override ?? brand?.primary_color ?? "#596B4D";
-  const secondaryColor = proposal.secondary_color_override ?? brand?.secondary_color ?? "#F6F2E9";
-  const accentColor = brand?.accent_color ?? "#C49752";
+  const primaryColor = proposal.primary_color_override ?? brand?.primary_color ?? "#1F3A2E";
+  const secondaryColor = proposal.secondary_color_override ?? brand?.secondary_color ?? "#F4F1E9";
+  const accentColor = brand?.accent_color ?? "#B08A4E";
+  const pageSize = getPageSizeMm(proposal.pdf_format, proposal.orientation);
 
   const rootStyle = {
     "--ps-primary": primaryColor,
@@ -34,6 +34,10 @@ function DocumentShell({ snapshot, children }: DocumentShellProps) {
     "--ps-text-on-primary": snapshot.brandTextOnPrimary,
     "--ps-text-on-accent": snapshot.brandTextOnAccent,
     "--ps-margin": `${marginMm}mm`,
+    "--ps-page-width": `${pageSize.width}mm`,
+    "--ps-page-height": `${pageSize.height}mm`,
+    "--ps-font-display": `"${DISPLAY_FONT}", Georgia, serif`,
+    "--ps-font-body": `"${proposal.font_family}", "${BODY_FONT}", Arial, sans-serif`,
   } as CSSProperties;
 
   return (
@@ -41,30 +45,56 @@ function DocumentShell({ snapshot, children }: DocumentShellProps) {
       <style
         dangerouslySetInnerHTML={{
           __html: `
+            ${getEmbeddedFontFacesCss()}
+
             @page { size: ${proposal.pdf_format} ${proposal.orientation}; margin: 0; }
-            .ps-doc { font-family: "${proposal.font_family}", Arial, sans-serif; color: #1F2421; }
-            .ps-doc * { box-sizing: border-box; }
-            .ps-page {
-              position: relative;
-              width: ${proposal.orientation === "portrait" ? "210mm" : "297mm"};
-              min-height: ${proposal.orientation === "portrait" ? "297mm" : "210mm"};
-              padding: var(--ps-margin);
-              margin: 0 auto 8mm auto;
-              background: #FFFFFF;
-              break-after: page;
-              overflow: hidden;
+
+            /* El navegador aplica \`body { margin: 8px }\` por UA stylesheet
+               (wrapHtml en pdf.ts no la resetea). Sin este reset, esos 8px
+               sumados a una portada con alto exacto de página física
+               (--ps-page-height) desbordan a una segunda página en blanco. */
+            html, body { margin: 0; padding: 0; }
+
+            .ps-doc {
+              font-family: var(--ps-font-body);
+              color: #1F2421;
+              -webkit-font-smoothing: antialiased;
             }
-            .ps-page:last-child { break-after: auto; }
-            .ps-section { break-inside: avoid; }
-            .ps-section + .ps-section { margin-top: 10mm; }
+            .ps-doc * { box-sizing: border-box; }
+            .ps-doc h1, .ps-doc h2, .ps-doc h3 { font-family: var(--ps-font-display); font-weight: 600; }
+
+            .ps-cover-page {
+              position: relative;
+              width: var(--ps-page-width);
+              height: var(--ps-page-height);
+              /* overflow:hidden es crítico: sin él, el círculo decorativo
+                 absolutamente posicionado (offsets negativos) puede quedar
+                 sin contener y hacer que Chromium calcule una segunda
+                 página física en blanco al paginar la portada. */
+              overflow: hidden;
+              background: #FFFFFF;
+            }
+
+            .ps-content {
+              padding: 0 var(--ps-margin);
+            }
+
+            .ps-section { break-inside: avoid; margin-top: 14mm; }
+            .ps-section:first-child { margin-top: 0; }
+            .ps-section--flow { break-inside: auto; }
+            .ps-section--anchor { break-before: page; }
             .ps-heading { break-after: avoid; }
             .ps-card { break-inside: avoid; }
+
             table.ps-table { border-collapse: collapse; width: 100%; }
             table.ps-table thead { display: table-header-group; }
             table.ps-table tr { break-inside: avoid; }
+
             @media screen {
               .ps-doc { background: #E7E4DA; padding: 12px 0; }
-              .ps-page { box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+              .ps-cover-page { box-shadow: 0 1px 3px rgba(0,0,0,0.15); margin: 0 auto 8px auto; }
+              .ps-content { max-width: var(--ps-page-width); margin: 0 auto; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.15); padding-top: var(--ps-margin); padding-bottom: var(--ps-margin); }
+              .ps-section--anchor { break-before: auto; border-top: 1px dashed #C7C2B4; padding-top: 10mm; }
             }
           `,
         }}

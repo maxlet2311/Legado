@@ -2,8 +2,19 @@ import type { SnapshotAlternative } from "@/lib/render/types";
 import { formatCurrency } from "@/lib/render/formatters";
 import { DocumentSection } from "@/components/document/document-section";
 
-/** Alternativas (06_PDF_ENGINE.md § Alternativas / Alternativa recomendada). */
-function AlternativeCard({ alternative }: { alternative: SnapshotAlternative }) {
+/**
+ * Reglas de grilla por cantidad de alternativas (brief § 4 "Alternativas
+ * analizadas"): nunca se reduce la tipografía para forzar todo en una
+ * página; en su lugar se ajusta la cantidad de columnas.
+ */
+function getGridColumns(count: number): number {
+  if (count <= 1) return 1;
+  if (count === 2) return 2;
+  if (count === 3) return 3;
+  return 2; // 4, 5 o 6: dos columnas, varias filas — mantiene legibilidad de cada tarjeta.
+}
+
+function AlternativeCard({ alternative, spotlight = false }: { alternative: SnapshotAlternative; spotlight?: boolean }) {
   const monthly = formatCurrency(alternative.monthly_premium, alternative.currency);
   const insured = formatCurrency(alternative.insured_amount, alternative.currency);
   const advantages = alternative.financial_details?.advantages?.filter((item) => item.trim()) ?? [];
@@ -14,26 +25,27 @@ function AlternativeCard({ alternative }: { alternative: SnapshotAlternative }) 
     <div
       className="ps-card"
       style={{
-        border: alternative.is_recommended ? "1.5px solid var(--ps-accent)" : "1px solid #DEDCCF",
-        borderRadius: "6px",
-        padding: "6mm",
+        border: spotlight ? "1.5px solid var(--ps-accent)" : "1px solid #DEDCCF",
+        borderRadius: "8px",
+        padding: spotlight ? "8mm" : "6mm",
         marginBottom: "5mm",
         position: "relative",
-        background: alternative.is_recommended ? "rgba(196,151,82,0.06)" : "#FFFFFF",
+        background: spotlight ? "color-mix(in srgb, var(--ps-accent) 6%, white)" : "#FFFFFF",
       }}
     >
-      {alternative.is_recommended ? (
+      {spotlight ? (
         <span
           style={{
             position: "absolute",
-            top: "-3mm",
-            right: "6mm",
+            top: "-3.2mm",
+            left: "6mm",
             background: "var(--ps-accent)",
             color: "var(--ps-text-on-accent)",
             fontSize: "7.5pt",
-            padding: "1mm 3mm",
+            fontWeight: 700,
+            padding: "1.2mm 3.5mm",
             borderRadius: "10px",
-            letterSpacing: "0.04em",
+            letterSpacing: "0.06em",
             textTransform: "uppercase",
           }}
         >
@@ -41,8 +53,12 @@ function AlternativeCard({ alternative }: { alternative: SnapshotAlternative }) 
         </span>
       ) : null}
 
-      <p style={{ fontSize: "8pt", color: "#5A6259", margin: "0 0 1mm 0" }}>{alternative.insurance_company}</p>
-      <h3 style={{ fontSize: "12.5pt", margin: "0 0 2mm 0" }}>{alternative.title}</h3>
+      <p style={{ fontSize: "8pt", color: "#5A6259", margin: `${spotlight ? "3mm" : "0"} 0 1mm 0` }}>
+        {alternative.insurance_company}
+      </p>
+      <h3 style={{ fontSize: spotlight ? "15pt" : "12.5pt", margin: "0 0 2mm 0", fontFamily: "var(--ps-font-display)" }}>
+        {alternative.title}
+      </h3>
       <p style={{ fontSize: "9pt", color: "#5A6259", margin: "0 0 3mm 0" }}>{alternative.product_name}</p>
 
       {alternative.description ? (
@@ -55,19 +71,29 @@ function AlternativeCard({ alternative }: { alternative: SnapshotAlternative }) 
         {monthly ? (
           <div>
             <p style={{ margin: 0, color: "#5A6259" }}>Prima mensual</p>
-            <p style={{ margin: 0, fontWeight: 600 }}>{monthly}</p>
+            <p style={{ margin: 0, fontWeight: 700 }}>{monthly}</p>
           </div>
         ) : null}
         {insured ? (
           <div>
             <p style={{ margin: 0, color: "#5A6259" }}>Suma asegurada</p>
-            <p style={{ margin: 0, fontWeight: 600 }}>{insured}</p>
+            <p style={{ margin: 0, fontWeight: 700 }}>{insured}</p>
           </div>
         ) : null}
       </div>
 
-      {alternative.is_recommended && alternative.recommended_reason ? (
-        <p style={{ fontSize: "9pt", marginTop: "3mm", color: "var(--ps-primary)", whiteSpace: "pre-wrap" }}>
+      {spotlight && alternative.recommended_reason ? (
+        <p
+          style={{
+            fontSize: "10pt",
+            marginTop: "4mm",
+            paddingTop: "4mm",
+            borderTop: "1px solid color-mix(in srgb, var(--ps-accent) 30%, transparent)",
+            color: "var(--ps-primary)",
+            whiteSpace: "pre-wrap",
+            lineHeight: 1.5,
+          }}
+        >
           {alternative.recommended_reason}
         </p>
       ) : null}
@@ -108,15 +134,31 @@ function AlternativeCard({ alternative }: { alternative: SnapshotAlternative }) 
   );
 }
 
+/**
+ * Alternativas (brief § 4 y § 5): la(s) recomendada(s) se destacan primero
+ * en composición protagonista de ancho completo; el resto se distribuye en
+ * grilla según la cantidad total, sin duplicar la recomendada en la grilla.
+ */
 function AlternativesSection({ alternatives }: { alternatives: SnapshotAlternative[] }) {
   if (alternatives.length === 0) return null;
   const sorted = [...alternatives].sort((a, b) => a.display_order - b.display_order);
+  const recommended = sorted.filter((alternative) => alternative.is_recommended);
+  const rest = sorted.filter((alternative) => !alternative.is_recommended);
+  const columns = getGridColumns(rest.length);
 
   return (
-    <DocumentSection eyebrow="Opciones evaluadas" title="Alternativas">
-      {sorted.map((alternative) => (
-        <AlternativeCard key={alternative.id} alternative={alternative} />
+    <DocumentSection eyebrow="Opciones evaluadas" title="Alternativas" anchor flow>
+      {recommended.map((alternative) => (
+        <AlternativeCard key={alternative.id} alternative={alternative} spotlight />
       ))}
+
+      {rest.length > 0 ? (
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: "5mm", alignItems: "start" }}>
+          {rest.map((alternative) => (
+            <AlternativeCard key={alternative.id} alternative={alternative} />
+          ))}
+        </div>
+      ) : null}
     </DocumentSection>
   );
 }

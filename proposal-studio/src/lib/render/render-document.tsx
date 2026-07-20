@@ -2,6 +2,7 @@ import type { DocumentSnapshot } from "@/lib/render/types";
 import { resolveTemplate } from "@/lib/render/template-registry";
 import { DocumentShell } from "@/components/document/document-shell";
 import { DocumentCover } from "@/components/document/document-cover";
+import { ExecutiveSummarySection } from "@/components/document/executive-summary-section";
 import { DiagnosisSection } from "@/components/document/diagnosis-section";
 import { RecommendationSection } from "@/components/document/recommendation-section";
 import { AlternativesSection } from "@/components/document/alternatives-section";
@@ -15,6 +16,12 @@ import { SignatureSection } from "@/components/document/signature-section";
  * del snapshot congelado (nunca de tablas vivas — 06_PDF_ENGINE.md § Render
  * Pipeline). Cada sección decide su propia visibilidad: si no hay contenido
  * real, no se renderiza ningún bloque vacío.
+ *
+ * El contenido (todo lo que no es portada) fluye de forma continua dentro de
+ * un único `.ps-content`: solo las secciones protagonistas (Alternativas,
+ * Comparativa) fuerzan el inicio de una página física nueva
+ * (`DocumentSection anchor`); el resto se apila sin desperdiciar espacio en
+ * páginas cortas — ver `document-shell.tsx`.
  */
 interface RenderDocumentProps {
   snapshot: DocumentSnapshot;
@@ -47,46 +54,36 @@ function RenderDocument({ snapshot, variant = "full" }: RenderDocumentProps) {
     <DocumentShell snapshot={snapshot}>
       {showCover ? <DocumentCover snapshot={snapshot} /> : null}
 
-      {showContent && hasDiagnosisOrStrategy ? (
-        <section className="ps-page">
-          <DiagnosisSection narrative={narrative} />
-          <div style={{ marginTop: "10mm" }}>
-            <RecommendationSection narrative={narrative} />
-          </div>
-        </section>
-      ) : null}
-
-      {showContent && alternatives.length > 0 ? (
-        <section className="ps-page">
-          <AlternativesSection alternatives={alternatives} />
-        </section>
-      ) : null}
-
-      {showContent && comparison.columns.length > 0 && comparison.rows.length > 0 ? (
-        <section className="ps-page">
-          <ComparisonSection comparison={comparison} />
-        </section>
-      ) : null}
-
-      {showContent && benefits.length > 0 ? (
-        <section className="ps-page">
-          <BenefitsSection benefits={benefits} />
-        </section>
-      ) : null}
-
       {showContent ? (
-        <section className="ps-page">
+        <div className="ps-content">
+          {proposal.show_summary ? <ExecutiveSummarySection snapshot={snapshot} /> : null}
+
+          {hasDiagnosisOrStrategy ? (
+            <>
+              <DiagnosisSection narrative={narrative} />
+              <RecommendationSection narrative={narrative} />
+            </>
+          ) : null}
+
+          {alternatives.length > 0 ? <AlternativesSection alternatives={alternatives} /> : null}
+
+          {comparison.columns.length > 0 && comparison.rows.length > 0 ? (
+            <ComparisonSection comparison={comparison} />
+          ) : null}
+
+          {benefits.length > 0 ? <BenefitsSection benefits={benefits} /> : null}
+
           <AdvisorSection narrative={narrative} brand={brand} />
           <SignatureSection signatureUrl={snapshot.resolvedSignatureUrl} advisorName={brand?.advisor_name ?? null} />
 
           {proposal.show_legal_note ? (
-            <p style={{ marginTop: "12mm", fontSize: "7.5pt", color: "#8A9086", lineHeight: 1.5 }}>
+            <p className="ps-section" style={{ fontSize: "7.5pt", color: "#8A9086", lineHeight: 1.5 }}>
               Este documento es una propuesta de estrategia elaborada por {brand?.commercial_name ?? "el asesor"} en
               base a la información provista por el cliente. No constituye una oferta vinculante ni sustituye la
               documentación contractual del producto seleccionado.
             </p>
           ) : null}
-        </section>
+        </div>
       ) : null}
     </DocumentShell>
   );
