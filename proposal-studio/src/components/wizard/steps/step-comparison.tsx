@@ -4,6 +4,8 @@ import { useEffect, useMemo } from "react";
 
 import { SectionCard } from "@/components/wizard/section-card";
 import { EditableTable } from "@/components/wizard/editable-table";
+import { AutosaveIndicator } from "@/components/wizard/autosave-indicator";
+import { Button } from "@/components/ui/button";
 import { useAutosave } from "@/hooks/use-autosave";
 import { upsertComparisonAction } from "@/lib/wizard/actions";
 import { createClient } from "@/lib/database/client";
@@ -32,6 +34,8 @@ function StepComparison() {
     [data?.proposalId, data?.comparison.columns, data?.comparison.rows, data?.comparison.revision],
   );
 
+  const pushHistorySnapshot = useWizardStore((state) => state.pushHistorySnapshot);
+
   const { status, error, conflictRevision, saveNow, forceSaveNow, clearConflict } = useAutosave(
     payload,
     async (value) => {
@@ -45,7 +49,31 @@ function StepComparison() {
       }
       return { error: result.error };
     },
+    { manual: true },
   );
+
+  function resolveKeepMine() {
+    if (!payload) return;
+    const revision = conflictRevision ?? payload.expected_revision;
+    setComparison({ revision });
+    forceSaveNow({ ...payload, expected_revision: revision });
+  }
+
+  async function resolveReload() {
+    if (!data) return;
+    const supabase = createClient();
+    const { data: fresh } = await supabase
+      .from("proposal_comparisons")
+      .select("columns, rows, revision")
+      .eq("proposal_id", data.proposalId)
+      .maybeSingle();
+    setComparison({
+      columns: (fresh?.columns as WizardComparisonColumn[] | undefined) ?? [],
+      rows: (fresh?.rows as WizardComparisonRow[] | undefined) ?? [],
+      revision: fresh?.revision ?? null,
+    });
+    clearConflict();
+  }
 
   useEffect(() => {
     setStepMeta({
@@ -54,27 +82,8 @@ function StepComparison() {
       autosaveError: error,
       saveNow,
       conflictRevision,
-      resolveKeepMine: () => {
-        if (!payload) return;
-        const revision = conflictRevision ?? payload.expected_revision;
-        setComparison({ revision });
-        forceSaveNow({ ...payload, expected_revision: revision });
-      },
-      resolveReload: async () => {
-        if (!data) return;
-        const supabase = createClient();
-        const { data: fresh } = await supabase
-          .from("proposal_comparisons")
-          .select("columns, rows, revision")
-          .eq("proposal_id", data.proposalId)
-          .maybeSingle();
-        setComparison({
-          columns: (fresh?.columns as WizardComparisonColumn[] | undefined) ?? [],
-          rows: (fresh?.rows as WizardComparisonRow[] | undefined) ?? [],
-          revision: fresh?.revision ?? null,
-        });
-        clearConflict();
-      },
+      resolveKeepMine,
+      resolveReload,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, error, saveNow, conflictRevision, forceSaveNow, clearConflict]);
@@ -89,8 +98,22 @@ function StepComparison() {
     <SectionCard
       title="Comparativa"
       description="Tabla comparativa entre las alternativas. Columnas y filas dinámicas, lista para el PDF."
+      collapsible
+      actions={
+        <div className="flex items-center gap-3">
+          <AutosaveIndicator status={status} error={error} onResolveKeepMine={resolveKeepMine} onResolveReload={resolveReload} />
+          <Button type="button" size="sm" onClick={saveNow}>
+            Guardar
+          </Button>
+        </div>
+      }
     >
-      <EditableTable columns={data.comparison.columns} rows={data.comparison.rows} onChange={handleChange} />
+      <EditableTable
+        columns={data.comparison.columns}
+        rows={data.comparison.rows}
+        onChange={handleChange}
+        onBeforeStructuralChange={pushHistorySnapshot}
+      />
     </SectionCard>
   );
 }

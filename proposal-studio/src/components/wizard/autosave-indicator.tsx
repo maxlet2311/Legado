@@ -1,6 +1,7 @@
-import { AlertTriangle, Check, Loader2 } from "lucide-react";
+import { AlertTriangle, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils/cn";
 import type { AutosaveStatus } from "@/types/wizard";
 
@@ -43,7 +44,7 @@ function AutosaveIndicator({
         aria-live="polite"
         title={status === "error" ? error : undefined}
       >
-        {status === "saving" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+        {status === "saving" && <Spinner className="h-3.5 w-3.5" />}
         {status === "saved" && <Check className="h-3.5 w-3.5" />}
         {(status === "error" || status === "conflict") && <AlertTriangle className="h-3.5 w-3.5" />}
         {LABELS[status]}

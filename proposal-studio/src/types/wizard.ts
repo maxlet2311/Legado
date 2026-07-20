@@ -28,6 +28,7 @@ export interface WizardProposalMeta {
   created_at: string;
   updated_at: string;
   revision: number;
+  duplication_reviewed: boolean;
 }
 
 export interface WizardNarrative {
@@ -55,6 +56,8 @@ export interface WizardAlternativeDetails {
 }
 
 export interface WizardAlternative {
+  /** Identidad estable de UI, nunca cambia entre creación local y persistencia. No confundir con `id` (fila real en la base). */
+  client_key: string;
   id: string | null;
   title: string;
   description: string;
@@ -79,6 +82,8 @@ export type BenefitCategory =
   | "succession";
 
 export interface WizardBenefit {
+  /** Identidad estable de UI, nunca cambia entre creación local y persistencia. No confundir con `id` (fila real en la base). */
+  client_key: string;
   id: string | null;
   title: string;
   description: string;

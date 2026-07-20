@@ -83,7 +83,7 @@ test.describe("Flujo completo — Proposal Studio", () => {
     await page.waitForURL("**/login");
   });
 
-  test("alternativas y beneficios: agregar, guardar (autosave) y eliminar", async ({ page }) => {
+  test("alternativas y beneficios: agregar, guardar (manual) y eliminar", async ({ page }) => {
     await login(page, USER_A);
     await createProposalUpToEdit(page, `Cliente E2E Items ${RUN_ID}`, `Propuesta E2E Items ${RUN_ID}`);
 
@@ -101,7 +101,8 @@ test.describe("Flujo completo — Proposal Studio", () => {
     await altItem.getByLabel("Compañía", { exact: false }).fill("Aseguradora Test");
     await altItem.getByLabel("Producto", { exact: false }).fill("Vida Integral Plus");
 
-    // Autosave con debounce de 2s.
+    // Guardado manual: alternativas/beneficios no autoguardan, requieren el botón "Guardar".
+    await altItem.getByRole("button", { name: "Guardar", exact: true }).click();
     await expect(page.getByText("Guardado").first()).toBeVisible({ timeout: 10_000 });
 
     await altItem.getByRole("button", { name: "Eliminar alternativa" }).click();
@@ -118,6 +119,7 @@ test.describe("Flujo completo — Proposal Studio", () => {
     await benefitItem.getByLabel("Descripción", { exact: false }).fill("Vigencia desde la primera cuota.");
     await benefitItem.getByLabel("Ícono", { exact: false }).fill("shield-check");
 
+    await benefitItem.getByRole("button", { name: "Guardar", exact: true }).click();
     await expect(page.getByText("Guardado").first()).toBeVisible({ timeout: 10_000 });
 
     await benefitItem.getByRole("button", { name: "Eliminar beneficio" }).click();

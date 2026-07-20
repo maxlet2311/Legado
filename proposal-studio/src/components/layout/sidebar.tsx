@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  FileText,
   BookOpen,
   Palette,
   Plus,
@@ -22,6 +23,7 @@ import type { Profile } from "@/lib/auth/session";
 
 const navItems = [
   { href: "/dashboard", label: "Panel de Control", icon: LayoutDashboard },
+  { href: "/proposals", label: "Propuestas", icon: FileText },
   { href: "/clients", label: "Clientes", icon: Users },
   { href: "/library", label: "Biblioteca", icon: BookOpen },
   { href: "/branding", label: "Mi Marca", icon: Palette },

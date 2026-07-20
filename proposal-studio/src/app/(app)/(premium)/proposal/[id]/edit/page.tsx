@@ -30,7 +30,7 @@ export default async function ProposalEditPage({
       supabase
         .from("proposals")
         .select(
-          "id, proposal_number, client_id, title, proposal_type, primary_objective, product, currency, internal_notes, status, created_at, updated_at, revision, clients(id, full_name, company_name, client_type, email, phone)",
+          "id, proposal_number, client_id, title, proposal_type, primary_objective, product, currency, internal_notes, status, created_at, updated_at, revision, duplication_reviewed, clients(id, full_name, company_name, client_type, email, phone)",
         )
         .eq("id", id)
         .eq("user_id", user.id)
@@ -79,6 +79,7 @@ export default async function ProposalEditPage({
       notes?: string;
     };
     return {
+      client_key: row.id,
       id: row.id,
       title: row.title,
       description: row.description ?? "",
@@ -98,6 +99,7 @@ export default async function ProposalEditPage({
   });
 
   const benefits: WizardBenefit[] = (benefitsResult.data ?? []).map((row) => ({
+    client_key: row.id,
     id: row.id,
     title: row.title,
     description: row.description,
@@ -139,6 +141,7 @@ export default async function ProposalEditPage({
       created_at: proposal.created_at,
       updated_at: proposal.updated_at,
       revision: proposal.revision,
+      duplication_reviewed: proposal.duplication_reviewed,
     },
     narrative: {
       current_situation: narrativeResult.data?.current_situation ?? "",

@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { AutosaveIndicator } from "@/components/wizard/autosave-indicator";
 import type { AutosaveStatus } from "@/types/wizard";
 
@@ -15,6 +16,7 @@ interface WizardFooterProps {
   autosaveError?: string;
   onResolveKeepMine?: () => void;
   onResolveReload?: () => void;
+  onSaveNow?: () => void;
   extra?: ReactNode;
 }
 
@@ -28,6 +30,7 @@ function WizardFooter({
   autosaveError,
   onResolveKeepMine,
   onResolveReload,
+  onSaveNow,
   extra,
 }: WizardFooterProps) {
   return (
@@ -37,6 +40,11 @@ function WizardFooter({
           <ArrowLeft className="h-4 w-4" />
           Anterior
         </Button>
+        {onSaveNow && (
+          <Button type="button" variant="secondary" onClick={onSaveNow}>
+            Guardar
+          </Button>
+        )}
         <AutosaveIndicator
           status={autosaveStatus}
           error={autosaveError}
@@ -47,7 +55,7 @@ function WizardFooter({
       <div className="flex items-center gap-3">
         {extra}
         <Button type="button" onClick={onNext} disabled={nextDisabled || nextLoading}>
-          {nextLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {nextLoading && <Spinner className="h-4 w-4" />}
           {nextLabel}
           {!nextLoading && <ArrowRight className="h-4 w-4" />}
         </Button>

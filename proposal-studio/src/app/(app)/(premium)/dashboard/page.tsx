@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FileText, BookOpen, BadgeCheck, SlidersHorizontal, ChevronRight, MoreHorizontal } from "lucide-react";
+import { FileText, BookOpen, BadgeCheck, SlidersHorizontal, ChevronRight } from "lucide-react";
 
 import { ContentContainer } from "@/components/layout/content-container";
 import { StatusPill, type ProposalStatus } from "@/components/layout/status-pill";
@@ -13,17 +13,13 @@ export const metadata: Metadata = {
   title: "Panel de Control — Proposal Studio™",
 };
 
-// No existe todavía una ruta de listado dedicado de propuestas (se construye
-// en el wizard del Sprint 3). Hasta entonces esta tarjeta queda deshabilitada
-// en vez de apuntar a un destino incorrecto o inventar una pantalla nueva; el
-// listado de propuestas ya está disponible más abajo, en "Actividad Reciente".
 const quickAccess = [
   {
-    href: null,
+    href: "/proposals",
     icon: FileText,
     title: "Mis propuestas",
-    description: "Próximamente: listado dedicado. Mientras tanto, mirá Actividad Reciente abajo.",
-    cta: "Próximamente",
+    description: "Ver el listado completo de tus propuestas.",
+    cta: "Ver todas",
   },
   {
     href: "/library",
@@ -42,9 +38,9 @@ const quickAccess = [
   {
     href: "/proposals/new",
     icon: SlidersHorizontal,
-    title: "Configuración",
-    description: "Ajustes de cuenta y preferencias.",
-    cta: "Ajustes",
+    title: "Nueva propuesta",
+    description: "Empezá una propuesta comercial nueva.",
+    cta: "Crear",
   },
 ];
 
@@ -160,7 +156,6 @@ export default async function DashboardPage() {
                   <th className="px-8 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">
                     Estado
                   </th>
-                  <th className="px-8 py-4" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant">
@@ -180,15 +175,6 @@ export default async function DashboardPage() {
                     </td>
                     <td className="px-8 py-5">
                       <StatusPill status={proposal.status as ProposalStatus} />
-                    </td>
-                    <td className="px-8 py-5 text-right">
-                      <button
-                        type="button"
-                        className="text-outline opacity-0 transition-all hover:text-primary group-hover:opacity-100"
-                        aria-label="Más opciones"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </button>
                     </td>
                   </tr>
                 ))}

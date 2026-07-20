@@ -1,25 +1,37 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Loader2, FileStack, Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SummaryCard } from "@/components/wizard/summary-card";
+import { PreSummaryChecklist } from "@/components/wizard/steps/pre-summary-checklist";
 import { finalizeProposalAction } from "@/lib/wizard/actions";
 import { emitProposalVersionAction } from "@/lib/versions/actions";
+import { runDeterministicChecks } from "@/lib/wizard/pre-summary-checks";
 import { useWizardStore } from "@/stores/wizard-store";
 import type { WizardStepProps } from "@/types/wizard";
 
 function StepSummary({ onJumpToStep }: WizardStepProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const data = useWizardStore((state) => state.data);
   const [error, setError] = useState<string | undefined>();
   const [isPending, startTransition] = useTransition();
   const [versionError, setVersionError] = useState<string | undefined>();
-  const [emittedVersionId, setEmittedVersionId] = useState<string | undefined>();
   const [isEmitting, startEmitting] = useTransition();
+
+  // Persistido en la URL (no en useState local): un Server Action que revalida
+  // datos puede forzar el remount del árbol cliente antes de que el estado
+  // local llegue a pintarse (ver informe Fase 3, bug de "Ver preview" ausente).
+  const emittedVersionId = searchParams.get("emittedVersionId") ?? undefined;
+  const emittedVersionNumber = searchParams.get("emittedVersionNumber") ?? undefined;
+
+  const deterministicFindings = useMemo(() => (data ? runDeterministicChecks(data) : []), [data]);
+  const hasBlockingErrors = deterministicFindings.some((f) => f.severity === "error");
 
   if (!data) return null;
 
@@ -27,6 +39,7 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
   const isCompleted = data.meta.status === "completed";
 
   function handleFinalize() {
+    if (hasBlockingErrors) return;
     setError(undefined);
     startTransition(async () => {
       const result = await finalizeProposalAction(proposalId);
@@ -39,6 +52,7 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
   }
 
   function handleEmitVersion() {
+    if (isEmitting) return;
     setVersionError(undefined);
     startEmitting(async () => {
       const result = await emitProposalVersionAction(proposalId);
@@ -46,12 +60,17 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
         setVersionError(result.error ?? "No pudimos emitir la versión.");
         return;
       }
-      setEmittedVersionId(result.data.id);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("emittedVersionId", result.data.id);
+      params.set("emittedVersionNumber", String(result.data.versionNumber));
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     });
   }
 
   return (
     <div className="space-y-6">
+      <PreSummaryChecklist proposalId={proposalId} deterministicFindings={deterministicFindings} onJumpToStep={onJumpToStep} />
+
       <SummaryCard title="Cliente" onEdit={() => onJumpToStep(0)}>
         <p className="font-semibold text-on-surface">{data.client.full_name}</p>
         <p className="text-small text-on-surface-variant">{data.client.email}</p>
@@ -108,19 +127,8 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
       </SummaryCard>
 
       <SummaryCard
-        title="Recomendación"
-        onEdit={() => onJumpToStep(4)}
-        empty={!data.narrative.recommended_strategy.trim()}
-        emptyLabel="Todavía no completaste la recomendación."
-      >
-        <p className="whitespace-pre-wrap text-small text-on-surface-variant">
-          {data.narrative.recommended_strategy}
-        </p>
-      </SummaryCard>
-
-      <SummaryCard
         title="Beneficios"
-        onEdit={() => onJumpToStep(5)}
+        onEdit={() => onJumpToStep(4)}
         empty={data.benefits.length === 0}
         emptyLabel="Todavía no agregaste beneficios."
       >
@@ -133,12 +141,23 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
 
       <SummaryCard
         title="Comparativa"
-        onEdit={() => onJumpToStep(6)}
+        onEdit={() => onJumpToStep(5)}
         empty={data.comparison.columns.length === 0 || data.comparison.rows.length === 0}
         emptyLabel="Todavía no armaste la comparativa."
       >
         <p className="text-small text-on-surface-variant">
           {data.comparison.columns.length} columnas · {data.comparison.rows.length} filas
+        </p>
+      </SummaryCard>
+
+      <SummaryCard
+        title="Recomendación"
+        onEdit={() => onJumpToStep(6)}
+        empty={!data.narrative.recommended_strategy.trim()}
+        emptyLabel="Todavía no completaste la recomendación."
+      >
+        <p className="whitespace-pre-wrap text-small text-on-surface-variant">
+          {data.narrative.recommended_strategy}
         </p>
       </SummaryCard>
 
@@ -150,7 +169,7 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
             Propuesta finalizada.
           </p>
         ) : (
-          <Button type="button" onClick={handleFinalize} disabled={isPending}>
+          <Button type="button" onClick={handleFinalize} disabled={isPending || hasBlockingErrors}>
             {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             Finalizar propuesta
           </Button>
@@ -163,6 +182,12 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
           finalizada). Podés seguir editando el wizard después: no altera versiones ya emitidas.
         </p>
         {versionError && <p className="text-small text-error">{versionError}</p>}
+        {emittedVersionId && (
+          <p className="flex items-center gap-2 text-small font-semibold text-success">
+            <CheckCircle2 className="h-4 w-4" />
+            Versión {emittedVersionNumber ? `#${emittedVersionNumber} ` : ""}emitida correctamente.
+          </p>
+        )}
         <div className="flex items-center gap-3">
           {emittedVersionId ? (
             <Button variant="secondary" asChild>
@@ -177,6 +202,17 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
             Emitir versión
           </Button>
         </div>
+      </div>
+
+      {/* Nunca dejar al asesor "atrapado" al terminar el último paso: salidas
+          claras hacia el resto del producto, sin obligarlo a adivinar. */}
+      <div className="flex flex-col gap-3 border-t border-outline-variant pt-6 sm:flex-row sm:justify-end">
+        <Button type="button" variant="secondary" asChild>
+          <Link href="/proposals">Volver a Propuestas</Link>
+        </Button>
+        <Button type="button" variant="secondary" asChild>
+          <Link href="/proposals/new">Crear nueva propuesta</Link>
+        </Button>
       </div>
     </div>
   );

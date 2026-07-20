@@ -47,7 +47,12 @@ function DocumentShell({ snapshot, children }: DocumentShellProps) {
           __html: `
             ${getEmbeddedFontFacesCss()}
 
-            @page { size: ${proposal.pdf_format} ${proposal.orientation}; margin: 0; }
+            /* Sin \`margin: 0\` acá: la portada y el contenido reciben su margen
+               real desde \`page.pdf({ margin })\` en pdf.ts (0 para portada,
+               16mm/14mm para contenido). Una regla \`@page { margin: 0 }\`
+               compartida pisaba ese margen de la API en TODAS las páginas de
+               contenido, dejando el header pegado al borde físico de la hoja. */
+            @page { size: ${proposal.pdf_format} ${proposal.orientation}; }
 
             /* El navegador aplica \`body { margin: 8px }\` por UA stylesheet
                (wrapHtml en pdf.ts no la resetea). Sin este reset, esos 8px
@@ -82,7 +87,11 @@ function DocumentShell({ snapshot, children }: DocumentShellProps) {
             .ps-section { break-inside: avoid; margin-top: 14mm; }
             .ps-section:first-child { margin-top: 0; }
             .ps-section--flow { break-inside: auto; }
-            .ps-section--anchor { break-before: page; }
+            /* margin-top: 0 -- una sección que fuerza salto de página ya
+               arranca detrás del margen físico de página (16mm, pdf.ts);
+               heredar además el margin-top: 14mm de .ps-section duplicaba/
+               desalineaba el espacio superior de esa hoja. */
+            .ps-section--anchor { break-before: page; margin-top: 0; }
             .ps-heading { break-after: avoid; }
             .ps-card { break-inside: avoid; }
 

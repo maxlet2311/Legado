@@ -1,17 +1,21 @@
 "use client";
 
 import { useId } from "react";
-import { Trash2 } from "lucide-react";
+import { BookmarkPlus, Check, ChevronDown, ChevronRight, Copy, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { AutosaveIndicator } from "@/components/wizard/autosave-indicator";
+import { SaveToLibraryDuplicateDialog } from "@/components/library/save-to-library-duplicate-dialog";
 import { useAutosave } from "@/hooks/use-autosave";
+import { useSaveToLibrary } from "@/hooks/use-save-to-library";
 import { saveAlternativeAction } from "@/lib/wizard/actions";
 import { createClient } from "@/lib/database/client";
+import { cn } from "@/lib/utils/cn";
 import type { AlternativeCategory, WizardAlternative } from "@/types/wizard";
 
 const CATEGORY_LABELS: Record<AlternativeCategory, string> = {
@@ -28,9 +32,21 @@ interface AlternativeItemProps {
   onChange: (item: WizardAlternative) => void;
   onSaved: (id: string, revision: number) => void;
   onRemove: () => void;
+  onDuplicate: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
-function AlternativeItem({ proposalId, item, onChange, onSaved, onRemove }: AlternativeItemProps) {
+function AlternativeItem({
+  proposalId,
+  item,
+  onChange,
+  onSaved,
+  onRemove,
+  onDuplicate,
+  collapsed,
+  onToggleCollapse,
+}: AlternativeItemProps) {
   const canSave = Boolean(
     item.title.trim() && item.insurance_company.trim() && item.product_name.trim(),
   );
@@ -42,7 +58,7 @@ function AlternativeItem({ proposalId, item, onChange, onSaved, onRemove }: Alte
   const disadvantagesId = useId();
   const notesId = useId();
 
-  const { status, error, conflictRevision, forceSaveNow, clearConflict } = useAutosave(
+  const { status, error, conflictRevision, saveNow, forceSaveNow, clearConflict } = useAutosave(
     item,
     async (value) => {
       const result = await saveAlternativeAction({
@@ -69,7 +85,7 @@ function AlternativeItem({ proposalId, item, onChange, onSaved, onRemove }: Alte
       }
       return { error: result.error };
     },
-    { enabled: canSave },
+    { enabled: canSave, manual: true },
   );
 
   async function resolveReload() {
@@ -92,6 +108,7 @@ function AlternativeItem({ proposalId, item, onChange, onSaved, onRemove }: Alte
         notes?: string;
       };
       onChange({
+        client_key: item.client_key,
         id: fresh.id,
         title: fresh.title,
         description: fresh.description ?? "",
@@ -129,21 +146,104 @@ function AlternativeItem({ proposalId, item, onChange, onSaved, onRemove }: Alte
     onChange({ ...item, details: { ...item.details, [key]: value } });
   }
 
+  const { status: libraryStatus, duplicate, save, saveAnyway, cancelDuplicate } = useSaveToLibrary();
+
+  function saveToLibrary() {
+    if (!item.title.trim() || libraryStatus === "saving") return;
+    save({
+      category: "alternative",
+      title: item.title,
+      content_json: {
+        category: item.category,
+        description: item.description,
+        insurance_company: item.insurance_company,
+        product_name: item.product_name,
+        currency: item.currency,
+        monthly_premium: item.monthly_premium,
+        advantages: item.details.advantages,
+        disadvantages: item.details.disadvantages,
+        notes: item.details.notes,
+      },
+    });
+  }
+
   return (
     <div className="rounded-md border border-outline-variant p-5" data-testid="alternative-item">
-      <div className="mb-4 flex items-center justify-between">
-        <AutosaveIndicator
-          status={status}
-          error={error}
-          onResolveKeepMine={resolveKeepMine}
-          onResolveReload={resolveReload}
-        />
-        <Button type="button" variant="ghost" size="icon" onClick={onRemove} aria-label="Eliminar alternativa">
-          <Trash2 className="h-4 w-4" />
-        </Button>
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className="flex min-w-0 flex-1 items-center gap-2 text-left"
+          aria-expanded={!collapsed}
+        >
+          {collapsed ? (
+            <ChevronRight className="h-4 w-4 shrink-0 text-on-surface-variant" />
+          ) : (
+            <ChevronDown className="h-4 w-4 shrink-0 text-on-surface-variant" />
+          )}
+          {collapsed ? (
+            <span className="min-w-0 truncate text-small">
+              <span className="font-semibold text-on-surface">
+                {item.title.trim() || "Alternativa sin título"}
+              </span>
+              {(item.insurance_company || item.product_name) && (
+                <span className="text-on-surface-variant">
+                  {" "}
+                  — {item.insurance_company}
+                  {item.insurance_company && item.product_name ? " / " : ""}
+                  {item.product_name}
+                </span>
+              )}
+            </span>
+          ) : (
+            <AutosaveIndicator
+              status={status}
+              error={error}
+              onResolveKeepMine={resolveKeepMine}
+              onResolveReload={resolveReload}
+            />
+          )}
+        </button>
+        <div className="flex shrink-0 items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={saveToLibrary}
+            disabled={!item.title.trim() || libraryStatus === "saving"}
+            aria-label="Guardar en Biblioteca"
+            title="Guardar en Biblioteca"
+          >
+            {libraryStatus === "saving" ? (
+              <Spinner className="h-4 w-4" />
+            ) : libraryStatus === "saved" ? (
+              <Check className="h-4 w-4 text-success" />
+            ) : (
+              <BookmarkPlus className="h-4 w-4" />
+            )}
+          </Button>
+          <Button type="button" variant="ghost" size="icon" onClick={onDuplicate} aria-label="Duplicar alternativa">
+            <Copy className="h-4 w-4" />
+          </Button>
+          <Button type="button" variant="ghost" size="icon" onClick={onRemove} aria-label="Eliminar alternativa">
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
+      <div
+        className={cn(
+          "grid transition-all duration-base ease-premium",
+          collapsed ? "grid-rows-[0fr] opacity-0" : "mt-4 grid-rows-[1fr] opacity-100",
+        )}
+      >
+        <div className="overflow-hidden">
       <div className="space-y-4">
+        <div className="flex justify-end">
+          <Button type="button" size="sm" onClick={saveNow} disabled={!canSave}>
+            Guardar
+          </Button>
+        </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor={titleId}>
@@ -242,7 +342,7 @@ function AlternativeItem({ proposalId, item, onChange, onSaved, onRemove }: Alte
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4">
           <div className="space-y-2">
             <Label htmlFor={advantagesId}>Ventajas (una por línea)</Label>
             <Textarea
@@ -277,6 +377,9 @@ function AlternativeItem({ proposalId, item, onChange, onSaved, onRemove }: Alte
           />
         </div>
       </div>
+        </div>
+      </div>
+      <SaveToLibraryDuplicateDialog duplicate={duplicate} onConfirm={saveAnyway} onCancel={cancelDuplicate} />
     </div>
   );
 }

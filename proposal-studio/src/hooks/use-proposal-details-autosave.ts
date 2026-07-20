@@ -70,6 +70,7 @@ function useProposalDetailsAutosave(isValid: boolean) {
       }
       return { error: result.error };
     },
+    { manual: true },
   );
 
   useEffect(() => {

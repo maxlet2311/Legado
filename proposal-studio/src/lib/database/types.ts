@@ -251,10 +251,12 @@ export type Database = {
         Row: {
           category: string
           content: string
+          content_json: Json
           created_at: string
           embedding: string | null
           id: string
           is_favorite: boolean
+          product: string | null
           tags: string[]
           title: string
           updated_at: string
@@ -263,10 +265,12 @@ export type Database = {
         Insert: {
           category: string
           content: string
+          content_json?: Json
           created_at?: string
           embedding?: string | null
           id?: string
           is_favorite?: boolean
+          product?: string | null
           tags?: string[]
           title: string
           updated_at?: string
@@ -275,10 +279,12 @@ export type Database = {
         Update: {
           category?: string
           content?: string
+          content_json?: Json
           created_at?: string
           embedding?: string | null
           id?: string
           is_favorite?: boolean
+          product?: string | null
           tags?: string[]
           title?: string
           updated_at?: string
@@ -1242,6 +1248,8 @@ export type Database = {
           client_id: string
           created_at: string
           currency: string
+          duplicated_from_id: string | null
+          duplication_reviewed: boolean
           expires_at: string | null
           font_family: string
           id: string
@@ -1278,6 +1286,8 @@ export type Database = {
           client_id: string
           created_at?: string
           currency: string
+          duplicated_from_id?: string | null
+          duplication_reviewed?: boolean
           expires_at?: string | null
           font_family?: string
           id?: string
@@ -1314,6 +1324,8 @@ export type Database = {
           client_id?: string
           created_at?: string
           currency?: string
+          duplicated_from_id?: string | null
+          duplication_reviewed?: boolean
           expires_at?: string | null
           font_family?: string
           id?: string
@@ -1361,6 +1373,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "proposals_duplicated_from_id_fkey"
+            columns: ["duplicated_from_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "proposals_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -1378,6 +1397,13 @@ export type Database = {
         Args: { p_id: string }
         Returns: {
           id: string
+        }[]
+      }
+      update_proposal_orientation: {
+        Args: { p_id: string; p_orientation: string }
+        Returns: {
+          id: string
+          orientation: string
         }[]
       }
       before_user_created_check_membership: {
@@ -1415,10 +1441,17 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      check_and_record_ai_usage: {
+        Args: { p_feature: string; p_proposal_id: string }
+        Returns: {
+          allowed: boolean
+        }[]
+      }
       create_draft_proposal: {
         Args: {
           p_client_id: string
           p_currency: string
+          p_duplicated_from_id?: string
           p_primary_objective: string
           p_proposal_type: string
           p_title: string
@@ -1504,6 +1537,10 @@ export type Database = {
         }[]
       }
       generate_proposal_number: { Args: never; Returns: string }
+      get_live_document_content: {
+        Args: { p_proposal_id: string }
+        Returns: Json
+      }
       has_active_membership: { Args: { p_user_id: string }; Returns: boolean }
       link_membership_to_user: {
         Args: {
@@ -1541,6 +1578,13 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      mark_duplication_reviewed: {
+        Args: { p_id: string }
+        Returns: {
+          duplication_reviewed: boolean
+          id: string
+        }[]
       }
       record_proposal_version_artifact: {
         Args: {

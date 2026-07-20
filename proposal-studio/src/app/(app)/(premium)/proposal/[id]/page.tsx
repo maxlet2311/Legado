@@ -10,7 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
-import { EditTitleDialog, ArchiveButton } from "@/app/(app)/(premium)/proposal/[id]/proposal-actions";
+import {
+  ArchiveButton,
+  DuplicateButton,
+  EditTitleDialog,
+  OrientationToggle,
+  SaveAsTemplateDialog,
+} from "@/app/(app)/(premium)/proposal/[id]/proposal-actions";
 import { VersionHistory } from "@/app/(app)/(premium)/proposal/[id]/version-history";
 
 export const metadata: Metadata = {
@@ -28,7 +34,7 @@ export default async function ProposalDetailPage({
 
   const { data: proposal } = await supabase
     .from("proposals")
-    .select("id, title, status, client_id, clients(full_name, email)")
+    .select("id, title, status, client_id, orientation, clients(full_name, email)")
     .eq("id", id)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -76,8 +82,12 @@ export default async function ProposalDetailPage({
         description={`Cliente: ${proposal.clients?.full_name ?? "—"}`}
         breadcrumbs={[{ label: "Panel de Control", href: "/dashboard" }, { label: "Propuesta" }]}
         actions={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <StatusPill status={proposal.status as ProposalStatus} />
+            <OrientationToggle
+              proposalId={proposal.id}
+              orientation={(proposal.orientation as "portrait" | "landscape") ?? "portrait"}
+            />
             <Button variant="secondary" asChild>
               <Link href={`/proposal/${proposal.id}/edit`}>
                 <Pencil className="h-4 w-4" />
@@ -85,6 +95,8 @@ export default async function ProposalDetailPage({
               </Link>
             </Button>
             <EditTitleDialog proposalId={proposal.id} currentTitle={proposal.title} />
+            <SaveAsTemplateDialog proposalId={proposal.id} />
+            <DuplicateButton proposalId={proposal.id} />
             <ArchiveButton proposalId={proposal.id} disabled={proposal.status === "archived"} />
           </div>
         }

@@ -17,6 +17,8 @@ interface AutosaveResult {
 interface UseAutosaveOptions {
   enabled?: boolean;
   debounceMs?: number;
+  /** Si es true, no guarda automáticamente al cambiar `value`; solo vía `saveNow`/`forceSaveNow`. */
+  manual?: boolean;
 }
 
 interface UseAutosaveResult<T> {
@@ -55,7 +57,7 @@ interface UseAutosaveResult<T> {
 function useAutosave<T>(
   value: T,
   save: (value: T) => Promise<AutosaveResult | void>,
-  { enabled = true, debounceMs = AUTOSAVE_DEBOUNCE_MS }: UseAutosaveOptions = {},
+  { enabled = true, debounceMs = AUTOSAVE_DEBOUNCE_MS, manual = false }: UseAutosaveOptions = {},
 ): UseAutosaveResult<T> {
   const [status, setStatus] = useState<AutosaveStatus>("idle");
   const [error, setError] = useState<string | undefined>();
@@ -109,7 +111,7 @@ function useAutosave<T>(
   }, []);
 
   useEffect(() => {
-    if (!enabled || conflictedRef.current) return;
+    if (!enabled || manual || conflictedRef.current) return;
 
     const serialized = JSON.stringify(value);
     if (serialized === lastSavedRef.current) return;
@@ -122,7 +124,7 @@ function useAutosave<T>(
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [value, enabled, debounceMs, runSave]);
+  }, [value, enabled, manual, debounceMs, runSave]);
 
   const saveNow = useCallback(() => {
     if (conflictedRef.current) return;
