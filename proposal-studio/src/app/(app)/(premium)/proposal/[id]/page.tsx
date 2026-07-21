@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
+import { measurePerformance } from "@/lib/utils/performance";
 import {
   ArchiveButton,
   DuplicateButton,
@@ -33,35 +34,61 @@ export default async function ProposalDetailPage({
   const { user } = await requireActiveUser();
   const supabase = await createClient();
 
-  const { data: proposal } = await supabase
-    .from("proposals")
-    .select("id, title, status, client_id, orientation, clients(full_name, email)")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  // Las tres consultas son independientes entre sí: `proposal_narratives` y
+  // `proposal_versions` tienen su propia policy RLS `user_id = auth.uid()`
+  // (ver `supabase/migrations/20260715170015_rls_policies.sql`), no dependen
+  // de que la query de `proposals` resuelva primero para estar protegidas —
+  // paralelizarlas es seguro. Solo `proposal_version_artifacts` depende del
+  // resultado de `versions` (necesita los ids) y queda secuencial después.
+  const [{ data: proposal }, { data: narrative }, { data: versions }] = await measurePerformance(
+    "page:proposal.detail",
+    () =>
+      Promise.all([
+        measurePerformance(
+          "db:proposals.get",
+          () =>
+            supabase
+              .from("proposals")
+              .select("id, title, status, client_id, orientation, clients(full_name, email)")
+              .eq("id", id)
+              .eq("user_id", user.id)
+              .maybeSingle(),
+          { context: "/proposal/[id]" },
+        ),
+        measurePerformance(
+          "db:proposal_narratives.get",
+          () => supabase.from("proposal_narratives").select("executive_summary").eq("proposal_id", id).maybeSingle(),
+          { context: "/proposal/[id]" },
+        ),
+        measurePerformance(
+          "db:proposal_versions.list",
+          () =>
+            supabase
+              .from("proposal_versions")
+              .select("id, version_number, created_at, render_json")
+              .eq("proposal_id", id)
+              .order("version_number", { ascending: false }),
+          { context: "/proposal/[id]" },
+        ),
+      ]),
+    { context: "/proposal/[id]" },
+  );
 
   if (!proposal) {
     notFound();
   }
 
-  const { data: narrative } = await supabase
-    .from("proposal_narratives")
-    .select("executive_summary")
-    .eq("proposal_id", proposal.id)
-    .maybeSingle();
-
-  const { data: versions } = await supabase
-    .from("proposal_versions")
-    .select("id, version_number, created_at, render_json")
-    .eq("proposal_id", proposal.id)
-    .order("version_number", { ascending: false });
-
   const versionIds = (versions ?? []).map((version) => version.id);
   const { data: artifacts } = versionIds.length
-    ? await supabase
-        .from("proposal_version_artifacts")
-        .select("proposal_version_id")
-        .in("proposal_version_id", versionIds)
+    ? await measurePerformance(
+        "db:proposal_version_artifacts.list",
+        () =>
+          supabase
+            .from("proposal_version_artifacts")
+            .select("proposal_version_id")
+            .in("proposal_version_id", versionIds),
+        { context: "/proposal/[id]", count: versionIds.length },
+      )
     : { data: [] as { proposal_version_id: string }[] };
 
   const artifactVersionIds = new Set((artifacts ?? []).map((artifact) => artifact.proposal_version_id));

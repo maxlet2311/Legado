@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationLink } from "@/components/ui/pagination-link";
 import { Table, TableHeader, TableHeaderRow, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { listMembershipsForAdmin, listAllPlans } from "@/lib/memberships/repository";
+import { measurePerformance } from "@/lib/utils/performance";
 import { evaluateMembershipAccess } from "@/lib/memberships/access";
 import { MEMBERSHIP_STATUSES } from "@/lib/memberships/types";
 import type { MembershipStatus } from "@/lib/memberships/types";
@@ -47,18 +48,23 @@ export default async function AdminMembershipsPage({
   const statusFilter =
     status && (MEMBERSHIP_STATUSES as readonly string[]).includes(status) ? (status as MembershipStatus) : undefined;
 
-  const [plans, { items, total }] = await Promise.all([
-    listAllPlans(),
-    listMembershipsForAdmin({
-      page,
-      pageSize: PAGE_SIZE,
-      status: statusFilter,
-      planId,
-      provider,
-      linked,
-      search,
-    }),
-  ]);
+  const [plans, { items, total }] = await measurePerformance(
+    "page:admin.memberships",
+    () =>
+      Promise.all([
+        listAllPlans(),
+        listMembershipsForAdmin({
+          page,
+          pageSize: PAGE_SIZE,
+          status: statusFilter,
+          planId,
+          provider,
+          linked,
+          search,
+        }),
+      ]),
+    { context: "/admin/memberships" },
+  );
 
   const totalPages = total ? Math.max(1, Math.ceil(total / PAGE_SIZE)) : 1;
 

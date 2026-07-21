@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AlertTriangle, Ban, Clock, Webhook } from "lucide-react";
 
 import { ContentContainer } from "@/components/layout/content-container";
@@ -77,13 +78,13 @@ export default async function AdminPaymentsPage() {
 
       <p className="mt-6 text-caption text-on-surface-variant">
         Para el detalle completo de eventos de webhook, ver{" "}
-        <a href="/admin/payments/events" className="font-medium text-primary hover:underline">
+        <Link href="/admin/payments/events" className="font-medium text-primary hover:underline">
           Eventos
-        </a>
+        </Link>
         . Para gestionar y limpiar intentos de checkout vencidos, ver{" "}
-        <a href="/admin/payments/checkouts" className="font-medium text-primary hover:underline">
+        <Link href="/admin/payments/checkouts" className="font-medium text-primary hover:underline">
           Checkouts
-        </a>
+        </Link>
         .
       </p>
     </ContentContainer>

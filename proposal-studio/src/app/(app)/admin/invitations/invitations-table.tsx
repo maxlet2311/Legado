@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import Link from "next/link";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { InvitationStatusBadge } from "@/app/(app)/admin/invitations/invitation-status-badge";
@@ -29,9 +30,9 @@ function InvitationDetail({ item }: { item: AdminInvitationListItem }) {
         <dt className="text-caption font-medium text-on-surface-variant">Membresía asociada</dt>
         <dd className="text-on-surface">
           {item.membershipId ? (
-            <a href={`/admin/memberships/${item.membershipId}`} className="text-primary hover:underline">
+            <Link href={`/admin/memberships/${item.membershipId}`} className="text-primary hover:underline">
               {item.membershipEmail ?? item.membershipId} ({item.membershipStatus ?? "—"})
-            </a>
+            </Link>
           ) : (
             "Invitación administrativa directa (sin membresía)"
           )}

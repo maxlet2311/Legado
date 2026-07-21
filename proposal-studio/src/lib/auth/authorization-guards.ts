@@ -6,6 +6,7 @@ import { requireSession } from "@/lib/auth/session";
 import type { Profile } from "@/lib/auth/session";
 import { createClient } from "@/lib/database/server";
 import { isAdmin, isPlatformOwner, ForbiddenError } from "@/lib/auth/authorization";
+import { measurePerformance } from "@/lib/utils/performance";
 
 /**
  * Guard central: exige sesión válida (usuario + profile) con `is_active ===
@@ -22,15 +23,17 @@ import { isAdmin, isPlatformOwner, ForbiddenError } from "@/lib/auth/authorizati
  * (defensa en profundidad).
  */
 async function requireActiveUser(): Promise<{ user: NonNullable<Awaited<ReturnType<typeof requireSession>>["user"]>; profile: Profile }> {
-  const { user, profile } = await requireSession();
+  return measurePerformance("guard:requireActiveUser", async () => {
+    const { user, profile } = await requireSession();
 
-  if (!profile || !profile.is_active) {
-    const supabase = await createClient();
-    await supabase.auth.signOut();
-    redirect("/login?error=inactive");
-  }
+    if (!profile || !profile.is_active) {
+      const supabase = await createClient();
+      await supabase.auth.signOut();
+      redirect("/login?error=inactive");
+    }
 
-  return { user, profile };
+    return { user, profile };
+  });
 }
 
 /**
@@ -61,13 +64,15 @@ async function requireAdmin(): Promise<Profile> {
  * explícitamente una función de soporte/auditoría separada.
  */
 async function requirePlatformOwner(): Promise<Profile> {
-  const { profile } = await requireActiveUser();
+  return measurePerformance("guard:requirePlatformOwner", async () => {
+    const { profile } = await requireActiveUser();
 
-  if (!isPlatformOwner(profile)) {
-    throw new ForbiddenError("Requiere ser el propietario de la plataforma.");
-  }
+    if (!isPlatformOwner(profile)) {
+      throw new ForbiddenError("Requiere ser el propietario de la plataforma.");
+    }
 
-  return profile;
+    return profile;
+  });
 }
 
 export { requireActiveUser, requireAdmin, requirePlatformOwner };

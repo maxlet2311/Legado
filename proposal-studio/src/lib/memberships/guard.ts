@@ -15,6 +15,7 @@ import {
   MembershipDataInconsistentError,
   MembershipServiceUnavailableError,
 } from "@/lib/memberships/guard-errors";
+import { measurePerformance } from "@/lib/utils/performance";
 
 interface ActiveMembershipContext {
   user: Awaited<ReturnType<typeof requireActiveUser>>["user"];
@@ -86,6 +87,16 @@ function toGuardError(membership: Membership, access: MembershipAccessDecision):
  *   como acceso concedido).
  */
 async function requireActiveMembership(options: RequireActiveMembershipOptions = {}): Promise<ActiveMembershipContext> {
+  return measurePerformance(
+    "guard:requireActiveMembership",
+    () => requireActiveMembershipUncounted(options),
+    { context: options.surface },
+  );
+}
+
+async function requireActiveMembershipUncounted(
+  options: RequireActiveMembershipOptions = {},
+): Promise<ActiveMembershipContext> {
   const { user, profile } = await requireActiveUser();
   const surface = options.surface ?? "unknown";
   const mode = getMembershipEnforcementMode();

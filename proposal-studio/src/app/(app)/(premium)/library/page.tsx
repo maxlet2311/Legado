@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { LibraryTabs } from "@/components/library/library-tabs";
 import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
+import { measurePerformance } from "@/lib/utils/performance";
 
 export const metadata: Metadata = {
   title: "Biblioteca — Proposal Studio™",
@@ -14,12 +15,17 @@ export default async function LibraryPage() {
   const { user } = await requireActiveUser();
   const supabase = await createClient();
 
-  const { data: clients } = await supabase
-    .from("clients")
-    .select("id, full_name")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .order("full_name", { ascending: true });
+  const { data: clients } = await measurePerformance(
+    "page:library",
+    () =>
+      supabase
+        .from("clients")
+        .select("id, full_name")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .order("full_name", { ascending: true }),
+    { context: "/library" },
+  );
 
   return (
     <ContentContainer>

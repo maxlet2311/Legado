@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import Link from "next/link";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { formatDateTime } from "@/app/(app)/admin/memberships/status-badge";
@@ -53,7 +54,7 @@ function EventDetail({ event }: { event: PaymentProviderEventAdminItem }) {
         <p className="rounded-md border border-warning/30 bg-warning/10 p-3 text-caption text-warning">
           No hay una acción de reintento automático para este evento — no existe un endpoint de reintento real en el
           backend. Si conocés el id real de la suscripción en Mercado Pago, usá el panel de &ldquo;Reconciliar
-          suscripción&rdquo; en <a href="/admin/payments" className="underline">/admin/payments</a>.
+          suscripción&rdquo; en <Link href="/admin/payments" className="underline">/admin/payments</Link>.
         </p>
       )}
     </div>

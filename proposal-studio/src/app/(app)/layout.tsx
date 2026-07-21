@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { requireActiveUser } from "@/lib/auth/authorization-guards";
+import { measurePerformance } from "@/lib/utils/performance";
 
 /**
  * Área autenticada general (Etapa 5, sección 12): sesión + perfil activo,
@@ -9,7 +10,7 @@ import { requireActiveUser } from "@/lib/auth/authorization-guards";
  * el layout anidado `(premium)/layout.tsx` con `requireActiveMembership`.
  */
 export default async function AppGroupLayout({ children }: { children: React.ReactNode }) {
-  const { profile } = await requireActiveUser();
+  const { profile } = await measurePerformance("layout:app", () => requireActiveUser());
 
   return <AppShell profile={profile}>{children}</AppShell>;
 }

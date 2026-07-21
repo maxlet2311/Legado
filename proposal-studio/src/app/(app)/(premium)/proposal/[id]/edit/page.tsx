@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
+import { measurePerformance } from "@/lib/utils/performance";
 import { ProposalWizard } from "@/components/wizard/proposal-wizard";
 import type {
   WizardAlternative,
@@ -26,7 +27,10 @@ export default async function ProposalEditPage({
   const supabase = await createClient();
 
   const [proposalResult, narrativeResult, alternativesResult, benefitsResult, comparisonResult, clientsResult] =
-    await Promise.all([
+    await measurePerformance(
+      "page:proposal.edit",
+      () =>
+        Promise.all([
       supabase
         .from("proposals")
         .select(
@@ -65,7 +69,9 @@ export default async function ProposalEditPage({
         .eq("user_id", user.id)
         .eq("status", "active")
         .order("full_name", { ascending: true }),
-    ]);
+        ]),
+      { context: "/proposal/[id]/edit" },
+    );
 
   const proposal = proposalResult.data;
   if (!proposal || !proposal.clients) {

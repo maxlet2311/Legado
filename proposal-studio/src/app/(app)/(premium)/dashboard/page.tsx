@@ -10,6 +10,7 @@ import { Table, TableHeader, TableHeaderRow, TableHead, TableBody, TableRow, Tab
 import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
 import { NewProposalDialog } from "@/app/(app)/(premium)/dashboard/new-proposal-dialog";
+import { measurePerformance } from "@/lib/utils/performance";
 
 export const metadata: Metadata = {
   title: "Panel de Control — Proposal Studio™",
@@ -54,15 +55,29 @@ export default async function DashboardPage() {
   const { user, profile } = await requireActiveUser();
   const supabase = await createClient();
 
-  const [{ data: proposals, error: proposalsError }, { data: clients }] = await Promise.all([
-    supabase
-      .from("proposals")
-      .select("id, title, status, updated_at, clients(full_name)")
-      .eq("user_id", user.id)
-      .order("updated_at", { ascending: false })
-      .limit(8),
-    supabase.from("clients").select("id, full_name").eq("user_id", user.id).eq("status", "active"),
-  ]);
+  const [{ data: proposals, error: proposalsError }, { data: clients }] = await measurePerformance(
+    "page:dashboard",
+    () =>
+      Promise.all([
+        measurePerformance(
+          "db:proposals.recent",
+          () =>
+            supabase
+              .from("proposals")
+              .select("id, title, status, updated_at, clients(full_name)")
+              .eq("user_id", user.id)
+              .order("updated_at", { ascending: false })
+              .limit(8),
+          { context: "/dashboard" },
+        ),
+        measurePerformance(
+          "db:clients.activeForDialog",
+          () => supabase.from("clients").select("id, full_name").eq("user_id", user.id).eq("status", "active"),
+          { context: "/dashboard" },
+        ),
+      ]),
+    { context: "/dashboard" },
+  );
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "asesor";
 

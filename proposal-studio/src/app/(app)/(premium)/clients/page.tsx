@@ -10,6 +10,7 @@ import { PaginationLink } from "@/components/ui/pagination-link";
 import { Table, TableHeader, TableHeaderRow, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
+import { measurePerformance } from "@/lib/utils/performance";
 import { NewClientDialog, EditClientDialog } from "@/app/(app)/(premium)/clients/client-dialogs";
 
 export const metadata: Metadata = {
@@ -41,12 +42,17 @@ export default async function ClientsPage({
     data: clients,
     error,
     count,
-  } = await supabase
-    .from("clients")
-    .select("id, full_name, email, phone, client_type, company_name, status", { count: "exact" })
-    .eq("user_id", user.id)
-    .order("full_name", { ascending: true })
-    .range(from, to);
+  } = await measurePerformance(
+    "page:clients",
+    () =>
+      supabase
+        .from("clients")
+        .select("id, full_name, email, phone, client_type, company_name, status", { count: "exact" })
+        .eq("user_id", user.id)
+        .order("full_name", { ascending: true })
+        .range(from, to),
+    { context: "/clients" },
+  );
 
   const totalPages = count ? Math.max(1, Math.ceil(count / PAGE_SIZE)) : 1;
   const invalidPage = page > totalPages && count !== null && count > 0;

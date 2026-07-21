@@ -121,6 +121,47 @@ async function getCurrentMembershipForUser(userId: string): Promise<Membership |
   return mostRecent ? mapMembershipRow(mostRecent) : null;
 }
 
+/**
+ * Igual que `getCurrentMembershipForUser`, pero trae el plan embebido en la
+ * misma consulta (`memberships.plan_id` referencia `membership_plans`, ver
+ * migración `20260716030100_memberships.sql`) — evita el round-trip
+ * secuencial extra de `getPlanById` en `/account/membership`, la única
+ * pantalla que necesita ambos a la vez.
+ */
+async function getCurrentMembershipForUserWithPlan(
+  userId: string,
+): Promise<{ membership: Membership; plan: MembershipPlan | null } | null> {
+  const admin = createAdminClient();
+  const select = "*, membership_plans(*)";
+
+  const { data: current } = await admin
+    .from("memberships")
+    .select(select)
+    .eq("user_id", userId)
+    .in("status", CURRENT_MEMBERSHIP_STATUSES as unknown as string[])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const row = current ?? (
+    await admin
+      .from("memberships")
+      .select(select)
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+  ).data;
+
+  if (!row) return null;
+
+  const { membership_plans, ...membershipRow } = row;
+  return {
+    membership: mapMembershipRow(membershipRow as MembershipRow),
+    plan: membership_plans ? mapPlanRow(membership_plans as MembershipPlanRow) : null,
+  };
+}
+
 async function getMembershipByProviderSubscriptionId(
   provider: string,
   providerSubscriptionId: string,
@@ -398,6 +439,7 @@ export {
   getMembershipByProviderSubscriptionId,
   linkMembershipProviderSubscription,
   getCurrentMembershipForUser,
+  getCurrentMembershipForUserWithPlan,
   getCurrentMembershipForEmail,
   callCreateMembership,
   callTransitionMembershipStatus,

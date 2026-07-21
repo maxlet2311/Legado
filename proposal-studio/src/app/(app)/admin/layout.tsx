@@ -5,6 +5,7 @@ import { ContentContainer } from "@/components/layout/content-container";
 import { EmptyState } from "@/components/ui/empty-state";
 import { requirePlatformOwner } from "@/lib/auth/authorization-guards";
 import { ForbiddenError } from "@/lib/auth/authorization";
+import { measurePerformance } from "@/lib/utils/performance";
 
 const ADMIN_NAV = [
   { label: "Membresías", href: "/admin/memberships" },
@@ -25,7 +26,7 @@ const ADMIN_NAV = [
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   try {
-    await requirePlatformOwner();
+    await measurePerformance("layout:admin", () => requirePlatformOwner());
   } catch (error) {
     if (error instanceof ForbiddenError) {
       return (

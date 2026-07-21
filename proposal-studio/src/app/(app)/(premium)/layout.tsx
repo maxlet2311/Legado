@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requireActiveMembership } from "@/lib/memberships/guard";
 import { MembershipGuardError } from "@/lib/memberships/guard-errors";
 import { mapMembershipErrorToRedirectPath } from "@/lib/memberships/error-mapper";
+import { measurePerformance } from "@/lib/utils/performance";
 
 /**
  * Área premium (Etapa 5, sección 12): dashboard, propuestas, clientes, marca,
@@ -20,7 +21,7 @@ import { mapMembershipErrorToRedirectPath } from "@/lib/memberships/error-mapper
  */
 export default async function PremiumLayout({ children }: { children: React.ReactNode }) {
   try {
-    await requireActiveMembership({ surface: "app.premium.layout" });
+    await measurePerformance("layout:premium", () => requireActiveMembership({ surface: "app.premium.layout" }));
     return <>{children}</>;
   } catch (error) {
     if (error instanceof MembershipGuardError) {

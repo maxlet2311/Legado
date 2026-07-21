@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/database/server";
 import type { Tables } from "@/lib/database/types";
+import { measurePerformance } from "@/lib/utils/performance";
 
 type Profile = Pick<Tables<"profiles">, "id" | "full_name" | "role" | "is_active" | "is_platform_owner">;
 
@@ -24,17 +25,19 @@ const resolveSession = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await measurePerformance("auth:getUser", () => supabase.auth.getUser());
 
   if (!user) {
     return { user: null, profile: null };
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, full_name, role, is_active, is_platform_owner")
-    .eq("id", user.id)
-    .single();
+  const { data: profile } = await measurePerformance("db:profiles.get", () =>
+    supabase
+      .from("profiles")
+      .select("id, full_name, role, is_active, is_platform_owner")
+      .eq("id", user.id)
+      .single(),
+  );
 
   return { user, profile };
 });
@@ -54,7 +57,10 @@ async function getCurrentProfile(): Promise<Profile | null> {
 }
 
 async function requireSession(): Promise<{ user: NonNullable<Session["user"]>; profile: Profile | null }> {
-  const { user, profile } = await resolveSession();
+  // Envuelve `resolveSession` (memoizada) para medir el guard completo tal
+  // como lo ve cada llamador; en llamadas subsiguientes dentro del mismo
+  // request esto debería aparecer cerca de 0ms — confirma el cache hit.
+  const { user, profile } = await measurePerformance("guard:requireSession", () => resolveSession());
 
   if (!user) {
     redirect("/login");

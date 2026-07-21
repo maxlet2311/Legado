@@ -12,6 +12,7 @@ import {
   getMembershipByProviderSubscriptionId as repoGetMembershipByProviderSubscriptionId,
   linkMembershipProviderSubscription as repoLinkMembershipProviderSubscription,
   getCurrentMembershipForUser as repoGetCurrentMembershipForUser,
+  getCurrentMembershipForUserWithPlan as repoGetCurrentMembershipForUserWithPlan,
   getCurrentMembershipForEmail as repoGetCurrentMembershipForEmail,
   callCreateMembership,
   callTransitionMembershipStatus,
@@ -19,10 +20,12 @@ import {
 } from "@/lib/memberships/repository";
 import { getSubscriptionProvider, PaymentProviderError } from "@/lib/payments";
 import { MembershipServiceError, ACTIVATION_ELIGIBLE_STATUSES } from "@/lib/memberships/types";
+import { measurePerformance } from "@/lib/utils/performance";
 import type {
   Membership,
   MembershipAccessDecision,
   MembershipHistorySource,
+  MembershipPlan,
   MembershipStatus,
 } from "@/lib/memberships/types";
 
@@ -187,7 +190,7 @@ async function getMembershipById(id: string): Promise<Membership | null> {
 }
 
 async function getCurrentMembershipForUser(userId: string): Promise<Membership | null> {
-  return repoGetCurrentMembershipForUser(userId);
+  return measurePerformance("db:memberships.getCurrentForUser", () => repoGetCurrentMembershipForUser(userId));
 }
 
 async function getCurrentMembershipForEmail(email: string): Promise<Membership | null> {
@@ -307,26 +310,34 @@ async function transitionMembershipStatus(params: TransitionMembershipStatusPara
   }
 }
 
-/** Usada por `/account/membership`: resuelve la sesión, busca la membresía del usuario y evalúa su acceso. */
+/**
+ * Usada por `/account/membership`: resuelve la sesión, busca la membresía
+ * del usuario junto con su plan (una sola consulta con el plan embebido —
+ * ver `getCurrentMembershipForUserWithPlan`, evita el round-trip secuencial
+ * separado a `membership_plans` que existía antes) y evalúa su acceso.
+ */
 async function evaluateCurrentUserMembership(): Promise<{
   membership: Membership | null;
+  plan: MembershipPlan | null;
   access: MembershipAccessDecision;
 }> {
   const { user } = await requireActiveUser();
-  const membership = await repoGetCurrentMembershipForUser(user.id);
+  const result = await measurePerformance("db:memberships.getCurrentWithPlanForUser", () =>
+    repoGetCurrentMembershipForUserWithPlan(user.id),
+  );
 
   const access = evaluateMembershipAccess(
-    membership
+    result
       ? {
-          status: membership.status,
-          currentPeriodStart: membership.currentPeriodStart,
-          currentPeriodEnd: membership.currentPeriodEnd,
-          gracePeriodEnd: membership.gracePeriodEnd,
+          status: result.membership.status,
+          currentPeriodStart: result.membership.currentPeriodStart,
+          currentPeriodEnd: result.membership.currentPeriodEnd,
+          gracePeriodEnd: result.membership.gracePeriodEnd,
         }
       : null,
   );
 
-  return { membership, access };
+  return { membership: result?.membership ?? null, plan: result?.plan ?? null, access };
 }
 
 /**

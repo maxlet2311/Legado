@@ -4,8 +4,8 @@ import Link from "next/link";
 import { ContentContainer } from "@/components/layout/content-container";
 import { EmptyState } from "@/components/ui/empty-state";
 import { evaluateCurrentUserMembership } from "@/lib/memberships/service";
-import { getPlanById } from "@/lib/memberships/repository";
 import type { MembershipStatus } from "@/lib/memberships/types";
+import { measurePerformance } from "@/lib/utils/performance";
 
 export const metadata: Metadata = {
   title: "Mi Membresía — Proposal Studio™",
@@ -29,7 +29,11 @@ function formatDate(value: string | null): string {
 }
 
 export default async function MembershipPage() {
-  const { membership, access } = await evaluateCurrentUserMembership();
+  const { membership, plan, access } = await measurePerformance(
+    "page:account.membership",
+    () => evaluateCurrentUserMembership(),
+    { context: "/account/membership" },
+  );
 
   if (!membership) {
     return (
@@ -52,8 +56,6 @@ export default async function MembershipPage() {
       </ContentContainer>
     );
   }
-
-  const plan = await getPlanById(membership.planId);
 
   return (
     <ContentContainer>
