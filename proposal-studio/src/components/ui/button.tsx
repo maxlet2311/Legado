@@ -9,16 +9,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-primary text-on-primary hover:opacity-90 active:scale-[0.98]",
+        primary: "bg-primary text-on-primary hover:opacity-90 active:scale-press",
         secondary:
-          "bg-surface text-on-surface border border-outline-variant hover:bg-surface-container-low active:scale-[0.98]",
-        ghost: "text-on-surface-variant hover:bg-surface-container-low active:scale-[0.98]",
-        danger: "bg-error text-on-error hover:opacity-90 active:scale-[0.98]",
+          "bg-surface text-on-surface border border-outline-variant hover:bg-surface-container-low active:scale-press",
+        ghost: "text-on-surface-variant hover:bg-surface-container-low active:scale-press",
+        danger: "bg-error text-on-error hover:opacity-90 active:scale-press",
       },
       size: {
         default: "h-12 px-6",
         sm: "h-9 px-4",
         icon: "h-10 w-10",
+        "icon-lg": "h-auto w-auto p-1.5 [&_svg]:size-5",
       },
     },
     defaultVariants: {

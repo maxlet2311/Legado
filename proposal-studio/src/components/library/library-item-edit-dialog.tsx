@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { IconPicker } from "@/components/wizard/icon-picker";
 import { updateLibraryItemAction } from "@/lib/library/actions";
 import type { BenefitCategory } from "@/types/wizard";
@@ -189,7 +189,7 @@ function LibraryItemEditDialog({ item, onOpenChange, onSaved }: LibraryItemEditD
             Cancelar
           </Button>
           <Button type="button" onClick={handleSave} disabled={saving}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {saving ? <Spinner className="h-4 w-4 text-current" /> : null}
             Guardar cambios
           </Button>
         </DialogFooter>

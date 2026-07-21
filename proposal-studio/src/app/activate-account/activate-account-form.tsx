@@ -4,13 +4,14 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, UserCheck } from "lucide-react";
+import { UserCheck } from "lucide-react";
 
 import { activateAccountAction } from "@/lib/account-activation/actions";
 import { signInWithGoogleAction } from "@/lib/auth/oauth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 
 const activateAccountSchema = z
   .object({
@@ -125,7 +126,7 @@ function ActivateAccountForm({ token, email }: ActivateAccountFormProps) {
       )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}
+        {isPending ? <Spinner className="h-4 w-4 text-current" /> : <UserCheck className="h-4 w-4" />}
         Activar cuenta
       </Button>
     </form>

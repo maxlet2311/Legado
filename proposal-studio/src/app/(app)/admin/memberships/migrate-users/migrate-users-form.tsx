@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { migrateExistingUsersAction } from "@/lib/memberships/migrate-users-action";
@@ -27,7 +27,8 @@ function MigrateUsersForm({ plans }: { plans: { id: string; name: string; isActi
 
   return (
     <div className="space-y-6">
-      <form className="space-y-4 rounded-xl border border-outline-variant bg-surface p-6">
+      <Card asChild className="p-6">
+      <form className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Plan a asignar</Label>
@@ -90,7 +91,7 @@ function MigrateUsersForm({ plans }: { plans: { id: string; name: string; isActi
               submit(formData, true);
             }}
           >
-            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isPending && <Spinner className="h-4 w-4 text-current" />}
             Dry-run
           </Button>
           <Button
@@ -106,16 +107,17 @@ function MigrateUsersForm({ plans }: { plans: { id: string; name: string; isActi
               submit(formData, false);
             }}
           >
-            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isPending && <Spinner className="h-4 w-4 text-current" />}
             Ejecutar migración
           </Button>
         </div>
       </form>
+      </Card>
 
       {state.error && <p className="rounded-md bg-error-container px-4 py-3 text-small text-error">{state.error}</p>}
 
       {state.result && (
-        <div className="space-y-4 rounded-xl border border-outline-variant bg-surface p-6">
+        <Card className="space-y-4 p-6">
           <h2 className="text-body font-semibold text-on-surface">
             {state.result.dryRun ? "Resultado (dry-run, no se creó nada)" : "Resultado de la ejecución"}
           </h2>
@@ -157,7 +159,7 @@ function MigrateUsersForm({ plans }: { plans: { id: string; name: string; isActi
               </ul>
             </div>
           )}
-        </div>
+        </Card>
       )}
     </div>
   );

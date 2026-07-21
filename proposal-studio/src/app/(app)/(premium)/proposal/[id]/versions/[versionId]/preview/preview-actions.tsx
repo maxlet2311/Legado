@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { FileDown, Loader2, Download } from "lucide-react";
+import { FileDown, Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 interface PreviewActionsProps {
   versionId: string;
@@ -47,12 +48,12 @@ function PreviewActions({ versionId, hasPdf: initialHasPdf }: PreviewActionsProp
       <div className="flex items-center gap-3">
         {!hasPdf ? (
           <Button type="button" onClick={handleGenerate} disabled={isGenerating}>
-            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+            {isGenerating ? <Spinner className="h-4 w-4 text-current" /> : <FileDown className="h-4 w-4" />}
             Generar PDF
           </Button>
         ) : (
           <Button type="button" variant="secondary" onClick={handleDownload} disabled={isDownloading}>
-            {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {isDownloading ? <Spinner className="h-4 w-4 text-current" /> : <Download className="h-4 w-4" />}
             Descargar PDF
           </Button>
         )}

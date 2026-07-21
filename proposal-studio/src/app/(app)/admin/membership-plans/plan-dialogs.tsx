@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2, PlusCircle, Pencil } from "lucide-react";
+import { PlusCircle, Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -129,7 +130,7 @@ function PlanForm({
 
       <DialogFooter>
         <Button type="submit" disabled={isPending}>
-          {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isPending && <Spinner className="h-4 w-4 text-current" />}
           {submitLabel}
         </Button>
       </DialogFooter>
@@ -196,7 +197,7 @@ function ToggleActiveButton({ planId, isActive }: { planId: string; isActive: bo
         });
       }}
     >
-      {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+      {isPending && <Spinner className="h-4 w-4 text-current" />}
       {isActive ? "Desactivar" : "Activar"}
     </Button>
   );
@@ -232,7 +233,7 @@ function SyncProviderButton({ planId, provider, hasProviderPlanId }: { planId: s
           });
         }}
       >
-        {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+        {isPending && <Spinner className="h-4 w-4 text-current" />}
         {label}
       </Button>
       {error && <p className="text-small text-error">{error}</p>}

@@ -3,9 +3,10 @@
 import { useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle2, Loader2, FileStack, Eye } from "lucide-react";
+import { CheckCircle2, FileStack, Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { SummaryCard } from "@/components/wizard/summary-card";
 import { PreSummaryChecklist } from "@/components/wizard/steps/pre-summary-checklist";
 import { finalizeProposalAction } from "@/lib/wizard/actions";
@@ -170,7 +171,7 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
           </p>
         ) : (
           <Button type="button" onClick={handleFinalize} disabled={isPending || hasBlockingErrors}>
-            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isPending && <Spinner className="h-4 w-4 text-current" />}
             Finalizar propuesta
           </Button>
         )}
@@ -198,7 +199,7 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
             </Button>
           ) : null}
           <Button type="button" variant="secondary" onClick={handleEmitVersion} disabled={isEmitting}>
-            {isEmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileStack className="h-4 w-4" />}
+            {isEmitting ? <Spinner className="h-4 w-4 text-current" /> : <FileStack className="h-4 w-4" />}
             Emitir versión
           </Button>
         </div>

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -82,7 +83,7 @@ function CreateInvitationDialog() {
             {error && <p className="text-small text-error">{error}</p>}
             <DialogFooter>
               <Button type="submit" disabled={isPending || !email.trim()}>
-                {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isPending && <Spinner className="h-4 w-4 text-current" />}
                 Emitir invitación
               </Button>
             </DialogFooter>

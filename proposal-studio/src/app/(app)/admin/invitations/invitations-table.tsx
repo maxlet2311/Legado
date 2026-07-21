@@ -6,6 +6,8 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { InvitationStatusBadge } from "@/app/(app)/admin/invitations/invitation-status-badge";
 import { InvitationRowActions } from "@/app/(app)/admin/invitations/invitation-row-actions";
 import { formatDateTime } from "@/app/(app)/admin/memberships/status-badge";
+import { Card } from "@/components/ui/card";
+import { Table, TableHeader, TableHeaderRow, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import type { AdminInvitationListItem } from "@/lib/account-activation/admin-queries";
 
 function InvitationDetail({ item }: { item: AdminInvitationListItem }) {
@@ -53,62 +55,60 @@ function InvitationsTable({ items }: { items: AdminInvitationListItem[] }) {
   return (
     <>
       {/* Desktop: tabla */}
-      <div className="hidden overflow-hidden rounded-xl border border-outline-variant bg-surface md:block">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-surface-container-low">
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Email</th>
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Estado</th>
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Creada</th>
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Expira</th>
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Creador</th>
-                <th className="px-6 py-4" />
-                <th className="px-6 py-4" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant">
-              {items.map((item) => {
-                const expanded = expandedId === item.id;
-                return (
-                  <Fragment key={item.id}>
-                    <tr className="hover:bg-surface-container-low">
-                      <td className="px-6 py-4 text-small font-medium text-on-surface">{item.email}</td>
-                      <td className="px-6 py-4">
-                        <InvitationStatusBadge status={item.status} />
-                      </td>
-                      <td className="px-6 py-4 text-small text-on-surface-variant">{formatDateTime(item.createdAt)}</td>
-                      <td className="px-6 py-4 text-small text-on-surface-variant">{formatDateTime(item.expiresAt)}</td>
-                      <td className="px-6 py-4 text-small text-on-surface-variant">{item.createdByName ?? "—"}</td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setExpandedId(expanded ? null : item.id)}
-                          className="inline-flex items-center gap-1 text-small font-medium text-primary hover:underline"
-                          aria-expanded={expanded}
-                        >
-                          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                          Detalle
-                        </button>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <InvitationRowActions id={item.id} status={item.status} />
-                      </td>
-                    </tr>
-                    {expanded && (
-                      <tr className="bg-surface-container-lowest">
-                        <td colSpan={7} className="px-6 py-4">
-                          <InvitationDetail item={item} />
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Card className="hidden overflow-hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableHeaderRow>
+              <TableHead>Email</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead>Creada</TableHead>
+              <TableHead>Expira</TableHead>
+              <TableHead>Creador</TableHead>
+              <TableHead />
+              <TableHead />
+            </TableHeaderRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((item) => {
+              const expanded = expandedId === item.id;
+              return (
+                <Fragment key={item.id}>
+                  <TableRow>
+                    <TableCell className="text-small font-medium text-on-surface">{item.email}</TableCell>
+                    <TableCell>
+                      <InvitationStatusBadge status={item.status} />
+                    </TableCell>
+                    <TableCell className="text-small text-on-surface-variant">{formatDateTime(item.createdAt)}</TableCell>
+                    <TableCell className="text-small text-on-surface-variant">{formatDateTime(item.expiresAt)}</TableCell>
+                    <TableCell className="text-small text-on-surface-variant">{item.createdByName ?? "—"}</TableCell>
+                    <TableCell className="text-right">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedId(expanded ? null : item.id)}
+                        className="inline-flex items-center gap-1 text-small font-medium text-primary hover:underline"
+                        aria-expanded={expanded}
+                      >
+                        {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        Detalle
+                      </button>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <InvitationRowActions id={item.id} status={item.status} />
+                    </TableCell>
+                  </TableRow>
+                  {expanded && (
+                    <TableRow interactive={false} className="bg-surface-container-lowest">
+                      <TableCell colSpan={7}>
+                        <InvitationDetail item={item} />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Card>
 
       {/* Mobile: cards */}
       <div className="space-y-3 md:hidden">

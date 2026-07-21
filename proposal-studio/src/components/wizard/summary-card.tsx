@@ -3,6 +3,7 @@ import { Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface SummaryCardProps {
   title: string;
@@ -25,11 +26,7 @@ function SummaryCard({ title, onEdit, children, empty, emptyLabel }: SummaryCard
         )}
       </CardHeader>
       <CardContent>
-        {empty ? (
-          <p className="text-small text-on-surface-variant">{emptyLabel ?? "Sin datos todavía."}</p>
-        ) : (
-          children
-        )}
+        {empty ? <EmptyState compact title={emptyLabel ?? "Sin datos todavía."} /> : children}
       </CardContent>
     </Card>
   );

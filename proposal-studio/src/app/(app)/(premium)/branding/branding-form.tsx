@@ -4,13 +4,15 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { CircleCheck, Loader2, UploadCloud } from "lucide-react";
+import { CircleCheck, UploadCloud } from "lucide-react";
 
 import { saveBrandAction } from "@/lib/branding/actions";
+import { DEFAULT_BRAND_PALETTE } from "@/lib/branding/default-palette";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import type { Tables } from "@/lib/database/types";
 
 const hexColor = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Usá un color HEX válido (ej. #596B4D).");
@@ -93,9 +95,9 @@ function BrandingForm({ brand, initialSignaturePreviewUrl }: BrandingFormProps) 
       website: brand?.website ?? "",
       address: brand?.address ?? "",
       footer_text: brand?.footer_text ?? "",
-      primary_color: brand?.primary_color ?? "#596B4D",
-      secondary_color: brand?.secondary_color ?? "#F6F2E9",
-      accent_color: brand?.accent_color ?? "#C49752",
+      primary_color: brand?.primary_color ?? DEFAULT_BRAND_PALETTE.primary,
+      secondary_color: brand?.secondary_color ?? DEFAULT_BRAND_PALETTE.secondary,
+      accent_color: brand?.accent_color ?? DEFAULT_BRAND_PALETTE.accent,
     },
   });
 
@@ -272,7 +274,7 @@ function BrandingForm({ brand, initialSignaturePreviewUrl }: BrandingFormProps) 
 
       <div className="flex justify-end">
         <Button type="submit" disabled={isPending}>
-          {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isPending && <Spinner className="h-4 w-4 text-current" />}
           Guardar cambios
         </Button>
       </div>

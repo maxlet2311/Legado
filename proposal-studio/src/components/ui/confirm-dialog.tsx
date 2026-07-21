@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
 
 import { Button, type ButtonProps } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -55,7 +55,7 @@ function ConfirmDialog({
             {cancelLabel}
           </Button>
           <Button type="button" variant={confirmVariant} onClick={handleConfirm} disabled={isConfirming}>
-            {isConfirming ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {isConfirming ? <Spinner className="h-4 w-4 text-current" /> : null}
             {confirmLabel}
           </Button>
         </DialogFooter>

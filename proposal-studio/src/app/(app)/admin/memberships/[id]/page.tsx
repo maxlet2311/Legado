@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 
 import { ContentContainer } from "@/components/layout/content-container";
 import { PageHeader } from "@/components/layout/page-header";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { getMembershipById } from "@/lib/memberships/service";
 import { getPlanById } from "@/lib/memberships/repository";
 import { evaluateMembershipAccess } from "@/lib/memberships/access";
@@ -54,7 +56,8 @@ export default async function MembershipDetailPage({ params }: { params: Promise
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <section className="rounded-xl border border-outline-variant bg-surface p-6">
+          <Card asChild className="p-6">
+          <section>
             <h2 className="mb-2 text-body font-semibold text-on-surface">Información general</h2>
             <dl className="divide-y divide-outline-variant">
               <Field label="Email" value={membership.email} />
@@ -78,11 +81,13 @@ export default async function MembershipDetailPage({ params }: { params: Promise
               <Field label="Actualizada" value={formatDateTime(membership.updatedAt)} />
             </dl>
           </section>
+          </Card>
 
-          <section className="rounded-xl border border-outline-variant bg-surface p-6">
+          <Card asChild className="p-6">
+          <section>
             <h2 className="mb-4 text-body font-semibold text-on-surface">Historial de estados</h2>
             {history.length === 0 ? (
-              <p className="text-small text-on-surface-variant">Sin historial.</p>
+              <EmptyState compact title="Sin historial." />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-small">
@@ -110,11 +115,13 @@ export default async function MembershipDetailPage({ params }: { params: Promise
               </div>
             )}
           </section>
+          </Card>
 
-          <section className="rounded-xl border border-outline-variant bg-surface p-6">
+          <Card asChild className="p-6">
+          <section>
             <h2 className="mb-4 text-body font-semibold text-on-surface">Eventos de proveedor</h2>
             {providerEvents.length === 0 ? (
-              <p className="text-small text-on-surface-variant">Sin eventos.</p>
+              <EmptyState compact title="Sin eventos." />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-small">
@@ -144,11 +151,13 @@ export default async function MembershipDetailPage({ params }: { params: Promise
               </div>
             )}
           </section>
+          </Card>
 
-          <section className="rounded-xl border border-outline-variant bg-surface p-6">
+          <Card asChild className="p-6">
+          <section>
             <h2 className="mb-4 text-body font-semibold text-on-surface">Invitaciones</h2>
             {invitations.length === 0 ? (
-              <p className="text-small text-on-surface-variant">Sin invitaciones emitidas.</p>
+              <EmptyState compact title="Sin invitaciones emitidas." />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-small">
@@ -174,6 +183,7 @@ export default async function MembershipDetailPage({ params }: { params: Promise
               </div>
             )}
           </section>
+          </Card>
         </div>
 
         <div>

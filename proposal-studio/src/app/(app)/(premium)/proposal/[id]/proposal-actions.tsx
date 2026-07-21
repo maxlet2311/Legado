@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Archive, Copy, FileStack, Loader2, Pencil, RectangleHorizontal, RectangleVertical } from "lucide-react";
+import { Archive, Copy, FileStack, Pencil, RectangleHorizontal, RectangleVertical } from "lucide-react";
 
 import {
   archiveProposalAction,
@@ -20,6 +20,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -77,7 +78,7 @@ function EditTitleDialog({ proposalId, currentTitle }: { proposalId: string; cur
           </div>
           {serverError && <p className="text-small text-error">{serverError}</p>}
           <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isPending && <Spinner className="h-4 w-4 text-current" />}
             Guardar
           </Button>
         </form>
@@ -165,7 +166,7 @@ function ArchiveButton({ proposalId, disabled }: { proposalId: string; disabled?
   return (
     <div className="flex flex-col items-end gap-1">
       <Button variant="secondary" disabled={disabled || isPending} onClick={() => setConfirmOpen(true)}>
-        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}
+        {isPending ? <Spinner className="h-4 w-4 text-current" /> : <Archive className="h-4 w-4" />}
         Archivar
       </Button>
       {error && <p className="text-small text-error">{error}</p>}
@@ -201,7 +202,7 @@ function DuplicateButton({ proposalId }: { proposalId: string }) {
   return (
     <div className="flex flex-col items-end gap-1">
       <Button variant="secondary" disabled={isPending} onClick={handleDuplicate}>
-        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
+        {isPending ? <Spinner className="h-4 w-4 text-current" /> : <Copy className="h-4 w-4" />}
         Duplicar propuesta
       </Button>
       {error && <p className="text-small text-error">{error}</p>}
@@ -314,7 +315,7 @@ function SaveAsTemplateDialog({ proposalId }: { proposalId: string }) {
             </div>
             {serverError && <p className="text-small text-error">{serverError}</p>}
             <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isPending && <Spinner className="h-4 w-4 text-current" />}
               Guardar plantilla
             </Button>
           </form>

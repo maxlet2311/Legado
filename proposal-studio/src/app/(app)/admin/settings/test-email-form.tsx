@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 
 function TestEmailForm({ disabled }: { disabled: boolean }) {
   const [to, setTo] = useState("");
@@ -53,7 +53,7 @@ function TestEmailForm({ disabled }: { disabled: boolean }) {
             submit();
           }}
         >
-          {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isPending && <Spinner className="h-4 w-4 text-current" />}
           Enviar
         </Button>
       </div>

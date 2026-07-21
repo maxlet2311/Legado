@@ -4,6 +4,7 @@ import { Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatDateTime } from "@/lib/render/formatters";
 import { VersionRowActions } from "@/app/(app)/(premium)/proposal/[id]/version-row-actions";
 
@@ -28,9 +29,7 @@ function VersionHistory({ proposalId, versions }: { proposalId: string; versions
       </CardHeader>
       <CardContent>
         {versions.length === 0 ? (
-          <p className="text-small text-on-surface-variant">
-            Todavía no se emitió ninguna versión. Emitila desde el resumen del wizard.
-          </p>
+          <EmptyState compact title="Todavía no se emitió ninguna versión." description="Emitila desde el resumen del wizard." />
         ) : (
           <ul className="divide-y divide-outline-variant">
             {versions.map((version) => {

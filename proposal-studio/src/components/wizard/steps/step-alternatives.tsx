@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { BookOpen, PlusCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { LibraryPickerDialog } from "@/components/library/library-picker-dialog";
 import { SectionCard } from "@/components/wizard/section-card";
 import { SortableList } from "@/components/wizard/sortable-list";
@@ -187,11 +188,7 @@ function StepAlternatives() {
         items={alternatives}
         getId={(item) => item.client_key}
         onReorder={reorder}
-        emptyState={
-          <p className="text-small text-on-surface-variant">
-            Todavía no agregaste ninguna alternativa.
-          </p>
-        }
+        emptyState={<EmptyState compact title="Todavía no agregaste ninguna alternativa." />}
         renderItem={(item, index) => {
           const key = getItemKey(item);
           return (

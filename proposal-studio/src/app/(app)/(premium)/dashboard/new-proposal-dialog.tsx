@@ -4,12 +4,14 @@ import { useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 
 import { createDraftProposalAction } from "@/lib/proposal/actions";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -110,9 +112,12 @@ function NewProposalDialog({ clients }: NewProposalDialogProps) {
         </DialogHeader>
 
         {clients.length === 0 ? (
-          <p className="mt-6 text-small text-on-surface-variant">
-            Todavía no tenés clientes cargados. Creá uno primero desde tu ficha de clientes.
-          </p>
+          <EmptyState
+            compact
+            className="mt-6"
+            title="Todavía no tenés clientes cargados."
+            description="Creá uno primero desde tu ficha de clientes."
+          />
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-6 space-y-5">
             <div className="space-y-2">
@@ -211,7 +216,7 @@ function NewProposalDialog({ clients }: NewProposalDialogProps) {
             {serverError && <p className="text-small text-error">{serverError}</p>}
 
             <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isPending && <Spinner className="h-4 w-4 text-current" />}
               Crear borrador
             </Button>
           </form>

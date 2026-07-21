@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -73,7 +72,7 @@ function ConfirmDialog({
         {error && <p className="text-small text-error">{error}</p>}
         <DialogFooter>
           <Button type="button" variant={variant} disabled={isPending} onClick={submit}>
-            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isPending && <Spinner className="h-4 w-4 text-current" />}
             Confirmar
           </Button>
         </DialogFooter>
@@ -104,7 +103,7 @@ function ResendButton({ invitationId }: { invitationId: string }) {
           });
         }}
       >
-        {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+        {isPending && <Spinner className="h-4 w-4 text-current" />}
         Reenviar
       </Button>
       {error && <p className="text-caption text-error">{error}</p>}

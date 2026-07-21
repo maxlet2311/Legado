@@ -4,7 +4,10 @@ import { CreditCard, ChevronLeft, ChevronRight, AlertTriangle, Download, Plus } 
 
 import { ContentContainer } from "@/components/layout/content-container";
 import { PageHeader } from "@/components/layout/page-header";
+import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PaginationLink } from "@/components/ui/pagination-link";
+import { Table, TableHeader, TableHeaderRow, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { listMembershipsForAdmin, listAllPlans } from "@/lib/memberships/repository";
 import { evaluateMembershipAccess } from "@/lib/memberships/access";
 import { MEMBERSHIP_STATUSES } from "@/lib/memberships/types";
@@ -119,81 +122,79 @@ export default async function AdminMembershipsPage({
         />
       ) : (
         <>
-          <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-surface-container-low">
-                    <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Email</th>
-                    <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Usuario</th>
-                    <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Plan</th>
-                    <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Estado</th>
-                    <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Acceso</th>
-                    <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Proveedor</th>
-                    <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Vencimiento</th>
-                    <th className="px-6 py-4" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant">
-                  {items.map((m) => {
-                    const access = evaluateMembershipAccess({
-                      status: m.status,
-                      currentPeriodStart: m.currentPeriodStart,
-                      currentPeriodEnd: m.currentPeriodEnd,
-                      gracePeriodEnd: m.gracePeriodEnd,
-                    });
-                    const inconsistent =
-                      (["active", "past_due", "grace_period"].includes(m.status) && !m.currentPeriodEnd) ||
-                      (m.status === "grace_period" && !m.gracePeriodEnd);
+          <Card className="overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableHeaderRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Usuario</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Acceso</TableHead>
+                  <TableHead>Proveedor</TableHead>
+                  <TableHead>Vencimiento</TableHead>
+                  <TableHead />
+                </TableHeaderRow>
+              </TableHeader>
+              <TableBody>
+                {items.map((m) => {
+                  const access = evaluateMembershipAccess({
+                    status: m.status,
+                    currentPeriodStart: m.currentPeriodStart,
+                    currentPeriodEnd: m.currentPeriodEnd,
+                    gracePeriodEnd: m.gracePeriodEnd,
+                  });
+                  const inconsistent =
+                    (["active", "past_due", "grace_period"].includes(m.status) && !m.currentPeriodEnd) ||
+                    (m.status === "grace_period" && !m.gracePeriodEnd);
 
-                    return (
-                      <tr key={m.id} className="hover:bg-surface-container-low">
-                        <td className="px-6 py-4 text-small font-medium text-on-surface">
-                          <Link href={`/admin/memberships/${m.id}`} className="hover:underline">
-                            {m.email}
-                          </Link>
-                          {inconsistent && (
-                            <span className="ml-2 inline-flex items-center gap-1 text-caption text-warning" title="Inconsistencia detectada">
-                              <AlertTriangle className="h-3.5 w-3.5" />
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-small text-on-surface-variant">
-                          {m.userFullName ?? <span className="italic text-outline">sin vincular</span>}
-                        </td>
-                        <td className="px-6 py-4 text-small text-on-surface-variant">{m.planName ?? "—"}</td>
-                        <td className="px-6 py-4">
-                          <MembershipStatusBadge status={m.status} />
-                        </td>
-                        <td className="px-6 py-4 text-small">
-                          {access.allowed ? (
-                            <span className="text-success">Permitido</span>
-                          ) : (
-                            <span className="text-error">Bloqueado</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-small text-on-surface-variant">
-                          {m.provider ?? "—"}
-                          {m.providerSubscriptionId && (
-                            <span className="ml-1 text-caption text-outline">({maskExternalId(m.providerSubscriptionId)})</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-small text-on-surface-variant">{formatDate(m.currentPeriodEnd)}</td>
-                        <td className="px-6 py-4 text-right">
-                          <Link
-                            href={`/admin/memberships/${m.id}`}
-                            className="text-small font-medium text-primary hover:underline"
-                          >
-                            Ver
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                  return (
+                    <TableRow key={m.id}>
+                      <TableCell className="text-small font-medium text-on-surface">
+                        <Link href={`/admin/memberships/${m.id}`} className="hover:underline">
+                          {m.email}
+                        </Link>
+                        {inconsistent && (
+                          <span className="ml-2 inline-flex items-center gap-1 text-caption text-warning" title="Inconsistencia detectada">
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-small text-on-surface-variant">
+                        {m.userFullName ?? <span className="italic text-outline">sin vincular</span>}
+                      </TableCell>
+                      <TableCell className="text-small text-on-surface-variant">{m.planName ?? "—"}</TableCell>
+                      <TableCell>
+                        <MembershipStatusBadge status={m.status} />
+                      </TableCell>
+                      <TableCell className="text-small">
+                        {access.allowed ? (
+                          <span className="text-success">Permitido</span>
+                        ) : (
+                          <span className="text-error">Bloqueado</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-small text-on-surface-variant">
+                        {m.provider ?? "—"}
+                        {m.providerSubscriptionId && (
+                          <span className="ml-1 text-caption text-outline">({maskExternalId(m.providerSubscriptionId)})</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-small text-on-surface-variant">{formatDate(m.currentPeriodEnd)}</TableCell>
+                      <TableCell className="text-right">
+                        <Link
+                          href={`/admin/memberships/${m.id}`}
+                          className="text-small font-medium text-primary hover:underline"
+                        >
+                          Ver
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </Card>
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-2">
@@ -201,24 +202,12 @@ export default async function AdminMembershipsPage({
                 Página {page} de {totalPages} ({total} membresía{total === 1 ? "" : "s"})
               </p>
               <div className="flex gap-2">
-                <Link
-                  href={page > 1 ? buildPageHref(page - 1) : "#"}
-                  aria-disabled={page <= 1}
-                  className={`flex items-center gap-1 rounded-md border border-outline-variant px-4 py-2 text-small font-medium ${
-                    page <= 1 ? "pointer-events-none opacity-40" : "text-on-surface hover:border-primary hover:text-primary"
-                  }`}
-                >
+                <PaginationLink href={buildPageHref(page - 1)} disabled={page <= 1}>
                   <ChevronLeft className="h-4 w-4" /> Anterior
-                </Link>
-                <Link
-                  href={page < totalPages ? buildPageHref(page + 1) : "#"}
-                  aria-disabled={page >= totalPages}
-                  className={`flex items-center gap-1 rounded-md border border-outline-variant px-4 py-2 text-small font-medium ${
-                    page >= totalPages ? "pointer-events-none opacity-40" : "text-on-surface hover:border-primary hover:text-primary"
-                  }`}
-                >
+                </PaginationLink>
+                <PaginationLink href={buildPageHref(page + 1)} disabled={page >= totalPages}>
                   Siguiente <ChevronRight className="h-4 w-4" />
-                </Link>
+                </PaginationLink>
               </div>
             </div>
           )}

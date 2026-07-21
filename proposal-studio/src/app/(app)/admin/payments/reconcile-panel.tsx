@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -50,7 +52,7 @@ function ReconcilePanel() {
   const summary = result ? buildReconcileResultSummary(result) : null;
 
   return (
-    <div className="rounded-xl border border-outline-variant bg-surface p-5">
+    <Card className="p-5">
       <div className="flex items-center gap-2">
         <RefreshCw className="h-4 w-4 text-on-surface-variant" />
         <h2 className="text-h4 font-semibold text-on-surface">Reconciliar suscripción</h2>
@@ -98,7 +100,7 @@ function ReconcilePanel() {
 
           <DialogFooter>
             <Button type="button" variant="danger" disabled={!acknowledged || isPending} onClick={submit}>
-              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isPending && <Spinner className="h-4 w-4 text-current" />}
               Ejecutar reconciliación
             </Button>
           </DialogFooter>
@@ -132,7 +134,7 @@ function ReconcilePanel() {
           <p className="mt-1">{summary.description}</p>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 

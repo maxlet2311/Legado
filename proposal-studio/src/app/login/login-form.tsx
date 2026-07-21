@@ -5,13 +5,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { signInAction } from "@/lib/auth/actions";
 import { signInWithGoogleAction } from "@/lib/auth/oauth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Ingresá un correo electrónico válido."),
@@ -100,7 +101,7 @@ function LoginForm({ redirectTo }: LoginFormProps) {
       )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+        {isPending ? <Spinner className="h-4 w-4 text-current" /> : <ArrowRight className="h-4 w-4" />}
         Iniciar sesión
       </Button>
       </form>

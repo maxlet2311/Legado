@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import type { DocumentSnapshot } from "@/lib/render/types";
 import { getPageSizeMm, MARGIN_MM } from "@/lib/render/page-geometry";
 import { getEmbeddedFontFacesCss, DISPLAY_FONT, BODY_FONT } from "@/lib/render/fonts";
+import { DEFAULT_BRAND_PALETTE } from "@/lib/branding/default-palette";
 
 interface DocumentShellProps {
   snapshot: DocumentSnapshot;
@@ -22,9 +23,9 @@ interface DocumentShellProps {
 function DocumentShell({ snapshot, children }: DocumentShellProps) {
   const { proposal, brand } = snapshot;
   const marginMm = MARGIN_MM[proposal.margin_size];
-  const primaryColor = proposal.primary_color_override ?? brand?.primary_color ?? "#1F3A2E";
-  const secondaryColor = proposal.secondary_color_override ?? brand?.secondary_color ?? "#F4F1E9";
-  const accentColor = brand?.accent_color ?? "#B08A4E";
+  const primaryColor = proposal.primary_color_override ?? brand?.primary_color ?? DEFAULT_BRAND_PALETTE.primary;
+  const secondaryColor = proposal.secondary_color_override ?? brand?.secondary_color ?? DEFAULT_BRAND_PALETTE.secondary;
+  const accentColor = brand?.accent_color ?? DEFAULT_BRAND_PALETTE.accent;
   const pageSize = getPageSizeMm(proposal.pdf_format, proposal.orientation);
 
   const rootStyle = {

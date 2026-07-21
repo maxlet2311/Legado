@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import { Loader2, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -141,7 +142,7 @@ function NewProposalClientStep({ initialClients }: NewProposalClientStepProps) {
                 <Textarea id="notes" rows={3} {...register("notes")} />
               </div>
               <Button type="submit" className="w-full" disabled={isCreatingClient}>
-                {isCreatingClient && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isCreatingClient && <Spinner className="h-4 w-4 text-current" />}
                 Crear y seleccionar
               </Button>
             </form>
@@ -151,7 +152,7 @@ function NewProposalClientStep({ initialClients }: NewProposalClientStepProps) {
         {error && <p className="text-small text-error">{error}</p>}
 
         <Button type="button" onClick={handleContinue} disabled={isPending} className="w-full">
-          {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isPending && <Spinner className="h-4 w-4 text-current" />}
           Continuar
         </Button>
       </div>

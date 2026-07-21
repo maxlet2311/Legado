@@ -4,6 +4,9 @@ import { Fragment, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { formatDateTime } from "@/app/(app)/admin/memberships/status-badge";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Table, TableHeader, TableHeaderRow, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { sanitizeForDisplay } from "@/lib/admin/sanitize";
 import { buildAuditDiff } from "@/lib/admin/audit-diff";
 import type { AdminAuditEventListItem } from "@/lib/admin/audit-queries";
@@ -32,7 +35,7 @@ function AuditDiffView({ before, after }: { before: unknown; after: unknown }) {
   const diff = buildAuditDiff(sanitizedBefore, sanitizedAfter);
 
   if (diff.length === 0) {
-    return <p className="text-caption text-outline">Sin cambios detectables entre antes/después.</p>;
+    return <EmptyState compact title="Sin cambios detectables entre antes/después." />;
   }
 
   return (
@@ -115,59 +118,57 @@ function AuditTable({ items }: { items: AdminAuditEventListItem[] }) {
   return (
     <>
       {/* Desktop: tabla */}
-      <div className="hidden overflow-hidden rounded-xl border border-outline-variant bg-surface md:block">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-surface-container-low">
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Fecha</th>
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Actor</th>
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Acción</th>
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Entidad</th>
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Resumen</th>
-                <th className="px-6 py-4" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant">
-              {items.map((event) => {
-                const expanded = expandedId === event.id;
-                return (
-                  <Fragment key={event.id}>
-                    <tr className="hover:bg-surface-container-low">
-                      <td className="px-6 py-4 text-small text-on-surface-variant">{formatDateTime(event.createdAt)}</td>
-                      <td className="px-6 py-4 text-small text-on-surface">{event.actorName ?? "Sistema"}</td>
-                      <td className="px-6 py-4 text-small font-medium text-on-surface">{event.action}</td>
-                      <td className="px-6 py-4 text-small text-on-surface-variant">
-                        {event.entityType}
-                        {event.entityId ? ` · ${event.entityId.slice(0, 8)}…` : ""}
-                      </td>
-                      <td className="px-6 py-4 text-small text-on-surface-variant">{summarize(event)}</td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setExpandedId(expanded ? null : event.id)}
-                          className="inline-flex items-center gap-1 text-small font-medium text-primary hover:underline"
-                          aria-expanded={expanded}
-                        >
-                          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                          Detalle
-                        </button>
-                      </td>
-                    </tr>
-                    {expanded && (
-                      <tr className="bg-surface-container-lowest">
-                        <td colSpan={6} className="px-6 py-4">
-                          <AuditEventDetail event={event} />
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Card className="hidden overflow-hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableHeaderRow>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Actor</TableHead>
+              <TableHead>Acción</TableHead>
+              <TableHead>Entidad</TableHead>
+              <TableHead>Resumen</TableHead>
+              <TableHead />
+            </TableHeaderRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((event) => {
+              const expanded = expandedId === event.id;
+              return (
+                <Fragment key={event.id}>
+                  <TableRow>
+                    <TableCell className="text-small text-on-surface-variant">{formatDateTime(event.createdAt)}</TableCell>
+                    <TableCell className="text-small text-on-surface">{event.actorName ?? "Sistema"}</TableCell>
+                    <TableCell className="text-small font-medium text-on-surface">{event.action}</TableCell>
+                    <TableCell className="text-small text-on-surface-variant">
+                      {event.entityType}
+                      {event.entityId ? ` · ${event.entityId.slice(0, 8)}…` : ""}
+                    </TableCell>
+                    <TableCell className="text-small text-on-surface-variant">{summarize(event)}</TableCell>
+                    <TableCell className="text-right">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedId(expanded ? null : event.id)}
+                        className="inline-flex items-center gap-1 text-small font-medium text-primary hover:underline"
+                        aria-expanded={expanded}
+                      >
+                        {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        Detalle
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                  {expanded && (
+                    <TableRow interactive={false} className="bg-surface-container-lowest">
+                      <TableCell colSpan={6}>
+                        <AuditEventDetail event={event} />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Card>
 
       {/* Mobile: cards */}
       <div className="space-y-3 md:hidden">

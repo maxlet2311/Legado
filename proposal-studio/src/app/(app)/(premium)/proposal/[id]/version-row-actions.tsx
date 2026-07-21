@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { FileDown, Download, Loader2 } from "lucide-react";
+import { FileDown, Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 function VersionRowActions({ versionId, hasPdf: initialHasPdf }: { versionId: string; hasPdf: boolean }) {
   const router = useRouter();
@@ -44,12 +45,12 @@ function VersionRowActions({ versionId, hasPdf: initialHasPdf }: { versionId: st
     <div className="flex items-center gap-2">
       {!hasPdf ? (
         <Button type="button" size="sm" variant="secondary" onClick={handleGenerate} disabled={isGenerating}>
-          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+          {isGenerating ? <Spinner className="h-4 w-4 text-current" /> : <FileDown className="h-4 w-4" />}
           Generar
         </Button>
       ) : (
         <Button type="button" size="sm" variant="secondary" onClick={handleDownload} disabled={isDownloading}>
-          {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+          {isDownloading ? <Spinner className="h-4 w-4 text-current" /> : <Download className="h-4 w-4" />}
           Descargar
         </Button>
       )}

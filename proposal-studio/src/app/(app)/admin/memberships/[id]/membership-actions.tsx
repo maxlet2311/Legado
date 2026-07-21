@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
@@ -89,7 +89,7 @@ function ReasonDialog({
           {error && <p className="text-small text-error">{error}</p>}
           <DialogFooter>
             <Button type="submit" variant={variant} disabled={isPending || !reason.trim()}>
-              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isPending && <Spinner className="h-4 w-4 text-current" />}
               Confirmar
             </Button>
           </DialogFooter>
@@ -134,7 +134,7 @@ function SimpleActionButton({
           });
         }}
       >
-        {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+        {isPending && <Spinner className="h-4 w-4 text-current" />}
         {label}
       </Button>
       {error && <p className="text-caption text-error">{error}</p>}
@@ -151,7 +151,7 @@ function MembershipActions({ membership }: { membership: Membership }) {
   const canResync = Boolean(membership.provider && membership.providerSubscriptionId);
 
   return (
-    <div className="space-y-3 rounded-xl border border-outline-variant bg-surface p-6">
+    <Card className="space-y-3 p-6">
       <h2 className="text-body font-semibold text-on-surface">Acciones</h2>
 
       <SimpleActionButton
@@ -222,7 +222,7 @@ function MembershipActions({ membership }: { membership: Membership }) {
           </div>
         }
       />
-    </div>
+    </Card>
   );
 }
 

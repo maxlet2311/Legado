@@ -129,7 +129,19 @@
   --duration-fast: 150ms;
   --duration-base: 200ms;
   --duration-slow: 250ms;
+
+  /* Micro-interacción de presionado (Button, CTA de sidebar) */
+  --scale-press: 0.98;
 }
+
+/*
+ * Escala de tamaños de ícono (lucide-react), por contexto — no genera clases,
+ * es referencia para no introducir tamaños ad hoc nuevos:
+ *   xs  h-3.5 w-3.5  → indicadores inline chicos (autosave, badges de estado)
+ *   sm  h-4 w-4      → default de Button/inputs/acciones de fila (dominante, 130+ usos)
+ *   md  h-5 w-5      → navegación de la sidebar, chrome de layout
+ *   lg  h-6 w-6      → tarjetas de acceso rápido / bloques destacados
+ */
 
 @layer base {
   * {

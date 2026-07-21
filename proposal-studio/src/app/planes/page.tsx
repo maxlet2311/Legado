@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { listActivePlans } from "@/lib/memberships/repository";
 import { PlanCheckoutForm } from "@/app/planes/plan-checkout-form";
 import { getCurrentUser } from "@/lib/auth/session";
+import { EmptyState } from "@/components/ui/empty-state";
+import { CreditCard } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Planes — Proposal Studio™",
@@ -48,9 +50,7 @@ export default async function PlansPage({
       </div>
 
       {plans.length === 0 ? (
-        <p className="text-center text-small text-on-surface-variant/70">
-          Todavía no hay planes disponibles.
-        </p>
+        <EmptyState icon={CreditCard} title="Todavía no hay planes disponibles." />
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {plans.map((plan) => {

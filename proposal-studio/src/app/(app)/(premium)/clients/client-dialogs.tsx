@@ -4,12 +4,13 @@ import { useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, PlusCircle, Pencil } from "lucide-react";
+import { PlusCircle, Pencil } from "lucide-react";
 
 import { createClientAction, updateClientAction } from "@/lib/client/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -106,7 +107,7 @@ function ClientForm({
       {serverError && <p className="text-small text-error">{serverError}</p>}
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+        {isPending && <Spinner className="h-4 w-4 text-current" />}
         {submitLabel}
       </Button>
     </form>

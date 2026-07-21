@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +41,7 @@ function CleanupPanel({ expiredPendingCount }: { expiredPendingCount: number }) 
   }
 
   return (
-    <div className="rounded-xl border border-outline-variant bg-surface p-5">
+    <Card className="p-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <Trash2 className="h-4 w-4 text-on-surface-variant" />
@@ -70,7 +72,7 @@ function CleanupPanel({ expiredPendingCount }: { expiredPendingCount: number }) 
             </DialogHeader>
             <DialogFooter>
               <Button type="button" variant="secondary" disabled={isPending} onClick={submit}>
-                {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isPending && <Spinner className="h-4 w-4 text-current" />}
                 Confirmar limpieza
               </Button>
             </DialogFooter>
@@ -87,7 +89,7 @@ function CleanupPanel({ expiredPendingCount }: { expiredPendingCount: number }) 
           {result.error ? result.error : `Se marcaron ${result.expiredCount ?? 0} intento(s) como vencidos.`}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 

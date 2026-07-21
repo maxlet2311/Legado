@@ -137,9 +137,12 @@ function TemplatesBrowser({ clients }: TemplatesBrowserProps) {
             </div>
           ) : null}
           {clients.length === 0 ? (
-            <p className="mt-4 text-small text-on-surface-variant">
-              Todavía no tenés clientes cargados. Creá uno primero desde tu ficha de clientes.
-            </p>
+            <EmptyState
+              compact
+              className="mt-4"
+              title="Todavía no tenés clientes cargados."
+              description="Creá uno primero desde tu ficha de clientes."
+            />
           ) : (
             <div className="mt-4 space-y-4">
               <Select value={clientId} onValueChange={setClientId}>

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { signOutAction } from "@/lib/auth/actions";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { isPlatformOwner } from "@/lib/auth/authorization";
 import type { Profile } from "@/lib/auth/session";
@@ -53,14 +54,16 @@ function Sidebar({ collapsed, onCollapsedChange, profile }: SidebarProps) {
             <p className="mt-1 text-caption text-on-surface-variant">Asesor Premium</p>
           </div>
         )}
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-lg"
           onClick={() => onCollapsedChange(!collapsed)}
-          className="rounded-xs p-1.5 text-on-surface-variant hover:bg-surface-container-highest"
+          className="rounded-xs hover:bg-surface-container-highest active:scale-100"
           aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
         >
           {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
-        </button>
+        </Button>
       </div>
 
       <nav className="flex-1 space-y-1 px-4 py-6">
@@ -101,20 +104,21 @@ function Sidebar({ collapsed, onCollapsedChange, profile }: SidebarProps) {
       <div className="space-y-6 border-t border-outline-variant px-4 py-6">
         <Link
           href="/proposals/new"
-          className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-small font-bold text-on-primary transition-all duration-fast ease-premium hover:opacity-90 active:scale-[0.98]"
+          className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-small font-bold text-on-primary transition-all duration-fast ease-premium hover:opacity-90 active:scale-press"
         >
           <Plus className="h-4 w-4" />
           {!collapsed && <span>Nueva Propuesta</span>}
         </Link>
         <div className="space-y-1">
           <form action={signOutAction}>
-            <button
+            <Button
               type="submit"
-              className="flex w-full items-center gap-3 px-4 py-2 text-small font-medium text-on-surface-variant transition-colors hover:text-error"
+              variant="ghost"
+              className="h-auto w-full justify-start gap-3 px-4 py-2 font-medium hover:bg-transparent hover:text-error active:scale-100"
             >
               <LogOut className="h-4 w-4" />
               {!collapsed && <span>Cerrar Sesión</span>}
-            </button>
+            </Button>
           </form>
         </div>
       </div>

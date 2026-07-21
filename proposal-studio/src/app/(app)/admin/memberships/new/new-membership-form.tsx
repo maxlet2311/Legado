@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { createMembershipAction } from "@/lib/memberships/admin-actions";
@@ -31,7 +31,8 @@ function NewMembershipForm({ plans }: { plans: { id: string; name: string; isAct
   }
 
   return (
-    <form action={submit} className="space-y-4 rounded-xl border border-outline-variant bg-surface p-6">
+    <Card asChild className="p-6">
+    <form action={submit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input id="email" name="email" type="email" required placeholder="usuario@ejemplo.com" />
@@ -69,11 +70,12 @@ function NewMembershipForm({ plans }: { plans: { id: string; name: string; isAct
 
       <div className="pt-2">
         <Button type="submit" disabled={isPending}>
-          {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isPending && <Spinner className="h-4 w-4 text-current" />}
           Crear membresía
         </Button>
       </div>
     </form>
+    </Card>
   );
 }
 

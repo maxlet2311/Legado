@@ -4,7 +4,9 @@ import { FileText, BookOpen, BadgeCheck, SlidersHorizontal, ChevronRight } from 
 
 import { ContentContainer } from "@/components/layout/content-container";
 import { StatusPill, type ProposalStatus } from "@/components/layout/status-pill";
+import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Table, TableHeader, TableHeaderRow, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
 import { NewProposalDialog } from "@/app/(app)/(premium)/dashboard/new-proposal-dialog";
@@ -100,30 +102,24 @@ export default async function DashboardPage() {
 
             if (!href) {
               return (
-                <div
-                  key={title}
-                  aria-disabled="true"
-                  className="group cursor-not-allowed rounded-xl border border-outline-variant bg-surface p-8 opacity-60"
-                >
+                <Card key={title} aria-disabled="true" className="group cursor-not-allowed p-8 opacity-60">
                   {content}
-                </div>
+                </Card>
               );
             }
 
             return (
-              <Link
-                key={href}
-                href={href}
-                className="group rounded-xl border border-outline-variant bg-surface p-8 transition-all hover:border-primary hover:shadow-xl hover:shadow-primary/5"
-              >
-                {content}
-              </Link>
+              <Card asChild key={href} className="group transition-all hover:border-primary hover:shadow-xl hover:shadow-primary/5">
+                <Link href={href} className="block p-8">
+                  {content}
+                </Link>
+              </Card>
             );
           })}
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-outline-variant bg-surface">
+      <Card className="overflow-hidden">
         <div className="flex items-center justify-between border-b border-outline-variant px-8 py-6">
           <h3 className="text-h3 font-bold text-on-surface">Actividad Reciente</h3>
         </div>
@@ -140,49 +136,39 @@ export default async function DashboardPage() {
             className="border-none"
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-surface-container-low">
-                  <th className="px-8 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">
-                    Documento
-                  </th>
-                  <th className="px-8 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">
-                    Cliente
-                  </th>
-                  <th className="px-8 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">
-                    Fecha
-                  </th>
-                  <th className="px-8 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">
-                    Estado
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant">
-                {proposals.map((proposal) => (
-                  <tr key={proposal.id} className="group transition-colors hover:bg-surface-container-low">
-                    <td className="px-8 py-5">
-                      <Link href={`/proposal/${proposal.id}`} className="flex items-center gap-3">
-                        <FileText className="h-4 w-4 text-primary" />
-                        <span className="text-body font-medium text-on-surface">{proposal.title}</span>
-                      </Link>
-                    </td>
-                    <td className="px-8 py-5 text-small text-on-surface">
-                      {proposal.clients?.full_name ?? "—"}
-                    </td>
-                    <td className="px-8 py-5 text-small text-on-surface-variant">
-                      {formatDate(proposal.updated_at)}
-                    </td>
-                    <td className="px-8 py-5">
-                      <StatusPill status={proposal.status as ProposalStatus} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableHeaderRow>
+                <TableHead>Documento</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Estado</TableHead>
+              </TableHeaderRow>
+            </TableHeader>
+            <TableBody>
+              {proposals.map((proposal) => (
+                <TableRow key={proposal.id}>
+                  <TableCell>
+                    <Link href={`/proposal/${proposal.id}`} className="flex items-center gap-3">
+                      <FileText className="h-4 w-4 text-primary" />
+                      <span className="text-body font-medium text-on-surface">{proposal.title}</span>
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-small text-on-surface">
+                    {proposal.clients?.full_name ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-small text-on-surface-variant">
+                    {formatDate(proposal.updated_at)}
+                  </TableCell>
+                  <TableCell>
+                    <StatusPill status={proposal.status as ProposalStatus} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
-      </section>
+      </Card>
     </ContentContainer>
   );
 }

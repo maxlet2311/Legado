@@ -5,13 +5,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { Loader2, KeyRound } from "lucide-react";
+import { KeyRound } from "lucide-react";
 
 import { updatePasswordAction } from "@/lib/auth/actions";
 import { createClient } from "@/lib/database/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 
 const updatePasswordSchema = z
   .object({
@@ -70,7 +71,7 @@ function UpdatePasswordForm() {
   if (linkStatus === "checking") {
     return (
       <p role="status" className="flex items-center gap-2 text-small text-on-surface-variant">
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Spinner className="h-4 w-4 text-current" />
         Verificando enlace…
       </p>
     );
@@ -131,7 +132,7 @@ function UpdatePasswordForm() {
       )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+        {isPending ? <Spinner className="h-4 w-4 text-current" /> : <KeyRound className="h-4 w-4" />}
         Guardar nueva contraseña
       </Button>
     </form>

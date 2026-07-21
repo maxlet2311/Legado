@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { formatDateTime } from "@/app/(app)/admin/memberships/status-badge";
+import { Card } from "@/components/ui/card";
+import { Table, TableHeader, TableHeaderRow, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { sanitizeForDisplay } from "@/lib/admin/sanitize";
 import { CheckoutAttemptStatusBadge } from "@/app/(app)/admin/payments/status-badges";
 import type { CheckoutAttemptAdminItem } from "@/lib/payments/checkout-attempts-repository";
@@ -68,60 +70,58 @@ function CheckoutsTable({ items }: { items: CheckoutAttemptAdminItem[] }) {
 
   return (
     <>
-      <div className="hidden overflow-hidden rounded-xl border border-outline-variant bg-surface md:block">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-surface-container-low">
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Fecha</th>
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Email</th>
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Plan</th>
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Estado</th>
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Proveedor</th>
-                <th className="px-6 py-4 text-caption font-semibold uppercase tracking-wider text-on-surface-variant">Vence</th>
-                <th className="px-6 py-4" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant">
-              {items.map((item) => {
-                const expanded = expandedId === item.id;
-                return (
-                  <Fragment key={item.id}>
-                    <tr className="hover:bg-surface-container-low">
-                      <td className="px-6 py-4 text-small text-on-surface-variant">{formatDateTime(item.createdAt)}</td>
-                      <td className="px-6 py-4 text-small font-medium text-on-surface">{item.membershipEmail ?? "—"}</td>
-                      <td className="px-6 py-4 text-small text-on-surface-variant">{item.planName ?? "—"}</td>
-                      <td className="px-6 py-4">
-                        <CheckoutAttemptStatusBadge status={item.status} />
-                      </td>
-                      <td className="px-6 py-4 text-small text-on-surface-variant">{item.provider}</td>
-                      <td className="px-6 py-4 text-small text-on-surface-variant">{item.expiresAt ? formatDateTime(item.expiresAt) : "—"}</td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setExpandedId(expanded ? null : item.id)}
-                          className="inline-flex items-center gap-1 text-small font-medium text-primary hover:underline"
-                          aria-expanded={expanded}
-                        >
-                          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                          Detalle
-                        </button>
-                      </td>
-                    </tr>
-                    {expanded && (
-                      <tr className="bg-surface-container-lowest">
-                        <td colSpan={7} className="px-6 py-4">
-                          <CheckoutDetail item={item} />
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Card className="hidden overflow-hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableHeaderRow>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Plan</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead>Proveedor</TableHead>
+              <TableHead>Vence</TableHead>
+              <TableHead />
+            </TableHeaderRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((item) => {
+              const expanded = expandedId === item.id;
+              return (
+                <Fragment key={item.id}>
+                  <TableRow>
+                    <TableCell className="text-small text-on-surface-variant">{formatDateTime(item.createdAt)}</TableCell>
+                    <TableCell className="text-small font-medium text-on-surface">{item.membershipEmail ?? "—"}</TableCell>
+                    <TableCell className="text-small text-on-surface-variant">{item.planName ?? "—"}</TableCell>
+                    <TableCell>
+                      <CheckoutAttemptStatusBadge status={item.status} />
+                    </TableCell>
+                    <TableCell className="text-small text-on-surface-variant">{item.provider}</TableCell>
+                    <TableCell className="text-small text-on-surface-variant">{item.expiresAt ? formatDateTime(item.expiresAt) : "—"}</TableCell>
+                    <TableCell className="text-right">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedId(expanded ? null : item.id)}
+                        className="inline-flex items-center gap-1 text-small font-medium text-primary hover:underline"
+                        aria-expanded={expanded}
+                      >
+                        {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        Detalle
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                  {expanded && (
+                    <TableRow interactive={false} className="bg-surface-container-lowest">
+                      <TableCell colSpan={7}>
+                        <CheckoutDetail item={item} />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Card>
 
       <div className="space-y-3 md:hidden">
         {items.map((item) => {

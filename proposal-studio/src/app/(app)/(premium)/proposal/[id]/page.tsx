@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { StatusPill, type ProposalStatus } from "@/components/layout/status-pill";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
 import {
@@ -107,10 +108,15 @@ export default async function ProposalDetailPage({
           <CardTitle>Resumen ejecutivo</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-body text-on-surface-variant">
-            {narrative?.executive_summary ??
-              "Todavía no se redactó el resumen ejecutivo. Completá la narrativa, las alternativas, los beneficios y la comparativa desde el wizard."}
-          </p>
+          {narrative?.executive_summary ? (
+            <p className="text-body text-on-surface-variant">{narrative.executive_summary}</p>
+          ) : (
+            <EmptyState
+              compact
+              title="Todavía no se redactó el resumen ejecutivo."
+              description="Completá la narrativa, las alternativas, los beneficios y la comparativa desde el wizard."
+            />
+          )}
         </CardContent>
       </Card>
 
