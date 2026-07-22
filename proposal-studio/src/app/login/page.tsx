@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 
 import { LoginForm } from "@/app/login/login-form";
 
@@ -64,9 +65,28 @@ export default async function LoginPage({
         </div>
       </div>
 
-      <div className="relative hidden flex-1 bg-primary md:block">
-        <div className="pointer-events-none absolute inset-0 bg-primary-container/20 mix-blend-overlay" />
+      <div className="relative hidden flex-1 bg-primary md:block overflow-hidden">
+        <Image
+          src="/images/login-banner.png"
+          alt="Proposal Studio Legado - Arte alegórico"
+          fill
+          priority
+          sizes="(min-width: 768px) 55vw, 100vw"
+          className="object-cover object-center transform scale-105 transition-transform duration-1000"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/20 to-slate-950/40" />
+        <div className="absolute bottom-16 left-12 right-12 z-10 max-w-lg">
+          <blockquote className="space-y-3 rounded-2xl bg-black/30 p-6 backdrop-blur-md border border-white/10 shadow-2xl">
+            <p className="text-lg font-medium leading-relaxed text-white drop-shadow">
+              “Transformando cotizaciones técnicas en propuestas comerciales estratégicas de alto valor.”
+            </p>
+            <footer className="text-xs uppercase tracking-widest font-semibold text-blue-200/80">
+              Proposal Studio™ — Legado
+            </footer>
+          </blockquote>
+        </div>
       </div>
     </main>
   );
 }
+
