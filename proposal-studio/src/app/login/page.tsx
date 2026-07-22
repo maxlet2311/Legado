@@ -67,7 +67,7 @@ export default async function LoginPage({
 
       <div className="relative hidden flex-1 bg-primary md:block overflow-hidden">
         <Image
-          src="/images/login-banner.png"
+          src="/images/login-banner-v2.png"
           alt="Proposal Studio Legado - Arte alegórico"
           fill
           priority
