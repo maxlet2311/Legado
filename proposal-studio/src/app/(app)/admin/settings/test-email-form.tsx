@@ -3,12 +3,14 @@
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 
 function TestEmailForm({ disabled }: { disabled: boolean }) {
   const [to, setTo] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | undefined>();
   const [isPending, startTransition] = useTransition();
 
@@ -48,10 +50,7 @@ function TestEmailForm({ disabled }: { disabled: boolean }) {
         <Button
           type="button"
           disabled={disabled || isPending || !to.trim()}
-          onClick={() => {
-            if (!window.confirm(`¿Enviar un correo real de prueba a ${to}?`)) return;
-            submit();
-          }}
+          onClick={() => setConfirmOpen(true)}
         >
           {isPending && <Spinner className="h-4 w-4 text-current" />}
           Enviar
@@ -61,6 +60,18 @@ function TestEmailForm({ disabled }: { disabled: boolean }) {
       {message && (
         <p className={`text-small ${message.type === "success" ? "text-success" : "text-error"}`}>{message.text}</p>
       )}
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Enviar correo de prueba"
+        description={`Se va a enviar un correo real de prueba a ${to}.`}
+        confirmLabel="Enviar"
+        confirmVariant="primary"
+        onConfirm={() => {
+          setConfirmOpen(false);
+          submit();
+        }}
+      />
     </div>
   );
 }

@@ -70,7 +70,7 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
 
   return (
     <div className="space-y-6">
-      <PreSummaryChecklist proposalId={proposalId} deterministicFindings={deterministicFindings} onJumpToStep={onJumpToStep} />
+      <PreSummaryChecklist deterministicFindings={deterministicFindings} onJumpToStep={onJumpToStep} />
 
       <SummaryCard title="Cliente" onEdit={() => onJumpToStep(0)}>
         <p className="font-semibold text-on-surface">{data.client.full_name}</p>

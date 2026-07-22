@@ -37,14 +37,14 @@ function VersionHistory({ proposalId, versions }: { proposalId: string; versions
               const templateTitle = version.render_json.template?.title ?? "Editorial Premium";
 
               return (
-                <li key={version.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
+                <li key={version.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="font-semibold text-on-surface">Versión {version.version_number}</p>
                     <p className="text-small text-on-surface-variant">
                       {formatDateTime(version.created_at)} · {templateTitle} · {orientation}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Badge variant={version.hasArtifact ? "success" : "draft"}>
                       {version.hasArtifact ? "PDF generado" : "Sin PDF"}
                     </Badge>

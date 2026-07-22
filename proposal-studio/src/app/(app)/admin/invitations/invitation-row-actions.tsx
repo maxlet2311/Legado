@@ -81,36 +81,6 @@ function ConfirmDialog({
   );
 }
 
-function ResendButton({ invitationId }: { invitationId: string }) {
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | undefined>();
-
-  return (
-    <div className="space-y-1">
-      <Button
-        type="button"
-        variant="secondary"
-        size="sm"
-        disabled={isPending}
-        onClick={() => {
-          if (!window.confirm("¿Revocar el token anterior y reenviar por email?")) return;
-          const formData = new FormData();
-          formData.set("invitationId", invitationId);
-          setError(undefined);
-          startTransition(async () => {
-            const result = await resendInvitationAction({}, formData);
-            if (result.error) setError(result.error);
-          });
-        }}
-      >
-        {isPending && <Spinner className="h-4 w-4 text-current" />}
-        Reenviar
-      </Button>
-      {error && <p className="text-caption text-error">{error}</p>}
-    </div>
-  );
-}
-
 function InvitationRowActions({ id, status }: { id: string; status: AdminInvitationStatus }) {
   const canAct = status === "pending";
 
@@ -120,7 +90,14 @@ function InvitationRowActions({ id, status }: { id: string; status: AdminInvitat
 
   return (
     <div className="flex flex-wrap justify-end gap-2">
-      <ResendButton invitationId={id} />
+      <ConfirmDialog
+        triggerLabel="Reenviar"
+        title="Reenviar invitación"
+        description="El token anterior se revoca y se envía un nuevo enlace por email."
+        action={resendInvitationAction}
+        invitationId={id}
+        variant="secondary"
+      />
       <ConfirmDialog
         triggerLabel="Forzar vencimiento"
         title="Forzar vencimiento de la invitación"

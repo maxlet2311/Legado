@@ -12,8 +12,11 @@ import {
   duplicateProposalAction,
   updateProposalMetaAction,
   updateProposalOrientationAction,
+  updateProposalCommercialStatusAction,
 } from "@/lib/proposal/actions";
 import { saveProposalAsTemplateAction } from "@/lib/templates/actions";
+import { COMMERCIAL_STATUS_LABEL, COMMERCIAL_STATUSES } from "@/components/layout/commercial-status-pill";
+import type { CommercialStatus } from "@/types/proposal";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -141,6 +144,51 @@ function OrientationToggle({
           Horizontal
         </button>
       </div>
+      {error && <p className="text-small text-error">{error}</p>}
+    </div>
+  );
+}
+
+/** Etapa comercial (venta) editable libremente, sin las validaciones de finalize_proposal. */
+function CommercialStatusSelect({
+  proposalId,
+  status: initialStatus,
+}: {
+  proposalId: string;
+  status: CommercialStatus;
+}) {
+  const [status, setStatus] = useState(initialStatus);
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | undefined>();
+
+  function handleSelect(next: CommercialStatus) {
+    if (next === status || isPending) return;
+    setError(undefined);
+    const previous = status;
+    setStatus(next);
+    startTransition(async () => {
+      const result = await updateProposalCommercialStatusAction(proposalId, next);
+      if (result?.error) {
+        setStatus(previous);
+        setError(result.error);
+      }
+    });
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <Select value={status} onValueChange={(v) => handleSelect(v as CommercialStatus)}>
+        <SelectTrigger className="w-44">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {COMMERCIAL_STATUSES.map((value) => (
+            <SelectItem key={value} value={value}>
+              {COMMERCIAL_STATUS_LABEL[value]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       {error && <p className="text-small text-error">{error}</p>}
     </div>
   );
@@ -281,13 +329,13 @@ function SaveAsTemplateDialog({ proposalId }: { proposalId: string }) {
               <Input id="template-description" {...register("description")} />
             </div>
             <div className="space-y-2">
-              <Label>Producto / segmento</Label>
+              <Label htmlFor="template-category">Producto / segmento</Label>
               <Controller
                 control={control}
                 name="category"
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
+                    <SelectTrigger id="template-category">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -306,10 +354,14 @@ function SaveAsTemplateDialog({ proposalId }: { proposalId: string }) {
                 control={control}
                 name="keep_example_amounts"
                 render={({ field }) => (
-                  <Checkbox checked={field.value} onCheckedChange={(checked) => field.onChange(checked === true)} />
+                  <Checkbox
+                    id="template-keep-example-amounts"
+                    checked={field.value}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                  />
                 )}
               />
-              <Label className="font-normal">
+              <Label htmlFor="template-keep-example-amounts" className="font-normal">
                 Los montos cargados son valores de ejemplo (mantenerlos en la plantilla)
               </Label>
             </div>
@@ -325,4 +377,11 @@ function SaveAsTemplateDialog({ proposalId }: { proposalId: string }) {
   );
 }
 
-export { EditTitleDialog, ArchiveButton, DuplicateButton, SaveAsTemplateDialog, OrientationToggle };
+export {
+  EditTitleDialog,
+  ArchiveButton,
+  DuplicateButton,
+  SaveAsTemplateDialog,
+  OrientationToggle,
+  CommercialStatusSelect,
+};

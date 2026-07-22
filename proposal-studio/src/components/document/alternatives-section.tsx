@@ -145,6 +145,7 @@ function AlternativesSection({ alternatives }: { alternatives: SnapshotAlternati
   const recommended = sorted.filter((alternative) => alternative.is_recommended);
   const rest = sorted.filter((alternative) => !alternative.is_recommended);
   const columns = getGridColumns(rest.length);
+  const [soloRest] = rest;
 
   return (
     <DocumentSection eyebrow="Opciones evaluadas" title="Alternativas" anchor flow>
@@ -152,7 +153,13 @@ function AlternativesSection({ alternatives }: { alternatives: SnapshotAlternati
         <AlternativeCard key={alternative.id} alternative={alternative} spotlight />
       ))}
 
-      {rest.length > 0 ? (
+      {soloRest ? (
+        // Un solo elemento en la grilla: se cae del grid de columnas (que lo
+        // estiraría a `1fr` = 100% del ancho) y se cap+alinea como card suelta.
+        <div style={{ maxWidth: "min(var(--ps-card-max), 100%)" }}>
+          <AlternativeCard alternative={soloRest} />
+        </div>
+      ) : rest.length > 1 ? (
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: "5mm", alignItems: "start" }}>
           {rest.map((alternative) => (
             <AlternativeCard key={alternative.id} alternative={alternative} />

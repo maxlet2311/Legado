@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { BookOpen, PlusCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useBeforeUnloadGuard } from "@/hooks/use-before-unload-guard";
 import { LibraryPickerDialog } from "@/components/library/library-picker-dialog";
 import { SectionCard } from "@/components/wizard/section-card";
 import { SortableList } from "@/components/wizard/sortable-list";
@@ -49,10 +51,18 @@ function StepAlternatives() {
     () => new Set((data?.alternatives ?? []).map((item) => getItemKey(item))),
   );
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [pendingRemoveIndex, setPendingRemoveIndex] = useState<number | null>(null);
+  const [lastAddedKey, setLastAddedKey] = useState<string | null>(null);
+  const [duplicating, setDuplicating] = useState(false);
 
   useEffect(() => {
     setStepMeta({ isValid: true, autosaveStatus: "idle" });
   }, [setStepMeta]);
+
+  // `duplicateItem` guarda de inmediato fuera del ciclo de useAutosave: si el
+  // usuario recarga/cierra la pestaña mientras esa escritura sigue en vuelo,
+  // el duplicado optimista en pantalla nunca llega a persistirse.
+  useBeforeUnloadGuard(duplicating);
 
   if (!data) return null;
   const { alternatives, proposalId } = data;
@@ -68,16 +78,17 @@ function StepAlternatives() {
 
   function addAlternative() {
     pushHistorySnapshot();
-    setAlternatives([...alternatives, emptyAlternative(alternatives.length)]);
+    const next = emptyAlternative(alternatives.length);
+    setAlternatives([...alternatives, next]);
+    setLastAddedKey(next.client_key);
   }
 
   function insertFromLibrary(id: string, item: LibraryItem) {
     const content = item.content_json as LibraryAlternativeContent;
     pushHistorySnapshot();
-    setAlternatives([
-      ...alternatives,
-      buildAlternativeFromLibraryContent(id, item.title, content, alternatives.length),
-    ]);
+    const next = buildAlternativeFromLibraryContent(id, item.title, content, alternatives.length);
+    setAlternatives([...alternatives, next]);
+    setLastAddedKey(next.client_key);
   }
 
   // Duplicar guarda la copia de inmediato (a diferencia de editar campos de
@@ -98,34 +109,51 @@ function StepAlternatives() {
       display_order: index + 1,
       details: { ...source.details, advantages: [...source.details.advantages], disadvantages: [...source.details.disadvantages] },
     };
+    const previous = alternatives;
     const next = [...alternatives];
     next.splice(index + 1, 0, clone);
     const withOrder = next.map((item, i) => ({ ...item, display_order: i }));
     setAlternatives(withOrder);
+    setLastAddedKey(clone.client_key);
+    setDuplicating(true);
+    setStepMeta({ autosaveStatus: "saving" });
 
-    const result = await saveAlternativeAction({
-      id: null,
-      proposal_id: proposalId,
-      title: clone.title,
-      description: clone.description,
-      category: clone.category,
-      insurance_company: clone.insurance_company,
-      product_name: clone.product_name,
-      currency: clone.currency,
-      monthly_premium: clone.monthly_premium,
-      advantages: clone.details.advantages,
-      disadvantages: clone.details.disadvantages,
-      notes: clone.details.notes,
-      display_order: clone.display_order,
-      expected_revision: null,
-    });
-    if (result.data) {
-      const cloneIndex = index + 1;
-      setAlternatives(
-        withOrder.map((item, i) =>
-          i === cloneIndex ? { ...item, id: result.data!.id, revision: result.data!.revision } : item,
-        ),
-      );
+    try {
+      const result = await saveAlternativeAction({
+        id: null,
+        proposal_id: proposalId,
+        title: clone.title,
+        description: clone.description,
+        category: clone.category,
+        insurance_company: clone.insurance_company,
+        product_name: clone.product_name,
+        currency: clone.currency,
+        monthly_premium: clone.monthly_premium,
+        advantages: clone.details.advantages,
+        disadvantages: clone.details.disadvantages,
+        notes: clone.details.notes,
+        display_order: clone.display_order,
+        expected_revision: null,
+      });
+      if (result.data) {
+        const cloneIndex = index + 1;
+        setAlternatives(
+          withOrder.map((item, i) =>
+            i === cloneIndex ? { ...item, id: result.data!.id, revision: result.data!.revision } : item,
+          ),
+        );
+        setStepMeta({ autosaveStatus: "saved" });
+      } else {
+        // Rollback: el duplicado optimista nunca se persistió, no debe quedar
+        // en pantalla como si lo hubiera hecho.
+        setAlternatives(previous);
+        setStepMeta({ autosaveStatus: "error", autosaveError: result.error ?? "No pudimos duplicar la alternativa." });
+      }
+    } catch {
+      setAlternatives(previous);
+      setStepMeta({ autosaveStatus: "error", autosaveError: "No pudimos duplicar la alternativa." });
+    } finally {
+      setDuplicating(false);
     }
   }
 
@@ -139,10 +167,13 @@ function StepAlternatives() {
     );
   }
 
-  async function removeItem(index: number) {
+  async function confirmRemove() {
+    const index = pendingRemoveIndex;
+    if (index === null) return;
     pushHistorySnapshot();
     const item = alternatives[index];
     setAlternatives(alternatives.filter((_, i) => i !== index));
+    setPendingRemoveIndex(null);
     if (item?.id) {
       await deleteAlternativeAction(proposalId, item.id);
     }
@@ -164,6 +195,20 @@ function StepAlternatives() {
       description="Agregá las alternativas financieras que forman parte de la propuesta."
       actions={
         <div className="flex items-center gap-2">
+          {alternatives.length > 1 ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                setCollapsedIds(
+                  collapsedIds.size > 0 ? new Set() : new Set(alternatives.map(getItemKey)),
+                )
+              }
+            >
+              {collapsedIds.size > 0 ? "Expandir todas" : "Colapsar todas"}
+            </Button>
+          ) : null}
           <Button type="button" variant="ghost" size="sm" onClick={() => setLibraryOpen(true)}>
             <BookOpen className="h-4 w-4" />
             Insertar desde Biblioteca
@@ -197,13 +242,22 @@ function StepAlternatives() {
               item={item}
               onChange={(next) => updateItem(index, next)}
               onSaved={(id, revision) => markSaved(index, id, revision)}
-              onRemove={() => removeItem(index)}
+              onRemove={() => setPendingRemoveIndex(index)}
               onDuplicate={() => duplicateItem(index)}
               collapsed={collapsedIds.has(key)}
               onToggleCollapse={() => toggleCollapsed(key)}
+              autoFocus={key === lastAddedKey}
             />
           );
         }}
+      />
+      <ConfirmDialog
+        open={pendingRemoveIndex !== null}
+        onOpenChange={(open) => !open && setPendingRemoveIndex(null)}
+        title="Eliminar alternativa"
+        description={`"${alternatives[pendingRemoveIndex ?? -1]?.title || "Esta alternativa"}" se va a eliminar de la propuesta. Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        onConfirm={confirmRemove}
       />
     </SectionCard>
   );

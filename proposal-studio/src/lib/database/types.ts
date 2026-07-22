@@ -1077,6 +1077,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_active: boolean
           is_default: boolean
           is_system: boolean
           preview_image: string | null
@@ -1091,6 +1092,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_active?: boolean
           is_default?: boolean
           is_system?: boolean
           preview_image?: string | null
@@ -1105,6 +1107,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_active?: boolean
           is_default?: boolean
           is_system?: boolean
           preview_image?: string | null
@@ -1246,6 +1249,7 @@ export type Database = {
         Row: {
           brand_id: string | null
           client_id: string
+          commercial_status: string
           created_at: string
           currency: string
           duplicated_from_id: string | null
@@ -1284,6 +1288,7 @@ export type Database = {
         Insert: {
           brand_id?: string | null
           client_id: string
+          commercial_status?: string
           created_at?: string
           currency: string
           duplicated_from_id?: string | null
@@ -1322,6 +1327,7 @@ export type Database = {
         Update: {
           brand_id?: string | null
           client_id?: string
+          commercial_status?: string
           created_at?: string
           currency?: string
           duplicated_from_id?: string | null
@@ -1404,6 +1410,20 @@ export type Database = {
         Returns: {
           id: string
           orientation: string
+        }[]
+      }
+      update_proposal_commercial_status: {
+        Args: { p_id: string; p_status: string }
+        Returns: {
+          id: string
+          commercial_status: string
+        }[]
+      }
+      apply_template_to_new_proposal: {
+        Args: { p_template_id: string; p_client_id: string }
+        Returns: {
+          id: string
+          proposal_number: string
         }[]
       }
       before_user_created_check_membership: {

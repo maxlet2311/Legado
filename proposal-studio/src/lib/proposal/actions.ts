@@ -121,6 +121,34 @@ async function archiveProposalAction(proposalId: string): Promise<ActionResult> 
   return { success: true };
 }
 
+const COMMERCIAL_STATUSES = ["draft", "sent", "negotiation", "accepted", "rejected", "archived"] as const;
+
+/** Cambia la etapa comercial (venta) de la propuesta. Editable libremente, sin las validaciones de `finalize_proposal`. */
+async function updateProposalCommercialStatusAction(
+  proposalId: string,
+  status: (typeof COMMERCIAL_STATUSES)[number],
+): Promise<ActionResult> {
+  const guard = await requireActiveMembershipForAction({ surface: "proposal.update_commercial_status" });
+  if (!guard.ok) return { error: guard.error };
+  if (!COMMERCIAL_STATUSES.includes(status)) {
+    return { error: "Estado comercial inválido." };
+  }
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .rpc("update_proposal_commercial_status", { p_id: proposalId, p_status: status })
+    .single();
+
+  if (error || !data) {
+    return { error: error ? mapSupabaseError(error) : "Propuesta no encontrada o sin acceso." };
+  }
+
+  revalidatePath(`/proposal/${proposalId}`);
+  revalidatePath("/proposals");
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
 /** Cambia la orientación del PDF (vertical/horizontal). Usa el mismo renderer: solo cambia el CSS `@page` según `document-shell.tsx`. */
 async function updateProposalOrientationAction(
   proposalId: string,
@@ -323,6 +351,7 @@ export {
   updateProposalMetaAction,
   archiveProposalAction,
   updateProposalOrientationAction,
+  updateProposalCommercialStatusAction,
   duplicateProposalAction,
   markDuplicationReviewedAction,
 };

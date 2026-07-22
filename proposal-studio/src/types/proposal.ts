@@ -2,6 +2,9 @@ export type ClientType = "individual" | "company";
 
 export type ProposalStatus = "draft" | "completed" | "exported" | "archived";
 
+/** Etapa comercial de la propuesta (venta), independiente de `ProposalStatus` (progreso del documento). */
+export type CommercialStatus = "draft" | "sent" | "negotiation" | "accepted" | "rejected" | "archived";
+
 export type PrimaryObjective =
   | "protect_family"
   | "build_savings"

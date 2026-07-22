@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import { BookOpen, PlusCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useBeforeUnloadGuard } from "@/hooks/use-before-unload-guard";
 import { LibraryPickerDialog } from "@/components/library/library-picker-dialog";
 import { SectionCard } from "@/components/wizard/section-card";
 import { SortableList } from "@/components/wizard/sortable-list";
-import { SuggestedBenefitsChips } from "@/components/wizard/steps/suggested-benefits-chips";
 import { BenefitItem } from "@/components/wizard/steps/benefit-item";
 import { deleteBenefitAction, reorderBenefitsAction, saveBenefitAction } from "@/lib/wizard/actions";
 import { buildBenefitFromLibraryContent } from "@/lib/library/build-from-content";
@@ -43,10 +44,17 @@ function StepBenefits() {
     () => new Set((data?.benefits ?? []).map((item) => getItemKey(item))),
   );
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [pendingRemoveIndex, setPendingRemoveIndex] = useState<number | null>(null);
+  const [lastAddedKey, setLastAddedKey] = useState<string | null>(null);
+  const [duplicating, setDuplicating] = useState(false);
 
   useEffect(() => {
     setStepMeta({ isValid: true, autosaveStatus: "idle" });
   }, [setStepMeta]);
+
+  // Ver mismo comentario en step-alternatives.tsx: duplicar guarda fuera del
+  // ciclo de useAutosave, así que necesita su propio guard de recarga.
+  useBeforeUnloadGuard(duplicating);
 
   if (!data) return null;
   const { benefits, proposalId } = data;
@@ -62,30 +70,17 @@ function StepBenefits() {
 
   function addBenefit() {
     pushHistorySnapshot();
-    setBenefits([...benefits, emptyBenefit(benefits.length)]);
-  }
-
-  function addBenefitFromSuggestion(suggestion: { title: string; description: string; icon: string }) {
-    pushHistorySnapshot();
-    setBenefits([
-      ...benefits,
-      {
-        client_key: crypto.randomUUID(),
-        id: null,
-        title: suggestion.title,
-        description: suggestion.description,
-        icon: suggestion.icon,
-        category: "financial",
-        display_order: benefits.length,
-        revision: null,
-      },
-    ]);
+    const next = emptyBenefit(benefits.length);
+    setBenefits([...benefits, next]);
+    setLastAddedKey(next.client_key);
   }
 
   function insertFromLibrary(id: string, item: LibraryItem) {
     const content = item.content_json as LibraryBenefitContent;
     pushHistorySnapshot();
-    setBenefits([...benefits, buildBenefitFromLibraryContent(id, item.title, content, benefits.length)]);
+    const next = buildBenefitFromLibraryContent(id, item.title, content, benefits.length);
+    setBenefits([...benefits, next]);
+    setLastAddedKey(next.client_key);
   }
 
   // Guarda la copia de inmediato (ver mismo comentario en step-alternatives.tsx):
@@ -103,28 +98,43 @@ function StepBenefits() {
       title: source.title ? `${source.title} (copia)` : source.title,
       display_order: index + 1,
     };
+    const previous = benefits;
     const next = [...benefits];
     next.splice(index + 1, 0, clone);
     const withOrder = next.map((item, i) => ({ ...item, display_order: i }));
     setBenefits(withOrder);
+    setLastAddedKey(clone.client_key);
+    setDuplicating(true);
+    setStepMeta({ autosaveStatus: "saving" });
 
-    const result = await saveBenefitAction({
-      id: null,
-      proposal_id: proposalId,
-      title: clone.title,
-      description: clone.description,
-      icon: clone.icon,
-      category: clone.category,
-      display_order: clone.display_order,
-      expected_revision: null,
-    });
-    if (result.data) {
-      const cloneIndex = index + 1;
-      setBenefits(
-        withOrder.map((item, i) =>
-          i === cloneIndex ? { ...item, id: result.data!.id, revision: result.data!.revision } : item,
-        ),
-      );
+    try {
+      const result = await saveBenefitAction({
+        id: null,
+        proposal_id: proposalId,
+        title: clone.title,
+        description: clone.description,
+        icon: clone.icon,
+        category: clone.category,
+        display_order: clone.display_order,
+        expected_revision: null,
+      });
+      if (result.data) {
+        const cloneIndex = index + 1;
+        setBenefits(
+          withOrder.map((item, i) =>
+            i === cloneIndex ? { ...item, id: result.data!.id, revision: result.data!.revision } : item,
+          ),
+        );
+        setStepMeta({ autosaveStatus: "saved" });
+      } else {
+        setBenefits(previous);
+        setStepMeta({ autosaveStatus: "error", autosaveError: result.error ?? "No pudimos duplicar el beneficio." });
+      }
+    } catch {
+      setBenefits(previous);
+      setStepMeta({ autosaveStatus: "error", autosaveError: "No pudimos duplicar el beneficio." });
+    } finally {
+      setDuplicating(false);
     }
   }
 
@@ -136,10 +146,13 @@ function StepBenefits() {
     setBenefits(benefits.map((item, i) => (i === index ? { ...item, id, revision } : item)));
   }
 
-  async function removeItem(index: number) {
+  async function confirmRemove() {
+    const index = pendingRemoveIndex;
+    if (index === null) return;
     pushHistorySnapshot();
     const item = benefits[index];
     setBenefits(benefits.filter((_, i) => i !== index));
+    setPendingRemoveIndex(null);
     if (item?.id) {
       await deleteBenefitAction(proposalId, item.id);
     }
@@ -161,6 +174,18 @@ function StepBenefits() {
       description="Beneficios concretos que el cliente obtiene con esta propuesta."
       actions={
         <div className="flex items-center gap-2">
+          {benefits.length > 1 ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                setCollapsedIds(collapsedIds.size > 0 ? new Set() : new Set(benefits.map(getItemKey)))
+              }
+            >
+              {collapsedIds.size > 0 ? "Expandir todos" : "Colapsar todos"}
+            </Button>
+          ) : null}
           <Button type="button" variant="ghost" size="sm" onClick={() => setLibraryOpen(true)}>
             <BookOpen className="h-4 w-4" />
             Insertar desde Biblioteca
@@ -181,11 +206,6 @@ function StepBenefits() {
         nextDisplayOrder={benefits.length}
         onInserted={insertFromLibrary}
       />
-      <SuggestedBenefitsChips
-        proposalId={proposalId}
-        existingTitles={benefits.map((b) => b.title)}
-        onAdd={addBenefitFromSuggestion}
-      />
       <SortableList
         items={benefits}
         getId={(item) => item.client_key}
@@ -199,13 +219,22 @@ function StepBenefits() {
               item={item}
               onChange={(next) => updateItem(index, next)}
               onSaved={(id, revision) => markSaved(index, id, revision)}
-              onRemove={() => removeItem(index)}
+              onRemove={() => setPendingRemoveIndex(index)}
               onDuplicate={() => duplicateItem(index)}
               collapsed={collapsedIds.has(key)}
               onToggleCollapse={() => toggleCollapsed(key)}
+              autoFocus={key === lastAddedKey}
             />
           );
         }}
+      />
+      <ConfirmDialog
+        open={pendingRemoveIndex !== null}
+        onOpenChange={(open) => !open && setPendingRemoveIndex(null)}
+        title="Eliminar beneficio"
+        description={`"${benefits[pendingRemoveIndex ?? -1]?.title || "Este beneficio"}" se va a eliminar de la propuesta. Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        onConfirm={confirmRemove}
       />
     </SectionCard>
   );

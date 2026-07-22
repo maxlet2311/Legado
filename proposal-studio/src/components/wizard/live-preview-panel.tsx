@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,11 @@ function LivePreviewPanel() {
   const requestIdRef = useRef(0);
 
   const proposalId = data?.proposalId;
-  const dataKey = data ? JSON.stringify(data) : null;
+  // LivePreviewPanel queda montado todo el tiempo que el asesor edita
+  // cualquier paso del wizard: sin memoizar, este JSON.stringify del estado
+  // completo de la propuesta se recalcularía en cada tecla de cada campo,
+  // no solo cuando corresponde reiniciar el debounce.
+  const dataKey = useMemo(() => (data ? JSON.stringify(data) : null), [data]);
 
   async function refresh() {
     if (!proposalId) return;

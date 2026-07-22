@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useBeforeUnloadGuard } from "@/hooks/use-before-unload-guard";
 import type { AutosaveStatus } from "@/types/wizard";
 
 const AUTOSAVE_DEBOUNCE_MS = 2000;
@@ -151,6 +152,11 @@ function useAutosave<T>(
     setStatus("idle");
     lastSavedRef.current = JSON.stringify(value);
   }, [value]);
+
+  // El guardado sigue en curso aunque el componente se desmonte de la vista
+  // (cambiar de paso del wizard no cancela la promesa) -- lo único que sí lo
+  // pierde es cerrar/recargar la pestaña mientras la respuesta está en vuelo.
+  useBeforeUnloadGuard(status === "saving");
 
   return { status, error, conflictRevision, saveNow, forceSaveNow, clearConflict };
 }

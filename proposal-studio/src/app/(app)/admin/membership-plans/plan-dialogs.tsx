@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { PlusCircle, Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
@@ -207,8 +208,19 @@ function ToggleActiveButton({ planId, isActive }: { planId: string; isActive: bo
 function SyncProviderButton({ planId, provider, hasProviderPlanId }: { planId: string; provider: string | null; hasProviderPlanId: boolean }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | undefined>();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const label = provider && hasProviderPlanId ? "Verificar en Mercado Pago" : "Crear en Mercado Pago";
+
+  function submit() {
+    const formData = new FormData();
+    formData.set("planId", planId);
+    setError(undefined);
+    startTransition(async () => {
+      const result = await syncPlanWithProviderAction({}, formData);
+      if (result?.error) setError(result.error);
+    });
+  }
 
   return (
     <div className="flex flex-col items-end gap-1">
@@ -217,26 +229,28 @@ function SyncProviderButton({ planId, provider, hasProviderPlanId }: { planId: s
         variant="secondary"
         size="sm"
         disabled={isPending}
-        onClick={() => {
-          const confirmed = window.confirm(
-            provider && hasProviderPlanId
-              ? "Esto va a consultar el plan ya asociado en Mercado Pago y comparar los valores. No crea ningún recurso nuevo. ¿Continuar?"
-              : "Esto va a crear un plan de suscripción real (de prueba) en Mercado Pago con las credenciales configuradas en el servidor. ¿Continuar?",
-          );
-          if (!confirmed) return;
-          const formData = new FormData();
-          formData.set("planId", planId);
-          setError(undefined);
-          startTransition(async () => {
-            const result = await syncPlanWithProviderAction({}, formData);
-            if (result?.error) setError(result.error);
-          });
-        }}
+        onClick={() => setConfirmOpen(true)}
       >
         {isPending && <Spinner className="h-4 w-4 text-current" />}
         {label}
       </Button>
       {error && <p className="text-small text-error">{error}</p>}
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={label}
+        description={
+          provider && hasProviderPlanId
+            ? "Esto va a consultar el plan ya asociado en Mercado Pago y comparar los valores. No crea ningún recurso nuevo."
+            : "Esto va a crear un plan de suscripción real (de prueba) en Mercado Pago con las credenciales configuradas en el servidor."
+        }
+        confirmLabel="Continuar"
+        confirmVariant="secondary"
+        onConfirm={() => {
+          setConfirmOpen(false);
+          submit();
+        }}
+      />
     </div>
   );
 }

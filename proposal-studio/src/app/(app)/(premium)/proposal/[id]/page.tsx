@@ -6,6 +6,7 @@ import { Pencil } from "lucide-react";
 import { ContentContainer } from "@/components/layout/content-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatusPill, type ProposalStatus } from "@/components/layout/status-pill";
+import type { CommercialStatus } from "@/types/proposal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -14,6 +15,7 @@ import { createClient } from "@/lib/database/server";
 import { measurePerformance } from "@/lib/utils/performance";
 import {
   ArchiveButton,
+  CommercialStatusSelect,
   DuplicateButton,
   EditTitleDialog,
   OrientationToggle,
@@ -49,7 +51,7 @@ export default async function ProposalDetailPage({
           () =>
             supabase
               .from("proposals")
-              .select("id, title, status, client_id, orientation, clients(full_name, email)")
+              .select("id, title, status, commercial_status, client_id, orientation, clients(full_name, email)")
               .eq("id", id)
               .eq("user_id", user.id)
               .maybeSingle(),
@@ -112,6 +114,10 @@ export default async function ProposalDetailPage({
         actions={
           <div className="flex flex-wrap items-center gap-3">
             <StatusPill status={proposal.status as ProposalStatus} />
+            <CommercialStatusSelect
+              proposalId={proposal.id}
+              status={proposal.commercial_status as CommercialStatus}
+            />
             <OrientationToggle
               proposalId={proposal.id}
               orientation={(proposal.orientation as "portrait" | "landscape") ?? "portrait"}

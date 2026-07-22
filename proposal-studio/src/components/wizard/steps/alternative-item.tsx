@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useEffect, useId, useRef } from "react";
 import { BookmarkPlus, Check, ChevronDown, ChevronRight, Copy, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,8 @@ interface AlternativeItemProps {
   onDuplicate: () => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  /** Recién agregado/duplicado: hace scroll hasta el bloque y enfoca el título. Solo se lee en el mount. */
+  autoFocus?: boolean;
 }
 
 function AlternativeItem({
@@ -46,10 +48,13 @@ function AlternativeItem({
   onDuplicate,
   collapsed,
   onToggleCollapse,
+  autoFocus = false,
 }: AlternativeItemProps) {
   const canSave = Boolean(
     item.title.trim() && item.insurance_company.trim() && item.product_name.trim(),
   );
+  const containerRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
   const companyId = useId();
   const productId = useId();
@@ -148,6 +153,14 @@ function AlternativeItem({
 
   const { status: libraryStatus, duplicate, save, saveAnyway, cancelDuplicate } = useSaveToLibrary();
 
+  useEffect(() => {
+    if (!autoFocus) return;
+    containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    titleInputRef.current?.focus();
+    // Solo al montar: es la única vez que "recién agregado" es cierto para este ítem.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function saveToLibrary() {
     if (!item.title.trim() || libraryStatus === "saving") return;
     save({
@@ -168,7 +181,7 @@ function AlternativeItem({
   }
 
   return (
-    <div className="rounded-md border border-outline-variant p-5" data-testid="alternative-item">
+    <div ref={containerRef} className="rounded-md border border-outline-variant p-5" data-testid="alternative-item">
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
@@ -251,6 +264,7 @@ function AlternativeItem({
             </Label>
             <Input
               id={titleId}
+              ref={titleInputRef}
               value={item.title}
               onChange={(event) => updateField("title", event.target.value)}
             />

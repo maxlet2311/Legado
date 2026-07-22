@@ -112,32 +112,46 @@ function SimpleActionButton({
   disabled?: boolean;
   confirmLabel: string;
 }) {
+  const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | undefined>();
 
+  function submit() {
+    const formData = new FormData();
+    formData.set("membershipId", membershipId);
+    setError(undefined);
+    startTransition(async () => {
+      const result = await action({}, formData);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setOpen(false);
+      }
+    });
+  }
+
   return (
     <div className="space-y-1">
-      <Button
-        type="button"
-        variant="secondary"
-        size="sm"
-        className="w-full"
-        disabled={disabled || isPending}
-        onClick={() => {
-          if (!window.confirm(confirmLabel)) return;
-          const formData = new FormData();
-          formData.set("membershipId", membershipId);
-          setError(undefined);
-          startTransition(async () => {
-            const result = await action({}, formData);
-            if (result.error) setError(result.error);
-          });
-        }}
-      >
-        {isPending && <Spinner className="h-4 w-4 text-current" />}
-        {label}
-      </Button>
-      {error && <p className="text-caption text-error">{error}</p>}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button type="button" variant="secondary" size="sm" className="w-full" disabled={disabled}>
+            {label}
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{label}</DialogTitle>
+            <DialogDescription>{confirmLabel}</DialogDescription>
+          </DialogHeader>
+          {error && <p className="text-small text-error">{error}</p>}
+          <DialogFooter>
+            <Button type="button" variant="secondary" disabled={isPending} onClick={submit}>
+              {isPending && <Spinner className="h-4 w-4 text-current" />}
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

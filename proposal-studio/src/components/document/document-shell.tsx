@@ -39,6 +39,13 @@ function DocumentShell({ snapshot, children }: DocumentShellProps) {
     "--ps-page-height": `${pageSize.height}mm`,
     "--ps-font-display": `"${DISPLAY_FONT}", Georgia, serif`,
     "--ps-font-body": `"${proposal.font_family}", "${BODY_FONT}", Arial, sans-serif`,
+    // Ancho máximo de tarjeta "solitaria" (una única alternativa/beneficio/
+    // comparativa): evita que un bloque con un solo elemento se estire al
+    // 100% del ancho de contenido y quede desbalanceado. 155mm ≈ 586px,
+    // dentro del rango editorial pedido (560-600px). Con margin_size "large"
+    // el contenido puede angostarse por debajo de eso, así que los
+    // consumidores siempre lo combinan con `min(..., 100%)`.
+    "--ps-card-max": "155mm",
   } as CSSProperties;
 
   return (

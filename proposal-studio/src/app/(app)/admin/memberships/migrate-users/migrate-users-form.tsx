@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
@@ -15,6 +16,7 @@ function MigrateUsersForm({ plans }: { plans: { id: string; name: string; isActi
   const [selectionMode, setSelectionMode] = useState<"all" | "emails">("all");
   const [state, setState] = useState<MigrateUsersActionResult>({});
   const [isPending, startTransition] = useTransition();
+  const [pendingFormData, setPendingFormData] = useState<FormData | null>(null);
 
   function submit(formData: FormData, dryRun: boolean) {
     formData.set("selectionMode", selectionMode);
@@ -98,13 +100,12 @@ function MigrateUsersForm({ plans }: { plans: { id: string; name: string; isActi
             type="button"
             disabled={isPending}
             onClick={(e) => {
-              if (!window.confirm("¿Ejecutar la migración real? Esto crea membresías `authorized` de verdad.")) return;
               const form = e.currentTarget.closest("form");
               if (!form) return;
               const formData = new FormData(form);
               const dateValue = formData.get("currentPeriodEndDate");
               if (dateValue) formData.set("currentPeriodEnd", new Date(`${dateValue}T00:00:00Z`).toISOString());
-              submit(formData, false);
+              setPendingFormData(formData);
             }}
           >
             {isPending && <Spinner className="h-4 w-4 text-current" />}
@@ -113,6 +114,19 @@ function MigrateUsersForm({ plans }: { plans: { id: string; name: string; isActi
         </div>
       </form>
       </Card>
+
+      <ConfirmDialog
+        open={pendingFormData !== null}
+        onOpenChange={(open) => !open && setPendingFormData(null)}
+        title="Ejecutar migración real"
+        description="Esto crea membresías `authorized` de verdad para los usuarios seleccionados. Esta acción no se puede deshacer."
+        confirmLabel="Ejecutar migración"
+        onConfirm={() => {
+          if (!pendingFormData) return;
+          submit(pendingFormData, false);
+          setPendingFormData(null);
+        }}
+      />
 
       {state.error && <p className="rounded-md bg-error-container px-4 py-3 text-small text-error">{state.error}</p>}
 

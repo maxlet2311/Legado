@@ -16,6 +16,10 @@ const badgeVariants = cva(
         success: "bg-success/15 text-success",
         warning: "bg-warning/15 text-warning",
         error: "bg-error-container text-on-error-container",
+        sent: "bg-primary-fixed text-on-primary-fixed",
+        negotiation: "bg-warning/15 text-warning",
+        accepted: "bg-success/15 text-success",
+        rejected: "bg-error-container text-on-error-container",
       },
     },
     defaultVariants: {

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BookOpen, Pencil, Search, Trash2 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -14,6 +14,7 @@ import { LibraryItemEditDialog } from "@/components/library/library-item-edit-di
 import { deleteLibraryItemAction, listLibraryItemsAction } from "@/lib/library/actions";
 import { libraryItemExcerpt } from "@/lib/library/excerpt";
 import { formatDateTime } from "@/lib/render/formatters";
+import { cn } from "@/lib/utils/cn";
 import type { LibraryCategory, LibraryItem } from "@/types/library";
 
 const CATEGORY_LABELS: Record<LibraryCategory, string> = {
@@ -23,6 +24,8 @@ const CATEGORY_LABELS: Record<LibraryCategory, string> = {
   recommendation: "Recomendación",
 };
 
+const SEARCH_DEBOUNCE_MS = 400;
+
 function LibraryBrowser() {
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [search, setSearch] = useState("");
@@ -31,13 +34,30 @@ function LibraryBrowser() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<LibraryItem | null>(null);
   const [editing, setEditing] = useState<LibraryItem | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
-    setLoading(true);
-    listLibraryItemsAction({ search: search || undefined, category: category ?? undefined }).then((result) => {
-      setLoading(false);
-      setItems(result.data ?? []);
-    });
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    function runSearch() {
+      const requestId = ++requestIdRef.current;
+      setLoading(true);
+      listLibraryItemsAction({ search: search || undefined, category: category ?? undefined }).then((result) => {
+        if (requestId !== requestIdRef.current) return; // respuesta obsoleta, se descarta
+        setLoading(false);
+        setItems(result.data ?? []);
+      });
+    }
+
+    // El filtro de categoría es instantáneo (click, no hay nada que debounciar);
+    // solo el texto libre necesita esperar a que el asesor termine de tipear,
+    // si no cada tecla dispara su propia Server Action y una respuesta lenta
+    // de una búsqueda vieja puede pisar a una más nueva si llega después.
+    timerRef.current = setTimeout(runSearch, search ? SEARCH_DEBOUNCE_MS : 0);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [search, category]);
 
   async function handleConfirmDelete() {
@@ -64,22 +84,27 @@ function LibraryBrowser() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Badge
-          variant={category === null ? "featured" : "draft"}
-          className="cursor-pointer"
+        {/* Chips de filtro: botones nativos (foco + Enter/Espacio gratis) con
+            los mismos estilos de Badge, en vez de un <span onClick> no
+            operable por teclado. */}
+        <button
+          type="button"
           onClick={() => setCategory(null)}
+          aria-pressed={category === null}
+          className={cn(badgeVariants({ variant: category === null ? "featured" : "draft" }), "cursor-pointer")}
         >
           Todos
-        </Badge>
+        </button>
         {(Object.keys(CATEGORY_LABELS) as LibraryCategory[]).map((value) => (
-          <Badge
+          <button
             key={value}
-            variant={category === value ? "featured" : "draft"}
-            className="cursor-pointer"
+            type="button"
             onClick={() => setCategory(value)}
+            aria-pressed={category === value}
+            className={cn(badgeVariants({ variant: category === value ? "featured" : "draft" }), "cursor-pointer")}
           >
             {CATEGORY_LABELS[value]}
-          </Badge>
+          </button>
         ))}
       </div>
 

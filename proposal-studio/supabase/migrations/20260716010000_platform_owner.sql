@@ -27,8 +27,16 @@ begin
 end;
 $$;
 
--- Asignación del propietario de la plataforma. Falla explícito si el perfil
--- no existe, para no dejar la migración a medio aplicar.
+-- Asignación del propietario de la plataforma. No se hace fallar la migración
+-- completa si el perfil todavía no existe (RC1: antes esto era un
+-- RAISE EXCEPTION, lo que rompía cualquier entorno fresco — local dev,
+-- un proyecto de staging nuevo, un reset completo — donde el owner real
+-- de producción nunca se registró. La asignación real solo importa en el
+-- proyecto de producción, donde el usuario ya existe; en cualquier otro
+-- entorno esto debe ser un no-op silencioso, no un aborto de la cadena de
+-- migraciones. La propiedad se completa vía seed.sql en local (ver ese
+-- archivo) o manualmente en un entorno nuevo cuando el owner real firme su
+-- signup.
 do $$
 begin
   update public.profiles
@@ -40,8 +48,8 @@ begin
   where user_id = '98a388bb-5385-42e2-98d5-9db0b716af82';
 
   if not found then
-    raise exception
-      'Platform owner profile not found for user_id %',
+    raise notice
+      'Platform owner profile not found for user_id % — omitido (no bloquea la migración). Ver seed.sql para el entorno local.',
       '98a388bb-5385-42e2-98d5-9db0b716af82';
   end if;
 end;

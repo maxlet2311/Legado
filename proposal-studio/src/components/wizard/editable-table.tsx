@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   DndContext,
   KeyboardSensor,
@@ -17,9 +17,10 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Plus, Trash2 } from "lucide-react";
+import { Copy, GripVertical, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils/cn";
 import type { WizardComparisonColumn, WizardComparisonRow } from "@/types/wizard";
@@ -68,11 +69,21 @@ function DraggableRow({ id, children }: DraggableRowProps) {
   );
 }
 
+interface PendingRemoval {
+  kind: "row" | "column";
+  id: string;
+  label: string;
+}
+
 function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: EditableTableProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+  // Borrar una fila/columna se lleva todos sus valores cargados y antes no
+  // pedía confirmación (a diferencia de eliminar una alternativa/beneficio):
+  // la única red de seguridad era Ctrl+Z, un atajo sin ningún botón visible.
+  const [pendingRemoval, setPendingRemoval] = useState<PendingRemoval | null>(null);
 
   function addColumn() {
     onBeforeStructuralChange?.();
@@ -83,6 +94,21 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
     onChange(
       columns.map((column) => (column.id === id ? { ...column, label } : column)),
       rows,
+    );
+  }
+
+  function duplicateColumn(id: string) {
+    onBeforeStructuralChange?.();
+    const index = columns.findIndex((column) => column.id === id);
+    if (index === -1) return;
+    const source = columns[index];
+    if (!source) return;
+    const clone: WizardComparisonColumn = { id: newId("col"), label: `${source.label} (copia)` };
+    const nextColumns = [...columns];
+    nextColumns.splice(index + 1, 0, clone);
+    onChange(
+      nextColumns,
+      rows.map((row) => ({ ...row, values: { ...row.values, [clone.id]: row.values[source.id] ?? "" } })),
     );
   }
 
@@ -109,12 +135,35 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
     );
   }
 
+  function duplicateRow(id: string) {
+    onBeforeStructuralChange?.();
+    const index = rows.findIndex((row) => row.id === id);
+    if (index === -1) return;
+    const source = rows[index];
+    if (!source) return;
+    const clone: WizardComparisonRow = {
+      id: newId("row"),
+      label: `${source.label} (copia)`,
+      values: { ...source.values },
+    };
+    const nextRows = [...rows];
+    nextRows.splice(index + 1, 0, clone);
+    onChange(columns, nextRows);
+  }
+
   function removeRow(id: string) {
     onBeforeStructuralChange?.();
     onChange(
       columns,
       rows.filter((row) => row.id !== id),
     );
+  }
+
+  function confirmRemoval() {
+    if (!pendingRemoval) return;
+    if (pendingRemoval.kind === "column") removeColumn(pendingRemoval.id);
+    else removeRow(pendingRemoval.id);
+    setPendingRemoval(null);
   }
 
   function setCell(rowId: string, columnId: string, value: string) {
@@ -163,7 +212,17 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
                         variant="ghost"
                         size="icon"
                         className="h-9 w-9 shrink-0"
-                        onClick={() => removeColumn(column.id)}
+                        onClick={() => duplicateColumn(column.id)}
+                        aria-label={`Duplicar columna ${column.label}`}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 shrink-0"
+                        onClick={() => setPendingRemoval({ kind: "column", id: column.id, label: column.label })}
                         aria-label={`Eliminar columna ${column.label}`}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -190,7 +249,17 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
                           variant="ghost"
                           size="icon"
                           className="h-9 w-9 shrink-0"
-                          onClick={() => removeRow(row.id)}
+                          onClick={() => duplicateRow(row.id)}
+                          aria-label={`Duplicar fila ${row.label}`}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 shrink-0"
+                          onClick={() => setPendingRemoval({ kind: "row", id: row.id, label: row.label })}
                           aria-label={`Eliminar fila ${row.label}`}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -224,6 +293,14 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
           Agregar fila
         </Button>
       </div>
+      <ConfirmDialog
+        open={pendingRemoval !== null}
+        onOpenChange={(open) => !open && setPendingRemoval(null)}
+        title={pendingRemoval?.kind === "column" ? "Eliminar columna" : "Eliminar fila"}
+        description={`"${pendingRemoval?.label || ""}" se va a eliminar de la comparativa junto con todos sus valores cargados. Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        onConfirm={confirmRemoval}
+      />
     </div>
   );
 }

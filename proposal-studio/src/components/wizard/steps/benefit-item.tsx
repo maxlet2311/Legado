@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useEffect, useId, useRef } from "react";
 import { BookmarkPlus, Check, ChevronDown, ChevronRight, Copy, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,8 @@ interface BenefitItemProps {
   onDuplicate: () => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  /** Recién agregado/duplicado: hace scroll hasta el bloque y enfoca el título. Solo se lee en el mount. */
+  autoFocus?: boolean;
 }
 
 function BenefitItem({
@@ -51,8 +53,11 @@ function BenefitItem({
   onDuplicate,
   collapsed,
   onToggleCollapse,
+  autoFocus = false,
 }: BenefitItemProps) {
   const canSave = Boolean(item.title.trim() && item.description.trim() && item.icon.trim());
+  const containerRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
   const descriptionId = useId();
 
@@ -129,8 +134,16 @@ function BenefitItem({
 
   const ItemIcon = getBenefitIcon(item.icon);
 
+  useEffect(() => {
+    if (!autoFocus) return;
+    containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    titleInputRef.current?.focus();
+    // Solo al montar: es la única vez que "recién agregado" es cierto para este ítem.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <div className="rounded-md border border-outline-variant p-5" data-testid="benefit-item">
+    <div ref={containerRef} className="rounded-md border border-outline-variant p-5" data-testid="benefit-item">
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
@@ -208,6 +221,7 @@ function BenefitItem({
             </Label>
             <Input
               id={titleId}
+              ref={titleInputRef}
               value={item.title}
               onChange={(event) => updateField("title", event.target.value)}
             />
