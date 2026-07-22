@@ -3,32 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  FileText,
-  BookOpen,
-  Palette,
-  Plus,
-  LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Users,
-  ShieldCheck,
-} from "lucide-react";
+import { Plus, LogOut, PanelLeftClose, PanelLeftOpen, ShieldCheck } from "lucide-react";
 
 import { signOutAction } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { isPlatformOwner } from "@/lib/auth/authorization";
 import type { Profile } from "@/lib/auth/session";
-
-const navItems = [
-  { href: "/dashboard", label: "Panel de Control", icon: LayoutDashboard },
-  { href: "/proposals", label: "Propuestas", icon: FileText },
-  { href: "/clients", label: "Clientes", icon: Users },
-  { href: "/library", label: "Biblioteca", icon: BookOpen },
-  { href: "/branding", label: "Mi Marca", icon: Palette },
-];
+import { navItems } from "@/components/layout/nav-items";
 
 export interface SidebarProps {
   collapsed: boolean;
@@ -43,7 +25,7 @@ function Sidebar({ collapsed, onCollapsedChange, profile }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-outline-variant bg-surface-container-low transition-all duration-base ease-premium",
+        "fixed left-0 top-0 z-50 hidden h-screen flex-col border-r border-outline-variant bg-surface-container-low transition-all duration-base ease-premium md:flex",
         collapsed ? "w-20" : "w-70",
       )}
     >

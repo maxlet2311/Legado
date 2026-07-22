@@ -67,7 +67,13 @@ function WizardLayout({ outline, children, footer, preview }: WizardLayoutProps)
           >
             <div className="flex items-center justify-between border-b border-outline-variant px-4 py-3 lg:hidden">
               <span className="text-small font-semibold text-on-surface">Vista previa</span>
-              <Button type="button" variant="ghost" size="icon" onClick={() => setMobilePreviewOpen(false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobilePreviewOpen(false)}
+                aria-label="Cerrar vista previa"
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>

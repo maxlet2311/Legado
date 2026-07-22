@@ -156,7 +156,7 @@ export default async function DashboardPage() {
               <TableHeaderRow>
                 <TableHead>Documento</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Fecha</TableHead>
+                <TableHead className="hidden sm:table-cell">Fecha</TableHead>
                 <TableHead>Estado</TableHead>
               </TableHeaderRow>
             </TableHeader>
@@ -172,7 +172,7 @@ export default async function DashboardPage() {
                   <TableCell className="text-small text-on-surface">
                     {proposal.clients?.full_name ?? "—"}
                   </TableCell>
-                  <TableCell className="text-small text-on-surface-variant">
+                  <TableCell className="hidden text-small text-on-surface-variant sm:table-cell">
                     {formatDate(proposal.updated_at)}
                   </TableCell>
                   <TableCell>
