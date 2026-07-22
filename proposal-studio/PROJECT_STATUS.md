@@ -241,4 +241,81 @@ Riesgos pendientes (fuera de alcance, no bloqueantes):
   `20260716030919_drop_redundant_platform_owner_index`). No se tocaron para
   no reescribir historial: quedan como referencia versionada del cambio.
 
+## Sprint B — Estado
+
+Estado: ✅ Cerrado (2026-07-22)
+
+`commercial_status` (estado comercial separado del `status` técnico) y
+plantillas con creación atómica (`apply_template_to_new_proposal`, columna
+`is_active`) aplicados en remoto. ACL verificada (PUBLIC/anon sin EXECUTE,
+authenticated con EXECUTE, `SECURITY DEFINER` + `search_path` fijo +
+ownership). 33 tests pgTAP nuevos (`supabase/tests/`). QA funcional de los 18
+flujos del wizard (duplicar, colapsar, emitir versión, preview, PDF portrait/
+landscape, independencia de `commercial_status` respecto de la versión
+emitida) ejecutado realmente contra el stack local, con evidencia (PDFs
+descargados y validados, filas reales en `proposal_versions`). Dos riesgos
+quedaron abiertos y pasan a Fase 1 de RC1 (ver abajo): la migración
+local-only de `platform_owner` y una condición de carrera en
+`duplicateItem()`.
+
+## RC1 — Estado
+
+Estado: ✅ Cerrado (2026-07-22)
+
+Cierre de release candidate: sin funcionalidades nuevas, solo bugs, riesgos y
+deuda técnica. Ver `RC1_RELEASE_REPORT.md` para el detalle completo y
+`GO_LIVE_CHECKLIST.md` para el checklist de despliegue. Resumen:
+
+- **Riesgo 1 (migración local-only) resuelto de raíz**: el `RAISE EXCEPTION`
+  de `20260716010000_platform_owner.sql` cuando el perfil del owner real
+  todavía no existe pasó a `RAISE NOTICE` (no aborta la cadena de
+  migraciones en ningún entorno fresco). El platform owner local ahora se
+  completa en `supabase/seed.sql` con un UUID enteramente local
+  (`90000000-0000-0000-0000-000000000009`), sin ninguna referencia al UUID
+  real de producción. `supabase db reset` funciona sin intervención manual y
+  la migración `zzz_local_only_platform_owner_seed.sql` (que insertaba un
+  usuario fake bajo el UUID real de producción) se eliminó.
+- **Riesgo 2 (race condition de `duplicateItem()`) resuelto**: nuevo hook
+  `useBeforeUnloadGuard` bloquea el cierre/recarga de la pestaña mientras hay
+  un guardado en curso (integrado en `useAutosave` para todo guardado manual,
+  y directo en `step-alternatives.tsx`/`step-benefits.tsx` para el guardado
+  fire-and-forget de duplicar). Duplicar ahora también expone estado
+  guardando/guardado/error vía el indicador de autosave existente y hace
+  rollback del duplicado optimista si el guardado falla.
+- **Seguridad**: auditoría completa (RLS/IDOR, `search_path`, grants, XSS,
+  CSRF, SSRF, SQL/PostgREST injection, Zod, guards de rutas) — un hallazgo
+  real corregido: 10 RPCs que habían quedado fuera de la revocación de
+  `EXECUTE` a `anon` (no explotables hoy por el chequeo de `auth.uid()`, pero
+  cerrado por higiene de defensa en profundidad).
+- **Performance**: debounce + guardia de carrera agregados a la búsqueda de
+  Biblioteca (antes disparaba una Server Action por tecla sin protección
+  contra respuestas fuera de orden); `JSON.stringify` del preview en vivo del
+  wizard memoizado.
+- **Accesibilidad/UX**: confirmación agregada antes de borrar una fila o
+  columna completa de la tabla comparativa (antes se borraba directo, sin
+  aviso, con todos sus valores); chips de filtro de categoría en Biblioteca
+  ahora son botones nativos operables por teclado; `htmlFor`/`id` agregados a
+  6 labels sin asociación programática; `aria-label` agregado al botón de
+  cerrar preview en mobile.
+- **Mobile**: la tabla de `/proposals` cortaba la columna Estado sin ningún
+  aviso de scroll (mismo patrón que ya se había corregido en `/dashboard` en
+  Sprint B, pero no se replicó ahí) — corregido ocultando la columna Fecha
+  en mobile. El botón "Descargar" del historial de versiones quedaba cortado
+  a 375px — corregido permitiendo que la fila apile verticalmente en mobile.
+- **Limpieza**: 3 archivos de código muerto eliminados (`dropdown-menu.tsx`,
+  `tooltip.tsx`, `canonical-json.ts`, sin ningún consumidor real). Sin
+  `console.log`/TODO temporales encontrados — el resto de los `console.log`
+  del proyecto son logging estructurado intencional, no debug.
+- **Smoke test real** ejecutado de punta a punta (login, dashboard, crear
+  propuesta, duplicar, biblioteca, plantillas, `commercial_status`, emitir
+  versión, preview, PDF, download, logout, responsive) vía Playwright contra
+  el stack local — sin fabricar resultados.
+- `supabase db reset`, `supabase test db` (33/33), `tsc --noEmit`, `eslint`,
+  `npm test` (132/132) y `npm run build` (43 rutas) en verde.
+- No se comiteó, no se hizo push, no se hizo deploy. Se aplicaron las 3
+  migraciones pendientes de Sprint B al proyecto remoto real
+  (`btgopvaztnttahyjejav`) en la sesión previa a este RC1, con autorización
+  explícita — la migración de RC1 (revoke de `anon`) quedó **solo local**,
+  no aplicada a remoto, según lo pedido para este cierre.
+
 
