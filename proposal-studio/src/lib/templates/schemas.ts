@@ -15,4 +15,11 @@ const applyTemplateSchema = z.object({
   client_id: z.string().uuid().nullable(),
 });
 
-export { templateCategorySchema, saveAsTemplateSchema, applyTemplateSchema };
+const updateTemplateSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().trim().min(1, "El título es obligatorio.").max(200),
+  description: z.string().trim().max(1000).optional().default(""),
+  category: templateCategorySchema,
+});
+
+export { templateCategorySchema, saveAsTemplateSchema, applyTemplateSchema, updateTemplateSchema };

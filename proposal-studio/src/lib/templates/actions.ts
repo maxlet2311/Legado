@@ -6,7 +6,7 @@ import type { Json } from "@/lib/database/types";
 import { createClient } from "@/lib/database/server";
 import { requireActiveMembershipForAction } from "@/lib/memberships/action-guard";
 import { mapSupabaseError, logServerError } from "@/lib/utils/errors";
-import { saveAsTemplateSchema, applyTemplateSchema } from "@/lib/templates/schemas";
+import { saveAsTemplateSchema, applyTemplateSchema, updateTemplateSchema } from "@/lib/templates/schemas";
 import {
   sanitizeProposalForTemplate,
   fieldsRequiringReview,
@@ -28,6 +28,7 @@ interface TemplateSummary {
   category: string;
   proposal_type: string;
   is_system: boolean;
+  is_active: boolean;
   updated_at: string;
   template_json: TemplateJson;
 }
@@ -113,16 +114,30 @@ async function saveProposalAsTemplateAction(input: unknown): Promise<ActionResul
   return { data: { id: data.id } };
 }
 
-/** Lista plantillas de sistema + privadas del asesor. */
-async function listTemplatesAction(): Promise<ActionResult<TemplateSummary[]>> {
+type TemplateActiveFilter = "active" | "inactive" | "all";
+
+/**
+ * Lista plantillas de sistema + privadas del asesor, filtrando por estado
+ * server-side (nunca trae "todas" para filtrar después en el cliente):
+ * - "active" (default): solo activas -- vista normal de uso diario.
+ * - "inactive": solo las que el asesor desactivó -- para reactivarlas.
+ * - "all": ambas, para el selector "Todas".
+ */
+async function listTemplatesAction(filter: TemplateActiveFilter = "active"): Promise<ActionResult<TemplateSummary[]>> {
   const guard = await requireActiveMembershipForAction({ surface: "templates.list" });
   if (!guard.ok) return { error: guard.error };
 
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("proposal_templates")
-    .select("id, title, description, category, proposal_type, is_system, updated_at, template_json")
+    .select("id, title, description, category, proposal_type, is_system, is_active, updated_at, template_json")
     .order("updated_at", { ascending: false });
+
+  if (filter !== "all") {
+    query = query.eq("is_active", filter === "active");
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     logServerError("templates.list", error);
@@ -132,11 +147,111 @@ async function listTemplatesAction(): Promise<ActionResult<TemplateSummary[]>> {
   return { data: (data ?? []) as unknown as TemplateSummary[] };
 }
 
+const updateTemplateSelect = "id, title, description, category, proposal_type, is_system, is_active, updated_at, template_json";
+
+/** Edita título/descripción/categoría de una plantilla propia (RLS bloquea tocar plantillas de sistema o ajenas). */
+async function updateTemplateAction(input: unknown): Promise<ActionResult<TemplateSummary>> {
+  const guard = await requireActiveMembershipForAction({ surface: "templates.update" });
+  if (!guard.ok) return { error: guard.error };
+  const { user } = guard.context;
+
+  const parsed = updateTemplateSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("proposal_templates")
+    .update({ title: parsed.data.title, description: parsed.data.description || null, category: parsed.data.category })
+    .eq("id", parsed.data.id)
+    .eq("user_id", user.id)
+    .eq("is_system", false)
+    .select(updateTemplateSelect)
+    .maybeSingle();
+
+  if (error || !data) {
+    return { error: error ? mapSupabaseError(error) : "Plantilla no encontrada o sin acceso." };
+  }
+
+  revalidatePath("/library");
+  return { data: data as unknown as TemplateSummary };
+}
+
+/** Activa/desactiva una plantilla propia. Una plantilla de sistema nunca puede desactivarse (RLS lo bloquea). */
+async function setTemplateActiveAction(id: string, isActive: boolean): Promise<ActionResult<TemplateSummary>> {
+  const guard = await requireActiveMembershipForAction({ surface: "templates.set_active" });
+  if (!guard.ok) return { error: guard.error };
+  const { user } = guard.context;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("proposal_templates")
+    .update({ is_active: isActive })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .eq("is_system", false)
+    .select(updateTemplateSelect)
+    .maybeSingle();
+
+  if (error || !data) {
+    return { error: error ? mapSupabaseError(error) : "Plantilla no encontrada o sin acceso." };
+  }
+
+  revalidatePath("/library");
+  return { data: data as unknown as TemplateSummary };
+}
+
 /**
- * Crea un draft nuevo a partir de una plantilla, reusando los mismos RPCs de
- * upsert que ya usa el wizard (mismo patrón que `duplicateProposalAction`).
- * Nunca copia cliente/documentos/datos personales: la plantilla ya llega
- * sanitizada desde `saveProposalAsTemplateAction`.
+ * Duplica una plantilla (propia o de sistema) como una plantilla propia nueva
+ * y activa. Nunca modifica el original -- mismo criterio que duplicar una
+ * propuesta o un bloque del wizard.
+ */
+async function duplicateTemplateAction(id: string): Promise<ActionResult<TemplateSummary>> {
+  const guard = await requireActiveMembershipForAction({ surface: "templates.duplicate" });
+  if (!guard.ok) return { error: guard.error };
+  const { user } = guard.context;
+
+  const supabase = await createClient();
+  const { data: source, error: sourceError } = await supabase
+    .from("proposal_templates")
+    .select("title, description, category, proposal_type, template_json")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (sourceError || !source) {
+    return { error: sourceError ? mapSupabaseError(sourceError) : "Plantilla no encontrada o sin acceso." };
+  }
+
+  const { data, error } = await supabase
+    .from("proposal_templates")
+    .insert({
+      title: `${source.title} (copia)`,
+      description: source.description,
+      category: source.category,
+      proposal_type: source.proposal_type,
+      template_json: source.template_json,
+      is_system: false,
+      is_default: false,
+      is_active: true,
+      user_id: user.id,
+    })
+    .select(updateTemplateSelect)
+    .single();
+
+  if (error || !data) {
+    return { error: error ? mapSupabaseError(error) : "No pudimos duplicar la plantilla." };
+  }
+
+  revalidatePath("/library");
+  return { data: data as unknown as TemplateSummary };
+}
+
+/**
+ * Crea un draft nuevo a partir de una plantilla vía `apply_template_to_new_proposal`,
+ * un único RPC transaccional (Postgres): si algo falla a mitad de camino no
+ * queda ninguna propuesta a medio completar. Nunca copia cliente/documentos/
+ * datos personales: la plantilla ya llega sanitizada desde `saveProposalAsTemplateAction`.
  */
 async function applyTemplateToNewProposalAction(
   input: unknown,
@@ -149,10 +264,17 @@ async function applyTemplateToNewProposalAction(
     return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
   }
 
+  if (!parsed.data.client_id) {
+    return { error: "Seleccioná un cliente para crear la propuesta." };
+  }
+
   const supabase = await createClient();
+
+  // Solo lectura, para calcular `fieldsRequiringReview` en JS reusando
+  // `sanitize.ts` -- la creación real ocurre entera dentro del RPC de abajo.
   const { data: template, error: templateError } = await supabase
     .from("proposal_templates")
-    .select("title, proposal_type, template_json")
+    .select("template_json")
     .eq("id", parsed.data.template_id)
     .maybeSingle();
 
@@ -162,108 +284,27 @@ async function applyTemplateToNewProposalAction(
 
   const content = template.template_json as unknown as TemplateJson;
 
-  if (!parsed.data.client_id) {
-    return { error: "Seleccioná un cliente para crear la propuesta." };
-  }
-
-  const { data: draft, error: draftError } = await supabase
-    .rpc("create_draft_proposal", {
+  const { data: created, error: createError } = await supabase
+    .rpc("apply_template_to_new_proposal", {
+      p_template_id: parsed.data.template_id,
       p_client_id: parsed.data.client_id,
-      p_title: template.title,
-      p_proposal_type: content.proposal_type,
-      p_currency: content.currency,
-      p_primary_objective: content.primary_objective,
     })
     .single();
 
-  if (draftError || !draft) {
-    return { error: draftError ? mapSupabaseError(draftError) : "No pudimos crear la propuesta." };
+  if (createError || !created) {
+    return { error: createError ? mapSupabaseError(createError) : "No pudimos crear la propuesta." };
   }
-
-  const newProposalId = draft.id;
-
-  if (content.product) {
-    await supabase.rpc("update_proposal_details", {
-      p_id: newProposalId,
-      p_client_id: parsed.data.client_id,
-      p_title: template.title,
-      p_proposal_type: content.proposal_type,
-      p_primary_objective: content.primary_objective,
-      p_product: content.product,
-      p_currency: content.currency,
-      p_internal_notes: "",
-      p_expected_revision: 0,
-    });
-  }
-
-  const tasks: PromiseLike<unknown>[] = [];
-
-  if (content.narrative) {
-    tasks.push(
-      supabase.rpc("upsert_proposal_narrative", {
-        p_proposal_id: newProposalId,
-        p_current_situation: content.narrative.current_situation ?? "",
-        p_detected_needs: content.narrative.detected_needs ?? "",
-        p_objectives: content.narrative.objectives ?? "",
-        p_detected_risks: content.narrative.detected_risks ?? "",
-        p_opportunities: content.narrative.opportunities ?? "",
-        p_recommended_strategy: content.narrative.recommended_strategy ?? "",
-        p_expected_revision: null as unknown as number,
-      }),
-    );
-  }
-
-  tasks.push(
-    ...content.alternatives.map((alternative) =>
-      supabase.rpc("upsert_proposal_alternative", {
-        p_id: null as unknown as string,
-        p_proposal_id: newProposalId,
-        p_title: alternative.title,
-        p_description: alternative.description ?? "",
-        p_category: alternative.category,
-        p_insurance_company: alternative.insurance_company,
-        p_product_name: alternative.product_name,
-        p_currency: alternative.currency,
-        p_monthly_premium: alternative.monthly_premium as number,
-        p_financial_details: {
-          advantages: alternative.financial_details?.advantages ?? [],
-          disadvantages: alternative.financial_details?.disadvantages ?? [],
-          notes: alternative.financial_details?.notes ?? "",
-        },
-        p_display_order: alternative.display_order,
-        p_expected_revision: null as unknown as number,
-      }),
-    ),
-    ...content.benefits.map((benefit) =>
-      supabase.rpc("upsert_proposal_benefit", {
-        p_id: null as unknown as string,
-        p_proposal_id: newProposalId,
-        p_title: benefit.title,
-        p_description: benefit.description,
-        p_icon: benefit.icon,
-        p_category: benefit.category,
-        p_display_order: benefit.display_order,
-        p_expected_revision: null as unknown as number,
-      }),
-    ),
-  );
-
-  if (content.comparison && content.comparison.columns.length > 0) {
-    tasks.push(
-      supabase.rpc("upsert_proposal_comparison", {
-        p_proposal_id: newProposalId,
-        p_columns: content.comparison.columns as unknown as Json,
-        p_rows: content.comparison.rows as unknown as Json,
-        p_expected_revision: null as unknown as number,
-      }),
-    );
-  }
-
-  await Promise.all(tasks);
 
   revalidatePath("/dashboard");
-  return { data: { id: newProposalId, fieldsRequiringReview: fieldsRequiringReview(content) } };
+  return { data: { id: created.id, fieldsRequiringReview: fieldsRequiringReview(content) } };
 }
 
-export { saveProposalAsTemplateAction, listTemplatesAction, applyTemplateToNewProposalAction };
-export type { TemplateSummary };
+export {
+  saveProposalAsTemplateAction,
+  listTemplatesAction,
+  applyTemplateToNewProposalAction,
+  updateTemplateAction,
+  setTemplateActiveAction,
+  duplicateTemplateAction,
+};
+export type { TemplateSummary, TemplateActiveFilter };
