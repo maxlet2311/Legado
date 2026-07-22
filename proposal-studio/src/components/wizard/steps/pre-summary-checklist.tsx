@@ -1,40 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { AlertTriangle, CheckCircle2, Sparkles } from "lucide-react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Spinner } from "@/components/ui/spinner";
-import { runSemanticChecksAction, type SemanticFinding } from "@/lib/ai/semantic-review-action";
 import type { Finding } from "@/lib/wizard/pre-summary-checks";
 
 interface PreSummaryChecklistProps {
-  proposalId: string;
   deterministicFindings: Finding[];
   onJumpToStep: (step: number) => void;
 }
 
-/** Lista accionable "Antes de emitir": reglas determinísticas + revisión semántica opcional con IA. */
-function PreSummaryChecklist({ proposalId, deterministicFindings, onJumpToStep }: PreSummaryChecklistProps) {
-  const [semanticFindings, setSemanticFindings] = useState<SemanticFinding[] | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSemanticReview() {
-    setLoading(true);
-    setError(null);
-    const result = await runSemanticChecksAction(proposalId);
-    setLoading(false);
-    if (result.error) {
-      setError(result.error);
-      return;
-    }
-    setSemanticFindings(result.data ?? []);
-  }
-
-  const totalFindings = deterministicFindings.length + (semanticFindings?.length ?? 0);
+/** Lista accionable "Antes de emitir": reglas determinísticas del checklist. */
+function PreSummaryChecklist({ deterministicFindings, onJumpToStep }: PreSummaryChecklistProps) {
+  const totalFindings = deterministicFindings.length;
   const blockingCount = deterministicFindings.filter((f) => f.severity === "error").length;
   const hasAnyFindings = totalFindings > 0;
 
@@ -49,12 +28,7 @@ function PreSummaryChecklist({ proposalId, deterministicFindings, onJumpToStep }
             </Badge>
           ) : null}
         </div>
-        <Button type="button" variant="ghost" size="sm" onClick={handleSemanticReview} disabled={loading}>
-          {loading ? <Spinner className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-          Revisar con IA
-        </Button>
       </div>
-      {error ? <p className="mt-2 text-caption text-error">{error}</p> : null}
 
       {!hasAnyFindings ? (
         <p className="mt-4 flex items-center gap-2 text-small text-success">
@@ -78,15 +52,6 @@ function PreSummaryChecklist({ proposalId, deterministicFindings, onJumpToStep }
                   {finding.severity === "error" ? "Bloquea" : "Advertencia"}
                 </Badge>
               </button>
-            </li>
-          ))}
-          {(semanticFindings ?? []).map((finding, index) => (
-            <li key={`s-${index}`} className="flex items-start gap-2 rounded-md border border-outline-variant p-3">
-              <AlertTriangle
-                className={`mt-0.5 h-4 w-4 shrink-0 ${finding.severity === "error" ? "text-error" : "text-warning"}`}
-              />
-              <span className="flex-1 text-small text-on-surface">{finding.message}</span>
-              <Badge variant={finding.severity === "error" ? "error" : "warning"}>IA</Badge>
             </li>
           ))}
         </ul>

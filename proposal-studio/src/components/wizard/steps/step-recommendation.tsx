@@ -5,7 +5,6 @@ import { useState } from "react";
 import { SectionCard } from "@/components/wizard/section-card";
 import { RichTextarea } from "@/components/wizard/rich-textarea";
 import { NarrativeLibraryActions } from "@/components/wizard/steps/narrative-library-actions";
-import { NarrativeDraftButton } from "@/components/wizard/steps/narrative-draft-button";
 import { useNarrativeAutosave } from "@/hooks/use-narrative-autosave";
 import { useWizardStore } from "@/stores/wizard-store";
 
@@ -47,21 +46,6 @@ function StepRecommendation() {
         value={data.narrative.recommended_strategy}
         onChange={(value) => setNarrative({ recommended_strategy: value })}
         hint="Este texto es el corazón de la propuesta: explicá por qué esta es la mejor estrategia para el cliente."
-      />
-      <NarrativeDraftButton
-        proposalId={data.proposalId}
-        field="recommended_strategy"
-        currentText={data.narrative.recommended_strategy}
-        onApply={(text, mode) =>
-          setNarrative({
-            recommended_strategy:
-              mode === "replace"
-                ? text
-                : data.narrative.recommended_strategy
-                  ? `${data.narrative.recommended_strategy}\n\n${text}`
-                  : text,
-          })
-        }
       />
     </SectionCard>
   );

@@ -5,7 +5,6 @@ import { useState } from "react";
 import { SectionCard } from "@/components/wizard/section-card";
 import { RichTextarea } from "@/components/wizard/rich-textarea";
 import { NarrativeLibraryActions } from "@/components/wizard/steps/narrative-library-actions";
-import { NarrativeDraftButton } from "@/components/wizard/steps/narrative-draft-button";
 import { useNarrativeAutosave } from "@/hooks/use-narrative-autosave";
 import { useWizardStore } from "@/stores/wizard-store";
 
@@ -45,21 +44,6 @@ function StepDiagnosis() {
         required
         value={data.narrative.current_situation}
         onChange={(value) => setNarrative({ current_situation: value })}
-      />
-      <NarrativeDraftButton
-        proposalId={data.proposalId}
-        field="current_situation"
-        currentText={data.narrative.current_situation}
-        onApply={(text, mode) =>
-          setNarrative({
-            current_situation:
-              mode === "replace"
-                ? text
-                : data.narrative.current_situation
-                  ? `${data.narrative.current_situation}\n\n${text}`
-                  : text,
-          })
-        }
       />
       <RichTextarea
         label="Necesidades detectadas"
