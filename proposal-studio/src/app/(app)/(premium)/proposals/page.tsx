@@ -170,7 +170,9 @@ export default async function ProposalsPage({
                 {proposals.map((proposal) => (
                   <TableRow key={proposal.id}>
                     <TableCell>
-                      <Link href={`/proposal/${proposal.id}`} className="flex items-center gap-3">
+                      {/* Sin prefetch: son N links dinámicos en viewport a la vez, y cada uno
+                          dispara auth + fetch de servidor en /proposal/[id] si se prefetchean todos. */}
+                      <Link href={`/proposal/${proposal.id}`} prefetch={false} className="flex items-center gap-3">
                         <FileText className="h-4 w-4 text-primary" />
                         <span className="text-body font-medium text-on-surface">{proposal.title}</span>
                       </Link>
