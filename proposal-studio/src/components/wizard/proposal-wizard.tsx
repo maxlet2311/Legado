@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { WizardLayout } from "@/components/wizard/wizard-layout";
 import { WizardFooter } from "@/components/wizard/wizard-footer";
 import { DuplicationReviewBanner } from "@/components/wizard/duplication-review-banner";
+import { ReadOnlyProposalBanner } from "@/components/wizard/read-only-proposal-banner";
 import { LivePreviewPanel } from "@/components/wizard/live-preview-panel";
 import { WizardOutline, type WizardOutlineStep } from "@/components/wizard/wizard-outline";
 import { StepClient } from "@/components/wizard/steps/step-client";
@@ -119,6 +120,7 @@ function ProposalWizard({ initialData, availableClients }: ProposalWizardProps) 
 
   const StepComponent = STEP_COMPONENTS[currentStep] ?? STEP_COMPONENTS[0]!;
   const isLastStep = currentStep === STEPS.length - 1;
+  const isReadOnly = data.meta.status === "completed";
   const completion = computeCompletion(data);
   const outlineSteps: WizardOutlineStep[] = STEPS.map((step, index) => ({
     label: step.label,
@@ -126,7 +128,7 @@ function ProposalWizard({ initialData, availableClients }: ProposalWizardProps) 
   }));
 
   function handleNext() {
-    stepMeta.saveNow?.();
+    if (!isReadOnly) stepMeta.saveNow?.();
     if (isLastStep) {
       router.push(`/proposal/${data!.proposalId}`);
       return;
@@ -136,13 +138,13 @@ function ProposalWizard({ initialData, availableClients }: ProposalWizardProps) 
   }
 
   function handlePrevious() {
-    stepMeta.saveNow?.();
+    if (!isReadOnly) stepMeta.saveNow?.();
     previousStep();
     updateStepInUrl(Math.max(0, currentStep - 1));
   }
 
   function handleJump(step: number) {
-    stepMeta.saveNow?.();
+    if (!isReadOnly) stepMeta.saveNow?.();
     setStep(step);
     updateStepInUrl(step);
   }
@@ -155,18 +157,19 @@ function ProposalWizard({ initialData, availableClients }: ProposalWizardProps) 
           onPrevious={currentStep > 0 ? handlePrevious : undefined}
           onNext={handleNext}
           nextLabel={isLastStep ? "Ir a la propuesta" : "Siguiente"}
-          nextDisabled={!stepMeta.isValid}
-          autosaveStatus={stepMeta.autosaveStatus}
-          autosaveError={stepMeta.autosaveError}
-          onResolveKeepMine={stepMeta.resolveKeepMine}
-          onResolveReload={stepMeta.resolveReload}
-          onSaveNow={stepMeta.saveNow}
+          nextDisabled={!isReadOnly && !stepMeta.isValid}
+          autosaveStatus={isReadOnly ? "idle" : stepMeta.autosaveStatus}
+          autosaveError={isReadOnly ? undefined : stepMeta.autosaveError}
+          onResolveKeepMine={isReadOnly ? undefined : stepMeta.resolveKeepMine}
+          onResolveReload={isReadOnly ? undefined : stepMeta.resolveReload}
+          onSaveNow={isReadOnly ? undefined : stepMeta.saveNow}
         />
       }
       preview={<LivePreviewPanel />}
     >
+      <ReadOnlyProposalBanner />
       <DuplicationReviewBanner />
-      <StepComponent onJumpToStep={setStep} availableClients={availableClients} />
+      <StepComponent onJumpToStep={setStep} availableClients={availableClients} isReadOnly={isReadOnly} />
     </WizardLayout>
   );
 }

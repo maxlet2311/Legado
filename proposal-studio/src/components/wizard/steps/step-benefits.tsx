@@ -15,7 +15,7 @@ import { deleteBenefitAction, reorderBenefitsAction, saveBenefitAction } from "@
 import { buildBenefitFromLibraryContent } from "@/lib/library/build-from-content";
 import { createSaveRegistry } from "@/lib/wizard/save-registry";
 import { useWizardStore } from "@/stores/wizard-store";
-import type { WizardBenefit } from "@/types/wizard";
+import type { WizardBenefit, WizardStepProps } from "@/types/wizard";
 import type { LibraryBenefitContent, LibraryItem } from "@/types/library";
 
 function getItemKey(item: WizardBenefit): string {
@@ -35,7 +35,7 @@ function emptyBenefit(order: number): WizardBenefit {
   };
 }
 
-function StepBenefits() {
+function StepBenefits({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
   const data = useWizardStore((state) => state.data);
   const setBenefits = useWizardStore((state) => state.setBenefits);
   const setStepMeta = useWizardStore((state) => state.setStepMeta);
@@ -81,6 +81,7 @@ function StepBenefits() {
   }
 
   function addBenefit() {
+    if (isReadOnly) return;
     pushHistorySnapshot();
     const next = emptyBenefit(benefits.length);
     setBenefits([...benefits, next]);
@@ -88,6 +89,7 @@ function StepBenefits() {
   }
 
   function insertFromLibrary(id: string, item: LibraryItem) {
+    if (isReadOnly) return;
     const content = item.content_json as LibraryBenefitContent;
     pushHistorySnapshot();
     const next = buildBenefitFromLibraryContent(id, item.title, content, benefits.length);
@@ -99,6 +101,7 @@ function StepBenefits() {
   // si quedara sin `id` hasta el próximo click en "Guardar", un reorder
   // inmediato posterior no podría persistirla y el preview quedaría desincronizado.
   async function duplicateItem(index: number) {
+    if (isReadOnly) return;
     pushHistorySnapshot();
     const source = benefits[index];
     if (!source) return;
@@ -159,18 +162,28 @@ function StepBenefits() {
   }
 
   async function confirmRemove() {
+    if (isReadOnly) return;
     const index = pendingRemoveIndex;
     if (index === null) return;
     pushHistorySnapshot();
     const item = benefits[index];
+    const previous = benefits;
     setBenefits(benefits.filter((_, i) => i !== index));
     setPendingRemoveIndex(null);
     if (item?.id) {
-      await deleteBenefitAction(proposalId, item.id);
+      const result = await deleteBenefitAction(proposalId, item.id, item.revision);
+      if (result.error) {
+        // Rollback: el delete optimista nunca se persistió (conflicto de
+        // revisión, propuesta finalizada, etc.), no debe quedar en pantalla
+        // como si lo hubiera hecho.
+        setBenefits(previous);
+        setStepMeta({ autosaveStatus: "error", autosaveError: result.error });
+      }
     }
   }
 
   async function reorder(next: WizardBenefit[]) {
+    if (isReadOnly) return;
     pushHistorySnapshot();
     const withOrder = next.map((item, index) => ({ ...item, display_order: index }));
     setBenefits(withOrder);
@@ -198,11 +211,11 @@ function StepBenefits() {
               {collapsedIds.size > 0 ? "Expandir todos" : "Colapsar todos"}
             </Button>
           ) : null}
-          <Button type="button" variant="ghost" size="sm" onClick={() => setLibraryOpen(true)}>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setLibraryOpen(true)} disabled={isReadOnly}>
             <BookOpen className="h-4 w-4" />
             Insertar desde Biblioteca
           </Button>
-          <Button type="button" variant="secondary" size="sm" onClick={addBenefit}>
+          <Button type="button" variant="secondary" size="sm" onClick={addBenefit} disabled={isReadOnly}>
             <PlusCircle className="h-4 w-4" />
             Agregar beneficio
           </Button>
@@ -231,7 +244,7 @@ function StepBenefits() {
               item={item}
               onChange={(next) => updateItem(index, next)}
               onSaved={(id, revision) => markSaved(index, id, revision)}
-              onRemove={() => setPendingRemoveIndex(index)}
+              onRemove={() => !isReadOnly && setPendingRemoveIndex(index)}
               onDuplicate={() => duplicateItem(index)}
               collapsed={collapsedIds.has(key)}
               onToggleCollapse={() => toggleCollapsed(key)}

@@ -129,4 +129,6 @@ export interface WizardData {
 export interface WizardStepProps {
   onJumpToStep: (step: number) => void;
   availableClients: WizardClient[];
+  /** true cuando `meta.status === "completed"`: la propuesta es inmutable (C2), los pasos deben renderizarse de solo lectura. */
+  isReadOnly: boolean;
 }

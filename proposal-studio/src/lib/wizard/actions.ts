@@ -201,16 +201,25 @@ async function saveAlternativeAction(
   return { data: { id: data.id, revision: data.revision } };
 }
 
-async function deleteAlternativeAction(proposalId: string, id: string): Promise<ActionResult> {
+async function deleteAlternativeAction(
+  proposalId: string,
+  id: string,
+  expectedRevision: number | null,
+): Promise<ActionResult> {
   const guard = await requireActiveMembershipForAction({ surface: "wizard.delete_alternative" });
   if (!guard.ok) return { error: guard.error };
   const supabase = await createClient();
   const { error } = await supabase.rpc("delete_proposal_alternative", {
     p_id: id,
     p_proposal_id: proposalId,
+    p_expected_revision: expectedRevision as number,
   });
 
   if (error) {
+    const { isConflict, currentRevision } = detectConflict(error);
+    if (isConflict) {
+      return { conflict: true, currentRevision, error: "Se modificó en otra sesión." };
+    }
     return { error: mapSupabaseError(error) };
   }
   return {};
@@ -274,16 +283,25 @@ async function saveBenefitAction(
   return { data: { id: data.id, revision: data.revision } };
 }
 
-async function deleteBenefitAction(proposalId: string, id: string): Promise<ActionResult> {
+async function deleteBenefitAction(
+  proposalId: string,
+  id: string,
+  expectedRevision: number | null,
+): Promise<ActionResult> {
   const guard = await requireActiveMembershipForAction({ surface: "wizard.delete_benefit" });
   if (!guard.ok) return { error: guard.error };
   const supabase = await createClient();
   const { error } = await supabase.rpc("delete_proposal_benefit", {
     p_id: id,
     p_proposal_id: proposalId,
+    p_expected_revision: expectedRevision as number,
   });
 
   if (error) {
+    const { isConflict, currentRevision } = detectConflict(error);
+    if (isConflict) {
+      return { conflict: true, currentRevision, error: "Se modificó en otra sesión." };
+    }
     return { error: mapSupabaseError(error) };
   }
   return {};

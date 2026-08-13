@@ -15,7 +15,7 @@ import { deleteAlternativeAction, reorderAlternativesAction, saveAlternativeActi
 import { buildAlternativeFromLibraryContent } from "@/lib/library/build-from-content";
 import { createSaveRegistry } from "@/lib/wizard/save-registry";
 import { useWizardStore } from "@/stores/wizard-store";
-import type { WizardAlternative } from "@/types/wizard";
+import type { WizardAlternative, WizardStepProps } from "@/types/wizard";
 import type { LibraryAlternativeContent, LibraryItem } from "@/types/library";
 
 function getItemKey(item: WizardAlternative): string {
@@ -39,7 +39,7 @@ function emptyAlternative(order: number): WizardAlternative {
   };
 }
 
-function StepAlternatives() {
+function StepAlternatives({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
   const data = useWizardStore((state) => state.data);
   const setAlternatives = useWizardStore((state) => state.setAlternatives);
   const setStepMeta = useWizardStore((state) => state.setStepMeta);
@@ -91,6 +91,7 @@ function StepAlternatives() {
   }
 
   function addAlternative() {
+    if (isReadOnly) return;
     pushHistorySnapshot();
     const next = emptyAlternative(alternatives.length);
     setAlternatives([...alternatives, next]);
@@ -98,6 +99,7 @@ function StepAlternatives() {
   }
 
   function insertFromLibrary(id: string, item: LibraryItem) {
+    if (isReadOnly) return;
     const content = item.content_json as LibraryAlternativeContent;
     pushHistorySnapshot();
     const next = buildAlternativeFromLibraryContent(id, item.title, content, alternatives.length);
@@ -111,6 +113,7 @@ function StepAlternatives() {
   // (reorderAlternativesAction ignora ítems sin id) y el preview -- que lee
   // siempre del servidor -- se vería desincronizado.
   async function duplicateItem(index: number) {
+    if (isReadOnly) return;
     pushHistorySnapshot();
     const source = alternatives[index];
     if (!source) return;
@@ -182,18 +185,28 @@ function StepAlternatives() {
   }
 
   async function confirmRemove() {
+    if (isReadOnly) return;
     const index = pendingRemoveIndex;
     if (index === null) return;
     pushHistorySnapshot();
     const item = alternatives[index];
+    const previous = alternatives;
     setAlternatives(alternatives.filter((_, i) => i !== index));
     setPendingRemoveIndex(null);
     if (item?.id) {
-      await deleteAlternativeAction(proposalId, item.id);
+      const result = await deleteAlternativeAction(proposalId, item.id, item.revision);
+      if (result.error) {
+        // Rollback: el delete optimista nunca se persistió (conflicto de
+        // revisión, propuesta finalizada, etc.), no debe quedar en pantalla
+        // como si lo hubiera hecho.
+        setAlternatives(previous);
+        setStepMeta({ autosaveStatus: "error", autosaveError: result.error });
+      }
     }
   }
 
   async function reorder(next: WizardAlternative[]) {
+    if (isReadOnly) return;
     pushHistorySnapshot();
     const withOrder = next.map((item, index) => ({ ...item, display_order: index }));
     setAlternatives(withOrder);
@@ -223,11 +236,11 @@ function StepAlternatives() {
               {collapsedIds.size > 0 ? "Expandir todas" : "Colapsar todas"}
             </Button>
           ) : null}
-          <Button type="button" variant="ghost" size="sm" onClick={() => setLibraryOpen(true)}>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setLibraryOpen(true)} disabled={isReadOnly}>
             <BookOpen className="h-4 w-4" />
             Insertar desde Biblioteca
           </Button>
-          <Button type="button" variant="secondary" size="sm" onClick={addAlternative}>
+          <Button type="button" variant="secondary" size="sm" onClick={addAlternative} disabled={isReadOnly}>
             <PlusCircle className="h-4 w-4" />
             Agregar alternativa
           </Button>
@@ -256,7 +269,7 @@ function StepAlternatives() {
               item={item}
               onChange={(next) => updateItem(index, next)}
               onSaved={(id, revision) => markSaved(index, id, revision)}
-              onRemove={() => setPendingRemoveIndex(index)}
+              onRemove={() => !isReadOnly && setPendingRemoveIndex(index)}
               onDuplicate={() => duplicateItem(index)}
               collapsed={collapsedIds.has(key)}
               onToggleCollapse={() => toggleCollapsed(key)}
