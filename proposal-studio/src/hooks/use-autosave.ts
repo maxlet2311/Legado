@@ -72,9 +72,20 @@ function useAutosave<T>(
   const sequenceRef = useRef(0);
   const latestAppliedRef = useRef(0);
   const conflictedRef = useRef(false);
+  /**
+   * Payload serializado del guardado en vuelo, si hay uno. Evita que el
+   * debounce automático y un click manual en "Guardar" (u otro disparo del
+   * debounce) manden DOS requests concurrentes para el mismo contenido: el
+   * segundo terminaba compitiendo por la misma `revision` esperada y
+   * disparando un conflicto espurio, o simplemente dejaba el indicador
+   * trabado en "Guardando" más de lo esperado. Un guardado nuevo solo tiene
+   * sentido si el contenido cambió desde que se disparó el que está en vuelo.
+   */
+  const inFlightRef = useRef<string | null>(null);
 
   const runSave = useCallback(async (nextValue: T, serialized: string) => {
     const requestId = ++sequenceRef.current;
+    inFlightRef.current = serialized;
     setStatus("saving");
     try {
       const result = await saveRef.current(nextValue);
@@ -108,6 +119,8 @@ function useAutosave<T>(
       latestAppliedRef.current = requestId;
       setError("No pudimos guardar los cambios.");
       setStatus("error");
+    } finally {
+      if (inFlightRef.current === serialized) inFlightRef.current = null;
     }
   }, []);
 
@@ -115,7 +128,7 @@ function useAutosave<T>(
     if (!enabled || manual || conflictedRef.current) return;
 
     const serialized = JSON.stringify(value);
-    if (serialized === lastSavedRef.current) return;
+    if (serialized === lastSavedRef.current || serialized === inFlightRef.current) return;
 
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
@@ -131,7 +144,7 @@ function useAutosave<T>(
     if (conflictedRef.current) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     const serialized = JSON.stringify(value);
-    if (serialized === lastSavedRef.current) return;
+    if (serialized === lastSavedRef.current || serialized === inFlightRef.current) return;
     void runSave(value, serialized);
   }, [value, runSave]);
 

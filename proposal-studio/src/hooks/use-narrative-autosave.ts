@@ -60,7 +60,9 @@ function useNarrativeAutosave(isValid: boolean) {
       }
       return { error: result.error };
     },
-    { manual: true },
+    // Debounced (no manual): guarda solo tras ~2s de pausa, nunca por tecla.
+    // `saveNow` (flush-on-navigate, ver stepMeta más abajo) sigue cubriendo
+    // el caso de navegar antes de que venza el debounce.
   );
 
   useEffect(() => {

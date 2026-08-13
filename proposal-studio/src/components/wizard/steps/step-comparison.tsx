@@ -49,7 +49,7 @@ function StepComparison() {
       }
       return { error: result.error };
     },
-    { manual: true },
+    // Debounced (no manual): ver mismo comentario en use-proposal-details-autosave.ts.
   );
 
   function resolveKeepMine() {

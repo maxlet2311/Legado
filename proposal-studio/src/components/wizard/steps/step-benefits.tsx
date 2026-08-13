@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BookOpen, PlusCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { SortableList } from "@/components/wizard/sortable-list";
 import { BenefitItem } from "@/components/wizard/steps/benefit-item";
 import { deleteBenefitAction, reorderBenefitsAction, saveBenefitAction } from "@/lib/wizard/actions";
 import { buildBenefitFromLibraryContent } from "@/lib/library/build-from-content";
+import { createSaveRegistry } from "@/lib/wizard/save-registry";
 import { useWizardStore } from "@/stores/wizard-store";
 import type { WizardBenefit } from "@/types/wizard";
 import type { LibraryBenefitContent, LibraryItem } from "@/types/library";
@@ -48,9 +49,20 @@ function StepBenefits() {
   const [lastAddedKey, setLastAddedKey] = useState<string | null>(null);
   const [duplicating, setDuplicating] = useState(false);
 
+  // Ver mismo mecanismo y justificación en step-alternatives.tsx: cada
+  // BenefitItem se registra con su `saveNow` vigente para que navegar de
+  // paso haga flush de ediciones pendientes en vez de perderlas.
+  const registryRef = useRef(createSaveRegistry());
+  const registerSave = useCallback((key: string, saveNow: (() => void) | null) => {
+    registryRef.current.register(key, saveNow);
+  }, []);
+  const flushAll = useCallback(() => {
+    registryRef.current.flushAll();
+  }, []);
+
   useEffect(() => {
-    setStepMeta({ isValid: true, autosaveStatus: "idle" });
-  }, [setStepMeta]);
+    setStepMeta({ isValid: true, autosaveStatus: "idle", saveNow: flushAll });
+  }, [setStepMeta, flushAll]);
 
   // Ver mismo comentario en step-alternatives.tsx: duplicar guarda fuera del
   // ciclo de useAutosave, así que necesita su propio guard de recarga.
@@ -224,6 +236,7 @@ function StepBenefits() {
               collapsed={collapsedIds.has(key)}
               onToggleCollapse={() => toggleCollapsed(key)}
               autoFocus={key === lastAddedKey}
+              onRegisterSave={registerSave}
             />
           );
         }}

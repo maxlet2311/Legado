@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BookOpen, PlusCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { SortableList } from "@/components/wizard/sortable-list";
 import { AlternativeItem } from "@/components/wizard/steps/alternative-item";
 import { deleteAlternativeAction, reorderAlternativesAction, saveAlternativeAction } from "@/lib/wizard/actions";
 import { buildAlternativeFromLibraryContent } from "@/lib/library/build-from-content";
+import { createSaveRegistry } from "@/lib/wizard/save-registry";
 import { useWizardStore } from "@/stores/wizard-store";
 import type { WizardAlternative } from "@/types/wizard";
 import type { LibraryAlternativeContent, LibraryItem } from "@/types/library";
@@ -55,9 +56,22 @@ function StepAlternatives() {
   const [lastAddedKey, setLastAddedKey] = useState<string | null>(null);
   const [duplicating, setDuplicating] = useState(false);
 
+  // Cada AlternativeItem se registra acá con su `saveNow` vigente; al navegar
+  // de paso (`stepMeta.saveNow`) se hace flush de todos los ítems con
+  // ediciones pendientes, no solo del que el asesor haya guardado a mano.
+  // Sin esto, editar un campo y apretar "Siguiente" perdía el cambio en
+  // silencio -- ver auditoría del flujo Wizard -> Preview.
+  const registryRef = useRef(createSaveRegistry());
+  const registerSave = useCallback((key: string, saveNow: (() => void) | null) => {
+    registryRef.current.register(key, saveNow);
+  }, []);
+  const flushAll = useCallback(() => {
+    registryRef.current.flushAll();
+  }, []);
+
   useEffect(() => {
-    setStepMeta({ isValid: true, autosaveStatus: "idle" });
-  }, [setStepMeta]);
+    setStepMeta({ isValid: true, autosaveStatus: "idle", saveNow: flushAll });
+  }, [setStepMeta, flushAll]);
 
   // `duplicateItem` guarda de inmediato fuera del ciclo de useAutosave: si el
   // usuario recarga/cierra la pestaña mientras esa escritura sigue en vuelo,
@@ -247,6 +261,7 @@ function StepAlternatives() {
               collapsed={collapsedIds.has(key)}
               onToggleCollapse={() => toggleCollapsed(key)}
               autoFocus={key === lastAddedKey}
+              onRegisterSave={registerSave}
             />
           );
         }}

@@ -37,6 +37,14 @@ interface AlternativeItemProps {
   onToggleCollapse: () => void;
   /** Recién agregado/duplicado: hace scroll hasta el bloque y enfoca el título. Solo se lee en el mount. */
   autoFocus?: boolean;
+  /**
+   * Registra el `saveNow` vigente de este ítem en el padre (`StepAlternatives`),
+   * que a su vez lo agrega en `stepMeta.saveNow` para que navegar de paso
+   * (Siguiente/Anterior/saltar) haga flush de ediciones sin guardar -- antes
+   * de esto, editar un campo y navegar sin apretar "Guardar" perdía el
+   * cambio en silencio.
+   */
+  onRegisterSave: (key: string, saveNow: (() => void) | null) => void;
 }
 
 function AlternativeItem({
@@ -49,6 +57,7 @@ function AlternativeItem({
   collapsed,
   onToggleCollapse,
   autoFocus = false,
+  onRegisterSave,
 }: AlternativeItemProps) {
   const canSave = Boolean(
     item.title.trim() && item.insurance_company.trim() && item.product_name.trim(),
@@ -90,7 +99,9 @@ function AlternativeItem({
       }
       return { error: result.error };
     },
-    { enabled: canSave, manual: true },
+    // Debounced (no manual) una vez que los campos requeridos están completos:
+    // ver mismo comentario en use-proposal-details-autosave.ts.
+    { enabled: canSave },
   );
 
   async function resolveReload() {
@@ -152,6 +163,11 @@ function AlternativeItem({
   }
 
   const { status: libraryStatus, duplicate, save, saveAnyway, cancelDuplicate } = useSaveToLibrary();
+
+  useEffect(() => {
+    onRegisterSave(item.client_key, canSave ? saveNow : null);
+    return () => onRegisterSave(item.client_key, null);
+  }, [item.client_key, canSave, saveNow, onRegisterSave]);
 
   useEffect(() => {
     if (!autoFocus) return;

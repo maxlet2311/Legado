@@ -42,6 +42,12 @@ interface BenefitItemProps {
   onToggleCollapse: () => void;
   /** Recién agregado/duplicado: hace scroll hasta el bloque y enfoca el título. Solo se lee en el mount. */
   autoFocus?: boolean;
+  /**
+   * Registra el `saveNow` vigente de este ítem en el padre (`StepBenefits`),
+   * que a su vez lo agrega en `stepMeta.saveNow` para que navegar de paso
+   * haga flush de ediciones sin guardar (ver mismo mecanismo en `AlternativeItem`).
+   */
+  onRegisterSave: (key: string, saveNow: (() => void) | null) => void;
 }
 
 function BenefitItem({
@@ -54,6 +60,7 @@ function BenefitItem({
   collapsed,
   onToggleCollapse,
   autoFocus = false,
+  onRegisterSave,
 }: BenefitItemProps) {
   const canSave = Boolean(item.title.trim() && item.description.trim() && item.icon.trim());
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,7 +89,9 @@ function BenefitItem({
       }
       return { error: result.error };
     },
-    { enabled: canSave, manual: true },
+    // Debounced (no manual) una vez que los campos requeridos están completos:
+    // ver mismo comentario en use-proposal-details-autosave.ts.
+    { enabled: canSave },
   );
 
   async function resolveReload() {
@@ -133,6 +142,11 @@ function BenefitItem({
   }
 
   const ItemIcon = getBenefitIcon(item.icon);
+
+  useEffect(() => {
+    onRegisterSave(item.client_key, canSave ? saveNow : null);
+    return () => onRegisterSave(item.client_key, null);
+  }, [item.client_key, canSave, saveNow, onRegisterSave]);
 
   useEffect(() => {
     if (!autoFocus) return;

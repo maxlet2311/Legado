@@ -14,12 +14,20 @@ const TEXT_DEBOUNCE_MS = 600;
 /**
  * Preview en vivo dentro del editor. Reusa el renderer compartido (server
  * action -> mismo RenderDocument que el preview post-emisión, ver
- * `live-snapshot.ts`) -- nunca genera PDF ni bloquea el guardado. Debounce
- * único sobre cualquier cambio de `data`: alcanza para no disparar un fetch
- * por tecla sin necesitar dos rutas de actualización distintas.
+ * `live-snapshot.ts`) -- nunca genera PDF ni bloquea el guardado. Lee
+ * siempre de la base (mismo RPC que el preview post-emisión), nunca del
+ * estado en memoria del wizard -- por eso, además del debounce sobre
+ * cualquier cambio de `data`, se fuerza un refresh inmediato apenas
+ * `stepMeta.autosaveStatus` pasa a "saved": ese es el único momento en que
+ * lo que hay en la base cambió de verdad. Sin este segundo disparador, el
+ * fetch debounced podía ganarle a la escritura real (el guardado del wizard
+ * es manual/flush-on-navigate, no hay autoguardado por tecla en ningún
+ * paso) y el panel quedaba mostrando el estado anterior a la última edición
+ * hasta el próximo cambio de `data`.
  */
 function LivePreviewPanel() {
   const data = useWizardStore((state) => state.data);
+  const autosaveStatus = useWizardStore((state) => state.stepMeta.autosaveStatus);
   const [html, setHtml] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +65,13 @@ function LivePreviewPanel() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataKey, proposalId]);
+
+  useEffect(() => {
+    if (autosaveStatus !== "saved") return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    void refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autosaveStatus]);
 
   if (!proposalId) return null;
 
