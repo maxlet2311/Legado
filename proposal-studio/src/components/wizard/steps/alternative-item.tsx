@@ -16,6 +16,7 @@ import { useSaveToLibrary } from "@/hooks/use-save-to-library";
 import { saveAlternativeAction } from "@/lib/wizard/actions";
 import { createClient } from "@/lib/database/client";
 import { cn } from "@/lib/utils/cn";
+import { useIsWizardReadOnly } from "@/stores/wizard-store";
 import type { AlternativeCategory, WizardAlternative } from "@/types/wizard";
 
 const CATEGORY_LABELS: Record<AlternativeCategory, string> = {
@@ -59,6 +60,7 @@ function AlternativeItem({
   autoFocus = false,
   onRegisterSave,
 }: AlternativeItemProps) {
+  const isReadOnly = useIsWizardReadOnly();
   const canSave = Boolean(
     item.title.trim() && item.insurance_company.trim() && item.product_name.trim(),
   );
@@ -101,7 +103,7 @@ function AlternativeItem({
     },
     // Debounced (no manual) una vez que los campos requeridos están completos:
     // ver mismo comentario en use-proposal-details-autosave.ts.
-    { enabled: canSave },
+    { enabled: canSave && !isReadOnly },
   );
 
   async function resolveReload() {
@@ -251,10 +253,10 @@ function AlternativeItem({
               <BookmarkPlus className="h-4 w-4" />
             )}
           </Button>
-          <Button type="button" variant="ghost" size="icon" onClick={onDuplicate} aria-label="Duplicar alternativa">
+          <Button type="button" variant="ghost" size="icon" onClick={onDuplicate} disabled={isReadOnly} aria-label="Duplicar alternativa">
             <Copy className="h-4 w-4" />
           </Button>
-          <Button type="button" variant="ghost" size="icon" onClick={onRemove} aria-label="Eliminar alternativa">
+          <Button type="button" variant="ghost" size="icon" onClick={onRemove} disabled={isReadOnly} aria-label="Eliminar alternativa">
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -269,7 +271,7 @@ function AlternativeItem({
         <div className="overflow-hidden">
       <div className="space-y-4">
         <div className="flex justify-end">
-          <Button type="button" size="sm" onClick={saveNow} disabled={!canSave}>
+          <Button type="button" size="sm" onClick={saveNow} disabled={!canSave || isReadOnly}>
             Guardar
           </Button>
         </div>
@@ -283,12 +285,14 @@ function AlternativeItem({
               ref={titleInputRef}
               value={item.title}
               onChange={(event) => updateField("title", event.target.value)}
+              disabled={isReadOnly}
             />
           </div>
           <div className="space-y-2">
             <Label>Categoría</Label>
             <Select
               value={item.category}
+              disabled={isReadOnly}
               onValueChange={(value) => updateField("category", value as AlternativeCategory)}
             >
               <SelectTrigger>
@@ -311,6 +315,7 @@ function AlternativeItem({
             rows={3}
             value={item.description}
             onChange={(event) => updateField("description", event.target.value)}
+            disabled={isReadOnly}
           />
         </div>
 
@@ -323,6 +328,7 @@ function AlternativeItem({
               id={companyId}
               value={item.insurance_company}
               onChange={(event) => updateField("insurance_company", event.target.value)}
+              disabled={isReadOnly}
             />
           </div>
           <div className="space-y-2">
@@ -333,6 +339,7 @@ function AlternativeItem({
               id={productId}
               value={item.product_name}
               onChange={(event) => updateField("product_name", event.target.value)}
+              disabled={isReadOnly}
             />
           </div>
         </div>
@@ -352,12 +359,14 @@ function AlternativeItem({
                   event.target.value === "" ? null : Number(event.target.value),
                 )
               }
+              disabled={isReadOnly}
             />
           </div>
           <div className="space-y-2">
             <Label>Moneda</Label>
             <Select
               value={item.currency}
+              disabled={isReadOnly}
               onValueChange={(value) => updateField("currency", value as WizardAlternative["currency"])}
             >
               <SelectTrigger>
@@ -382,6 +391,7 @@ function AlternativeItem({
               onChange={(event) =>
                 updateDetails("advantages", event.target.value.split("\n"))
               }
+              disabled={isReadOnly}
             />
           </div>
           <div className="space-y-2">
@@ -393,6 +403,7 @@ function AlternativeItem({
               onChange={(event) =>
                 updateDetails("disadvantages", event.target.value.split("\n"))
               }
+              disabled={isReadOnly}
             />
           </div>
         </div>
@@ -404,6 +415,7 @@ function AlternativeItem({
             rows={2}
             value={item.details.notes}
             onChange={(event) => updateDetails("notes", event.target.value)}
+            disabled={isReadOnly}
           />
         </div>
       </div>

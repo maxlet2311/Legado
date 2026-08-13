@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SectionCard } from "@/components/wizard/section-card";
 import { useProposalDetailsAutosave } from "@/hooks/use-proposal-details-autosave";
-import { useWizardStore } from "@/stores/wizard-store";
+import { useWizardStore, useIsWizardReadOnly } from "@/stores/wizard-store";
 
 const OBJECTIVE_LABELS: Record<string, string> = {
   protect_family: "Proteger a su familia",
@@ -21,6 +21,7 @@ const OBJECTIVE_LABELS: Record<string, string> = {
 function StepInfo() {
   const data = useWizardStore((state) => state.data);
   const setMeta = useWizardStore((state) => state.setMeta);
+  const isReadOnly = useIsWizardReadOnly();
 
   const isValid = Boolean(data?.meta.title.trim() && data?.meta.product.trim());
   useProposalDetailsAutosave(isValid);
@@ -37,6 +38,7 @@ function StepInfo() {
           id="title"
           value={data.meta.title}
           onChange={(event) => setMeta({ title: event.target.value })}
+          disabled={isReadOnly}
         />
       </div>
 
@@ -45,6 +47,7 @@ function StepInfo() {
           <Label>Tipo de propuesta</Label>
           <Select
             value={data.meta.proposal_type}
+            disabled={isReadOnly}
             onValueChange={(value) => setMeta({ proposal_type: value as typeof data.meta.proposal_type })}
           >
             <SelectTrigger>
@@ -60,6 +63,7 @@ function StepInfo() {
           <Label>Objetivo principal</Label>
           <Select
             value={data.meta.primary_objective}
+            disabled={isReadOnly}
             onValueChange={(value) =>
               setMeta({ primary_objective: value as typeof data.meta.primary_objective })
             }
@@ -88,12 +92,14 @@ function StepInfo() {
             placeholder="Vida Integral Plus"
             value={data.meta.product}
             onChange={(event) => setMeta({ product: event.target.value })}
+            disabled={isReadOnly}
           />
         </div>
         <div className="space-y-2">
           <Label>Moneda</Label>
           <Select
             value={data.meta.currency}
+            disabled={isReadOnly}
             onValueChange={(value) => setMeta({ currency: value as typeof data.meta.currency })}
           >
             <SelectTrigger>
@@ -116,6 +122,7 @@ function StepInfo() {
           placeholder="Notas privadas, no visibles para el cliente."
           value={data.meta.internal_notes}
           onChange={(event) => setMeta({ internal_notes: event.target.value })}
+          disabled={isReadOnly}
         />
       </div>
 

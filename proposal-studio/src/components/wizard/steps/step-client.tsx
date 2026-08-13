@@ -24,7 +24,7 @@ import { SectionCard } from "@/components/wizard/section-card";
 import { useProposalDetailsAutosave } from "@/hooks/use-proposal-details-autosave";
 import { createWizardClientAction } from "@/lib/wizard/actions";
 import { clientCreateSchema } from "@/lib/wizard/schemas";
-import { useWizardStore } from "@/stores/wizard-store";
+import { useWizardStore, useIsWizardReadOnly } from "@/stores/wizard-store";
 import type { WizardClient, WizardStepProps } from "@/types/wizard";
 
 type CreateValues = z.infer<typeof clientCreateSchema>;
@@ -32,6 +32,7 @@ type CreateValues = z.infer<typeof clientCreateSchema>;
 function StepClient({ availableClients }: WizardStepProps) {
   const data = useWizardStore((state) => state.data);
   const setClient = useWizardStore((state) => state.setClient);
+  const isReadOnly = useIsWizardReadOnly();
   const [clients, setClients] = useState(availableClients);
   const [open, setOpen] = useState(false);
   const [serverError, setServerError] = useState<string | undefined>();
@@ -75,6 +76,7 @@ function StepClient({ availableClients }: WizardStepProps) {
         <Label>Cliente</Label>
         <Select
           value={data.client.id || undefined}
+          disabled={isReadOnly}
           onValueChange={(value) => {
             const client = clients.find((item) => item.id === value);
             if (client) setClient(client);
@@ -102,9 +104,9 @@ function StepClient({ availableClients }: WizardStepProps) {
         </div>
       )}
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open && !isReadOnly} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button type="button" variant="secondary">
+          <Button type="button" variant="secondary" disabled={isReadOnly}>
             <PlusCircle className="h-4 w-4" />
             Crear cliente nuevo
           </Button>

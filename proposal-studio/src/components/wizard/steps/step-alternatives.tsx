@@ -260,6 +260,7 @@ function StepAlternatives({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
         items={alternatives}
         getId={(item) => item.client_key}
         onReorder={reorder}
+        disabled={isReadOnly}
         emptyState={<EmptyState compact title="Todavía no agregaste ninguna alternativa." />}
         renderItem={(item, index) => {
           const key = getItemKey(item);

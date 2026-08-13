@@ -16,6 +16,7 @@ interface RichTextareaProps {
   hint?: string;
   required?: boolean;
   className?: string;
+  disabled?: boolean;
 }
 
 function RichTextarea({
@@ -28,6 +29,7 @@ function RichTextarea({
   hint,
   required,
   className,
+  disabled,
 }: RichTextareaProps) {
   const id = useId();
 
@@ -48,6 +50,7 @@ function RichTextarea({
         onChange={(event) => onChange(event.target.value.slice(0, maxLength))}
         placeholder={placeholder}
         rows={rows}
+        disabled={disabled}
       />
       {hint && <p className="text-caption text-on-surface-variant">{hint}</p>}
     </div>

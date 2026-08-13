@@ -132,3 +132,17 @@ export const useWizardStore = create<WizardState>((set) => ({
       };
     }),
 }));
+
+/**
+ * Fuente única de verdad de "propuesta finalizada = solo lectura" (C2).
+ * Mismo booleano que `proposal-wizard.tsx` calcula para `WizardStepProps.isReadOnly`
+ * (`data.meta.status === "completed"`), expuesto como selector para que
+ * componentes anidados (ítems de alternativas/beneficios, tabla de
+ * comparativa, etc.) no dependan de que cada nivel intermedio reciba y
+ * reenvíe el prop correctamente.
+ */
+function useIsWizardReadOnly(): boolean {
+  return useWizardStore((state) => state.data?.meta.status === "completed");
+}
+
+export { useIsWizardReadOnly };

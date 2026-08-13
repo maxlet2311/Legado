@@ -28,6 +28,8 @@ interface SortableListProps<T> {
   onReorder: (items: T[]) => void;
   renderItem: (item: T, index: number) => ReactNode;
   emptyState?: ReactNode;
+  /** Propuesta finalizada (C2): desactiva el handle de arrastre y las flechas de reordenar. */
+  disabled?: boolean;
 }
 
 interface SortableRowProps {
@@ -36,6 +38,7 @@ interface SortableRowProps {
   total: number;
   onMove: (direction: -1 | 1) => void;
   children: ReactNode;
+  disabled?: boolean;
 }
 
 /**
@@ -44,9 +47,10 @@ interface SortableRowProps {
  * el foco/selección de los inputs del ítem. Las flechas se conservan como
  * mecanismo redundante accesible por teclado sin arrastre (tab + click).
  */
-function SortableRow({ id, index, total, onMove, children }: SortableRowProps) {
+function SortableRow({ id, index, total, onMove, children, disabled }: SortableRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
+    disabled,
   });
 
   return (
@@ -58,8 +62,9 @@ function SortableRow({ id, index, total, onMove, children }: SortableRowProps) {
       <div className="flex flex-col items-center gap-1 pt-1">
         <button
           type="button"
-          className="cursor-grab touch-none rounded-xs p-1 text-on-surface-variant hover:bg-surface-container-highest active:cursor-grabbing"
+          className="cursor-grab touch-none rounded-xs p-1 text-on-surface-variant hover:bg-surface-container-highest active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Arrastrar para reordenar"
+          disabled={disabled}
           {...attributes}
           {...listeners}
         >
@@ -70,7 +75,7 @@ function SortableRow({ id, index, total, onMove, children }: SortableRowProps) {
           variant="ghost"
           size="icon"
           className="h-6 w-6"
-          disabled={index === 0}
+          disabled={disabled || index === 0}
           onClick={() => onMove(-1)}
           aria-label="Mover hacia arriba"
         >
@@ -81,7 +86,7 @@ function SortableRow({ id, index, total, onMove, children }: SortableRowProps) {
           variant="ghost"
           size="icon"
           className="h-6 w-6"
-          disabled={index === total - 1}
+          disabled={disabled || index === total - 1}
           onClick={() => onMove(1)}
           aria-label="Mover hacia abajo"
         >
@@ -93,13 +98,14 @@ function SortableRow({ id, index, total, onMove, children }: SortableRowProps) {
   );
 }
 
-function SortableList<T>({ items, getId, onReorder, renderItem, emptyState }: SortableListProps<T>) {
+function SortableList<T>({ items, getId, onReorder, renderItem, emptyState, disabled }: SortableListProps<T>) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   function move(index: number, direction: -1 | 1) {
+    if (disabled) return;
     const target = index + direction;
     if (target < 0 || target >= items.length) return;
     const next = [...items];
@@ -110,6 +116,7 @@ function SortableList<T>({ items, getId, onReorder, renderItem, emptyState }: So
   }
 
   function handleDragEnd(event: DragEndEvent) {
+    if (disabled) return;
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     const oldIndex = items.findIndex((item) => getId(item) === active.id);
@@ -139,6 +146,7 @@ function SortableList<T>({ items, getId, onReorder, renderItem, emptyState }: So
               index={index}
               total={items.length}
               onMove={(direction) => move(index, direction)}
+              disabled={disabled}
             >
               {renderItem(item, index)}
             </SortableRow>

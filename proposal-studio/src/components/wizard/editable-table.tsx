@@ -31,6 +31,8 @@ interface EditableTableProps {
   onChange: (columns: WizardComparisonColumn[], rows: WizardComparisonRow[]) => void;
   /** Se dispara antes de un cambio estructural (agregar/quitar/reordenar), nunca en la edición de una celda -- usado para el snapshot de undo. */
   onBeforeStructuralChange?: () => void;
+  /** Propuesta finalizada (C2): bloquea toda mutación de la tabla (celdas, columnas, filas, reorder). */
+  isReadOnly?: boolean;
 }
 
 function newId(prefix: string) {
@@ -40,11 +42,13 @@ function newId(prefix: string) {
 interface DraggableRowProps {
   id: string;
   children: ReactNode;
+  disabled?: boolean;
 }
 
-function DraggableRow({ id, children }: DraggableRowProps) {
+function DraggableRow({ id, children, disabled }: DraggableRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
+    disabled,
   });
 
   return (
@@ -56,8 +60,9 @@ function DraggableRow({ id, children }: DraggableRowProps) {
       <td className="w-8 p-2">
         <button
           type="button"
-          className="cursor-grab touch-none rounded-xs p-1 text-on-surface-variant hover:bg-surface-container-highest active:cursor-grabbing"
+          className="cursor-grab touch-none rounded-xs p-1 text-on-surface-variant hover:bg-surface-container-highest active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Arrastrar para reordenar fila"
+          disabled={disabled}
           {...attributes}
           {...listeners}
         >
@@ -75,7 +80,7 @@ interface PendingRemoval {
   label: string;
 }
 
-function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: EditableTableProps) {
+function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isReadOnly }: EditableTableProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -86,11 +91,13 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
   const [pendingRemoval, setPendingRemoval] = useState<PendingRemoval | null>(null);
 
   function addColumn() {
+    if (isReadOnly) return;
     onBeforeStructuralChange?.();
     onChange([...columns, { id: newId("col"), label: "Nueva columna" }], rows);
   }
 
   function renameColumn(id: string, label: string) {
+    if (isReadOnly) return;
     onChange(
       columns.map((column) => (column.id === id ? { ...column, label } : column)),
       rows,
@@ -98,6 +105,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
   }
 
   function duplicateColumn(id: string) {
+    if (isReadOnly) return;
     onBeforeStructuralChange?.();
     const index = columns.findIndex((column) => column.id === id);
     if (index === -1) return;
@@ -113,6 +121,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
   }
 
   function removeColumn(id: string) {
+    if (isReadOnly) return;
     onBeforeStructuralChange?.();
     onChange(
       columns.filter((column) => column.id !== id),
@@ -124,11 +133,13 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
   }
 
   function addRow() {
+    if (isReadOnly) return;
     onBeforeStructuralChange?.();
     onChange(columns, [...rows, { id: newId("row"), label: "Nueva fila", values: {} }]);
   }
 
   function renameRow(id: string, label: string) {
+    if (isReadOnly) return;
     onChange(
       columns,
       rows.map((row) => (row.id === id ? { ...row, label } : row)),
@@ -136,6 +147,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
   }
 
   function duplicateRow(id: string) {
+    if (isReadOnly) return;
     onBeforeStructuralChange?.();
     const index = rows.findIndex((row) => row.id === id);
     if (index === -1) return;
@@ -152,6 +164,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
   }
 
   function removeRow(id: string) {
+    if (isReadOnly) return;
     onBeforeStructuralChange?.();
     onChange(
       columns,
@@ -160,13 +173,14 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
   }
 
   function confirmRemoval() {
-    if (!pendingRemoval) return;
+    if (isReadOnly || !pendingRemoval) return;
     if (pendingRemoval.kind === "column") removeColumn(pendingRemoval.id);
     else removeRow(pendingRemoval.id);
     setPendingRemoval(null);
   }
 
   function setCell(rowId: string, columnId: string, value: string) {
+    if (isReadOnly) return;
     onChange(
       columns,
       rows.map((row) =>
@@ -176,6 +190,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
   }
 
   function handleDragEnd(event: DragEndEvent) {
+    if (isReadOnly) return;
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     const oldIndex = rows.findIndex((row) => row.id === active.id);
@@ -206,6 +221,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
                         onChange={(event) => renameColumn(column.id, event.target.value)}
                         className="h-9"
                         aria-label="Título de columna"
+                        disabled={isReadOnly}
                       />
                       <Button
                         type="button"
@@ -214,6 +230,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
                         className="h-9 w-9 shrink-0"
                         onClick={() => duplicateColumn(column.id)}
                         aria-label={`Duplicar columna ${column.label}`}
+                        disabled={isReadOnly}
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
@@ -224,6 +241,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
                         className="h-9 w-9 shrink-0"
                         onClick={() => setPendingRemoval({ kind: "column", id: column.id, label: column.label })}
                         aria-label={`Eliminar columna ${column.label}`}
+                        disabled={isReadOnly}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -235,7 +253,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
             <SortableContext items={rows.map((row) => row.id)} strategy={verticalListSortingStrategy}>
               <tbody>
                 {rows.map((row) => (
-                  <DraggableRow key={row.id} id={row.id}>
+                  <DraggableRow key={row.id} id={row.id} disabled={isReadOnly}>
                     <td className="p-2">
                       <div className="flex items-center gap-1">
                         <Input
@@ -243,6 +261,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
                           onChange={(event) => renameRow(row.id, event.target.value)}
                           className="h-9"
                           aria-label="Título de fila"
+                          disabled={isReadOnly}
                         />
                         <Button
                           type="button"
@@ -251,6 +270,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
                           className="h-9 w-9 shrink-0"
                           onClick={() => duplicateRow(row.id)}
                           aria-label={`Duplicar fila ${row.label}`}
+                          disabled={isReadOnly}
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
@@ -261,6 +281,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
                           className="h-9 w-9 shrink-0"
                           onClick={() => setPendingRemoval({ kind: "row", id: row.id, label: row.label })}
                           aria-label={`Eliminar fila ${row.label}`}
+                          disabled={isReadOnly}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -273,6 +294,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
                           onChange={(event) => setCell(row.id, column.id, event.target.value)}
                           className="h-9"
                           aria-label={`${row.label} — ${column.label}`}
+                          disabled={isReadOnly}
                         />
                       </td>
                     ))}
@@ -284,11 +306,11 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange }: Ed
         </DndContext>
       </div>
       <div className="flex gap-3">
-        <Button type="button" variant="secondary" size="sm" onClick={addColumn}>
+        <Button type="button" variant="secondary" size="sm" onClick={addColumn} disabled={isReadOnly}>
           <Plus className="h-4 w-4" />
           Agregar columna
         </Button>
-        <Button type="button" variant="secondary" size="sm" onClick={addRow}>
+        <Button type="button" variant="secondary" size="sm" onClick={addRow} disabled={isReadOnly}>
           <Plus className="h-4 w-4" />
           Agregar fila
         </Button>

@@ -15,6 +15,8 @@ interface NarrativeLibraryActionsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onInsertText: (text: string) => void;
+  /** Propuesta finalizada (C2): bloquea solo "Insertar" (muta la narrativa). "Guardar en Biblioteca" no muta la propuesta, sigue disponible. */
+  isReadOnly?: boolean;
 }
 
 /** Botones "Insertar/Guardar en Biblioteca" para los campos de narrativa (diagnóstico/recomendación). */
@@ -25,6 +27,7 @@ function NarrativeLibraryActions({
   open,
   onOpenChange,
   onInsertText,
+  isReadOnly,
 }: NarrativeLibraryActionsProps) {
   const { status: saveStatus, duplicate, save, saveAnyway, cancelDuplicate } = useSaveToLibrary();
 
@@ -39,7 +42,7 @@ function NarrativeLibraryActions({
 
   return (
     <div className="flex items-center gap-2">
-      <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(true)}>
+      <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(true)} disabled={isReadOnly}>
         <BookOpen className="h-4 w-4" />
         Insertar desde Biblioteca
       </Button>

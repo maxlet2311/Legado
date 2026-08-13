@@ -18,6 +18,7 @@ import { saveBenefitAction } from "@/lib/wizard/actions";
 import { createClient } from "@/lib/database/client";
 import { cn } from "@/lib/utils/cn";
 import { getBenefitIcon } from "@/lib/wizard/benefit-icons";
+import { useIsWizardReadOnly } from "@/stores/wizard-store";
 import type { BenefitCategory, WizardBenefit } from "@/types/wizard";
 
 const CATEGORY_LABELS: Record<BenefitCategory, string> = {
@@ -62,6 +63,7 @@ function BenefitItem({
   autoFocus = false,
   onRegisterSave,
 }: BenefitItemProps) {
+  const isReadOnly = useIsWizardReadOnly();
   const canSave = Boolean(item.title.trim() && item.description.trim() && item.icon.trim());
   const containerRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -91,7 +93,7 @@ function BenefitItem({
     },
     // Debounced (no manual) una vez que los campos requeridos están completos:
     // ver mismo comentario en use-proposal-details-autosave.ts.
-    { enabled: canSave },
+    { enabled: canSave && !isReadOnly },
   );
 
   async function resolveReload() {
@@ -206,10 +208,10 @@ function BenefitItem({
               <BookmarkPlus className="h-4 w-4" />
             )}
           </Button>
-          <Button type="button" variant="ghost" size="icon" onClick={onDuplicate} aria-label="Duplicar beneficio">
+          <Button type="button" variant="ghost" size="icon" onClick={onDuplicate} disabled={isReadOnly} aria-label="Duplicar beneficio">
             <Copy className="h-4 w-4" />
           </Button>
-          <Button type="button" variant="ghost" size="icon" onClick={onRemove} aria-label="Eliminar beneficio">
+          <Button type="button" variant="ghost" size="icon" onClick={onRemove} disabled={isReadOnly} aria-label="Eliminar beneficio">
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -224,7 +226,7 @@ function BenefitItem({
         <div className="overflow-hidden">
       <div className="space-y-4">
         <div className="flex justify-end">
-          <Button type="button" size="sm" onClick={saveNow} disabled={!canSave}>
+          <Button type="button" size="sm" onClick={saveNow} disabled={!canSave || isReadOnly}>
             Guardar
           </Button>
         </div>
@@ -238,12 +240,14 @@ function BenefitItem({
               ref={titleInputRef}
               value={item.title}
               onChange={(event) => updateField("title", event.target.value)}
+              disabled={isReadOnly}
             />
           </div>
           <div className="space-y-2">
             <Label>Categoría</Label>
             <Select
               value={item.category}
+              disabled={isReadOnly}
               onValueChange={(value) => updateField("category", value as BenefitCategory)}
             >
               <SelectTrigger>
@@ -269,6 +273,7 @@ function BenefitItem({
             rows={2}
             value={item.description}
             onChange={(event) => updateField("description", event.target.value)}
+            disabled={isReadOnly}
           />
         </div>
 
@@ -280,6 +285,7 @@ function BenefitItem({
             value={item.icon}
             category={item.category}
             onChange={(icon) => updateField("icon", icon)}
+            disabled={isReadOnly}
           />
         </div>
       </div>

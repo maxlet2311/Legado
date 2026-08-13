@@ -9,13 +9,14 @@ import { Button } from "@/components/ui/button";
 import { useAutosave } from "@/hooks/use-autosave";
 import { upsertComparisonAction } from "@/lib/wizard/actions";
 import { createClient } from "@/lib/database/client";
-import { useWizardStore } from "@/stores/wizard-store";
+import { useWizardStore, useIsWizardReadOnly } from "@/stores/wizard-store";
 import type { WizardComparisonColumn, WizardComparisonRow } from "@/types/wizard";
 
 function StepComparison() {
   const data = useWizardStore((state) => state.data);
   const setComparison = useWizardStore((state) => state.setComparison);
   const setStepMeta = useWizardStore((state) => state.setStepMeta);
+  const isReadOnly = useIsWizardReadOnly();
 
   // Memoizado por valor: ver use-proposal-details-autosave.ts para por qué un literal
   // nuevo en cada render acá dispara un loop infinito de re-renders.
@@ -102,7 +103,7 @@ function StepComparison() {
       actions={
         <div className="flex items-center gap-3">
           <AutosaveIndicator status={status} error={error} onResolveKeepMine={resolveKeepMine} onResolveReload={resolveReload} />
-          <Button type="button" size="sm" onClick={saveNow}>
+          <Button type="button" size="sm" onClick={saveNow} disabled={isReadOnly}>
             Guardar
           </Button>
         </div>
@@ -113,6 +114,7 @@ function StepComparison() {
         rows={data.comparison.rows}
         onChange={handleChange}
         onBeforeStructuralChange={pushHistorySnapshot}
+        isReadOnly={isReadOnly}
       />
     </SectionCard>
   );

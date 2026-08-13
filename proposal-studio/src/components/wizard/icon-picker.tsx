@@ -23,6 +23,7 @@ interface IconPickerProps {
   value: string;
   onChange: (icon: string) => void;
   category: BenefitCategory;
+  disabled?: boolean;
 }
 
 /**
@@ -31,7 +32,7 @@ interface IconPickerProps {
  * por la categoría del beneficio ya elegida, con búsqueda para el resto del
  * set curado -- nunca la librería lucide-react completa, ver benefit-icons.ts.
  */
-function IconPicker({ value, onChange, category }: IconPickerProps) {
+function IconPicker({ value, onChange, category, disabled }: IconPickerProps) {
   const [query, setQuery] = useState("");
 
   const allNames = useMemo(() => Object.keys(BENEFIT_ICONS), []);
@@ -55,11 +56,13 @@ function IconPicker({ value, onChange, category }: IconPickerProps) {
               key={name}
               type="button"
               onClick={() => onChange(name)}
+              disabled={disabled}
               aria-pressed={isSelected}
               aria-label={name}
               title={name}
               className={cn(
                 "flex h-10 w-10 items-center justify-center rounded-md border transition-colors duration-fast ease-premium",
+                "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent",
                 isSelected
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-outline-variant text-on-surface-variant hover:bg-surface-container-highest",
@@ -92,6 +95,7 @@ function IconPicker({ value, onChange, category }: IconPickerProps) {
           placeholder="Buscar ícono…"
           className="pl-9"
           aria-label="Buscar ícono"
+          disabled={disabled}
         />
       </div>
 
