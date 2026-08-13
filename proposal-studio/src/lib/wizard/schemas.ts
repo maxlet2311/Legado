@@ -41,6 +41,8 @@ const narrativeSchema = z.object({
   detected_risks: z.string().trim().max(8000).optional().default(""),
   opportunities: z.string().trim().max(8000).optional().default(""),
   recommended_strategy: z.string().trim().max(8000).optional().default(""),
+  executive_summary: z.string().trim().max(8000).optional().default(""),
+  final_message: z.string().trim().max(8000).optional().default(""),
   expected_revision: z.number().int().nonnegative().nullable(),
 });
 

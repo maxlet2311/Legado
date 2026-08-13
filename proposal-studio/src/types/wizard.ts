@@ -38,6 +38,8 @@ export interface WizardNarrative {
   detected_risks: string;
   opportunities: string;
   recommended_strategy: string;
+  executive_summary: string;
+  final_message: string;
   updated_at: string | null;
   revision: number | null;
 }

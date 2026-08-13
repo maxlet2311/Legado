@@ -135,6 +135,8 @@ async function upsertNarrativeAction(
       p_detected_risks: parsed.data.detected_risks ?? "",
       p_opportunities: parsed.data.opportunities ?? "",
       p_recommended_strategy: parsed.data.recommended_strategy ?? "",
+      p_executive_summary: parsed.data.executive_summary ?? "",
+      p_final_message: parsed.data.final_message ?? "",
       // p_expected_revision es NULL-able en Postgres (todavía no existe fila);
       // ver nota en saveAlternativeAction.
       p_expected_revision: parsed.data.expected_revision as number,

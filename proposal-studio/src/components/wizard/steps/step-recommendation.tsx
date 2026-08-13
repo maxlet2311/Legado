@@ -47,6 +47,20 @@ function StepRecommendation() {
         onChange={(value) => setNarrative({ recommended_strategy: value })}
         hint="Este texto es el corazón de la propuesta: explicá por qué esta es la mejor estrategia para el cliente."
       />
+      <RichTextarea
+        label="Resumen ejecutivo"
+        rows={5}
+        value={data.narrative.executive_summary}
+        onChange={(value) => setNarrative({ executive_summary: value })}
+        hint="Síntesis breve de la propuesta para lectores que solo leen la primera página."
+      />
+      <RichTextarea
+        label="Mensaje final"
+        rows={5}
+        value={data.narrative.final_message}
+        onChange={(value) => setNarrative({ final_message: value })}
+        hint="Cierre personalizado del documento. Si lo dejás vacío, se usa un mensaje de cierre genérico."
+      />
     </SectionCard>
   );
 }

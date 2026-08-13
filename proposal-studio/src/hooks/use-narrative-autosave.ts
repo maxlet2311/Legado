@@ -30,6 +30,8 @@ function useNarrativeAutosave(isValid: boolean) {
             detected_risks: data.narrative.detected_risks,
             opportunities: data.narrative.opportunities,
             recommended_strategy: data.narrative.recommended_strategy,
+            executive_summary: data.narrative.executive_summary,
+            final_message: data.narrative.final_message,
             expected_revision: data.narrative.revision,
           }
         : null,
@@ -43,6 +45,8 @@ function useNarrativeAutosave(isValid: boolean) {
       data?.narrative.detected_risks,
       data?.narrative.opportunities,
       data?.narrative.recommended_strategy,
+      data?.narrative.executive_summary,
+      data?.narrative.final_message,
       data?.narrative.revision,
     ],
   );
@@ -84,7 +88,7 @@ function useNarrativeAutosave(isValid: boolean) {
         const { data: fresh } = await supabase
           .from("proposal_narratives")
           .select(
-            "current_situation, detected_needs, objectives, detected_risks, opportunities, recommended_strategy, revision",
+            "current_situation, detected_needs, objectives, detected_risks, opportunities, recommended_strategy, executive_summary, final_message, revision",
           )
           .eq("proposal_id", data.proposalId)
           .maybeSingle();
@@ -95,6 +99,8 @@ function useNarrativeAutosave(isValid: boolean) {
           detected_risks: fresh?.detected_risks ?? "",
           opportunities: fresh?.opportunities ?? "",
           recommended_strategy: fresh?.recommended_strategy ?? "",
+          executive_summary: fresh?.executive_summary ?? "",
+          final_message: fresh?.final_message ?? "",
           revision: fresh?.revision ?? null,
         });
         clearConflict();

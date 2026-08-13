@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -42,7 +43,7 @@ export default async function ProposalEditPage({
       supabase
         .from("proposal_narratives")
         .select(
-          "current_situation, detected_needs, objectives, detected_risks, opportunities, recommended_strategy, updated_at, revision",
+          "current_situation, detected_needs, objectives, detected_risks, opportunities, recommended_strategy, executive_summary, final_message, updated_at, revision",
         )
         .eq("proposal_id", id)
         .maybeSingle(),
@@ -156,6 +157,8 @@ export default async function ProposalEditPage({
       detected_risks: narrativeResult.data?.detected_risks ?? "",
       opportunities: narrativeResult.data?.opportunities ?? "",
       recommended_strategy: narrativeResult.data?.recommended_strategy ?? "",
+      executive_summary: narrativeResult.data?.executive_summary ?? "",
+      final_message: narrativeResult.data?.final_message ?? "",
       updated_at: narrativeResult.data?.updated_at ?? null,
       revision: narrativeResult.data?.revision ?? null,
     },
@@ -165,9 +168,11 @@ export default async function ProposalEditPage({
   };
 
   return (
-    <ProposalWizard
-      initialData={initialData}
-      availableClients={(clientsResult.data ?? []) as WizardClient[]}
-    />
+    <Suspense fallback={null}>
+      <ProposalWizard
+        initialData={initialData}
+        availableClients={(clientsResult.data ?? []) as WizardClient[]}
+      />
+    </Suspense>
   );
 }

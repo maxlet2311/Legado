@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ComponentType } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { WizardLayout } from "@/components/wizard/wizard-layout";
 import { WizardFooter } from "@/components/wizard/wizard-footer";
@@ -18,6 +18,7 @@ import { StepComparison } from "@/components/wizard/steps/step-comparison";
 import { StepSummary } from "@/components/wizard/steps/step-summary";
 import { useWizardStore } from "@/stores/wizard-store";
 import { useFocusModeStore } from "@/stores/focus-mode-store";
+import { clampRequestedStep, computeCompletion } from "@/lib/wizard/step-completion";
 import type { WizardData, WizardStepProps } from "@/types/wizard";
 
 const STEPS = [
@@ -47,19 +48,6 @@ interface ProposalWizardProps {
   availableClients: WizardData["client"][];
 }
 
-function computeCompletion(data: WizardData): boolean[] {
-  return [
-    Boolean(data.client.id),
-    Boolean(data.meta.title.trim() && data.meta.product.trim()),
-    Boolean(data.narrative.current_situation.trim()),
-    data.alternatives.length > 0,
-    data.benefits.length > 0,
-    data.comparison.columns.length > 0 && data.comparison.rows.length > 0,
-    Boolean(data.narrative.recommended_strategy.trim()),
-    data.meta.status === "completed",
-  ];
-}
-
 function isEditableTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   const tag = target.tagName;
@@ -68,6 +56,8 @@ function isEditableTarget(target: EventTarget | null): boolean {
 
 function ProposalWizard({ initialData, availableClients }: ProposalWizardProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const data = useWizardStore((state) => state.data);
   const currentStep = useWizardStore((state) => state.currentStep);
   const stepMeta = useWizardStore((state) => state.stepMeta);
@@ -80,11 +70,23 @@ function ProposalWizard({ initialData, availableClients }: ProposalWizardProps) 
   const toggleFocusMode = useFocusModeStore((state) => state.toggle);
   const disableFocusMode = useFocusModeStore((state) => state.disable);
 
+  function updateStepInUrl(step: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("step", String(step));
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
+
   const hydratedRef = useRef(false);
   useEffect(() => {
     if (hydratedRef.current) return;
     hydratedRef.current = true;
-    hydrate(initialData);
+    const requestedRaw = searchParams.get("step");
+    const requested = requestedRaw !== null ? Number(requestedRaw) : 0;
+    const initialStep = clampRequestedStep(requested, initialData, STEPS.length);
+    hydrate(initialData, initialStep);
+    if (requestedRaw !== String(initialStep)) {
+      updateStepInUrl(initialStep);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -130,16 +132,19 @@ function ProposalWizard({ initialData, availableClients }: ProposalWizardProps) 
       return;
     }
     nextStep();
+    updateStepInUrl(currentStep + 1);
   }
 
   function handlePrevious() {
     stepMeta.saveNow?.();
     previousStep();
+    updateStepInUrl(Math.max(0, currentStep - 1));
   }
 
   function handleJump(step: number) {
     stepMeta.saveNow?.();
     setStep(step);
+    updateStepInUrl(step);
   }
 
   return (

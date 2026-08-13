@@ -37,7 +37,7 @@ interface WizardState {
   currentStep: number;
   stepMeta: StepMeta;
   history: HistoryState;
-  hydrate: (data: WizardData) => void;
+  hydrate: (data: WizardData, initialStep?: number) => void;
   setStep: (step: number) => void;
   nextStep: () => void;
   previousStep: () => void;
@@ -66,7 +66,8 @@ export const useWizardStore = create<WizardState>((set) => ({
   currentStep: 0,
   stepMeta: DEFAULT_STEP_META,
   history: EMPTY_HISTORY,
-  hydrate: (data) => set({ data, currentStep: 0, stepMeta: DEFAULT_STEP_META, history: EMPTY_HISTORY }),
+  hydrate: (data, initialStep = 0) =>
+    set({ data, currentStep: initialStep, stepMeta: DEFAULT_STEP_META, history: EMPTY_HISTORY }),
   setStep: (step) => set({ currentStep: step, stepMeta: DEFAULT_STEP_META }),
   nextStep: () =>
     set((state) => ({ currentStep: state.currentStep + 1, stepMeta: DEFAULT_STEP_META })),

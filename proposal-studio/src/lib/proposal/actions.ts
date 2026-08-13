@@ -195,7 +195,7 @@ async function duplicateProposalAction(proposalId: string): Promise<ActionResult
       supabase
         .from("proposal_narratives")
         .select(
-          "current_situation, detected_needs, objectives, detected_risks, opportunities, recommended_strategy",
+          "current_situation, detected_needs, objectives, detected_risks, opportunities, recommended_strategy, executive_summary, final_message",
         )
         .eq("proposal_id", proposalId)
         .maybeSingle(),
@@ -264,6 +264,8 @@ async function duplicateProposalAction(proposalId: string): Promise<ActionResult
       p_detected_risks: narrative.detected_risks ?? "",
       p_opportunities: narrative.opportunities ?? "",
       p_recommended_strategy: narrative.recommended_strategy ?? "",
+      p_executive_summary: narrative.executive_summary ?? "",
+      p_final_message: narrative.final_message ?? "",
       p_expected_revision: null as unknown as number,
     });
   }
