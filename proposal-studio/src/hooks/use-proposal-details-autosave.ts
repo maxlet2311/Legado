@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 
 import { useAutosave } from "@/hooks/use-autosave";
 import { updateProposalDetailsAction } from "@/lib/wizard/actions";
@@ -82,7 +82,12 @@ function useProposalDetailsAutosave(isValid: boolean) {
     // el caso de navegar antes de que venza el debounce.
   );
 
-  useEffect(() => {
+  // useLayoutEffect (no useEffect): ver la misma nota en use-narrative-autosave.ts.
+  // stepMeta.saveNow es lo que el wizard invoca antes de cambiar de paso; con
+  // useEffect queda una ventana en la que un click de navegación dispara un
+  // saveNow con el closure de ANTES de la última edición (título/producto),
+  // y ese último cambio nunca se envía.
+  useLayoutEffect(() => {
     setStepMeta({
       isValid,
       autosaveStatus: status,

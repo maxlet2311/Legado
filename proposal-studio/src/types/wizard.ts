@@ -113,7 +113,7 @@ export interface WizardComparison {
   revision: number | null;
 }
 
-export type AutosaveStatus = "idle" | "saving" | "saved" | "error" | "conflict";
+export type AutosaveStatus = "idle" | "pending" | "saving" | "saved" | "error" | "conflict";
 
 export interface WizardData {
   proposalId: string;

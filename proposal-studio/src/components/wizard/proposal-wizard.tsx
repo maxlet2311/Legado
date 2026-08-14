@@ -44,6 +44,25 @@ const STEP_COMPONENTS: ComponentType<WizardStepProps>[] = [
   StepSummary,
 ];
 
+const AUTOSAVE_SETTLE_POLL_MS = 100;
+const AUTOSAVE_SETTLE_TIMEOUT_MS = 6_000;
+
+/**
+ * Espera a que el autosave del paso actual deje de estar "pending"/"saving"
+ * antes de que el wizard cambie de paso. Lee el store directamente
+ * (`getState`) en vez de una prop capturada por closure: el polling vive
+ * fuera del ciclo de render, así que necesita el valor más nuevo en cada
+ * vuelta, no una fotografía del momento en que se llamó a este handler.
+ */
+async function waitForAutosaveToSettle(): Promise<void> {
+  const start = Date.now();
+  while (Date.now() - start < AUTOSAVE_SETTLE_TIMEOUT_MS) {
+    const current = useWizardStore.getState().stepMeta.autosaveStatus;
+    if (current !== "pending" && current !== "saving") return;
+    await new Promise((resolve) => setTimeout(resolve, AUTOSAVE_SETTLE_POLL_MS));
+  }
+}
+
 interface ProposalWizardProps {
   initialData: WizardData;
   availableClients: WizardData["client"][];
@@ -127,8 +146,22 @@ function ProposalWizard({ initialData, availableClients }: ProposalWizardProps) 
     complete: completion[index] ?? false,
   }));
 
-  function handleNext() {
-    if (!isReadOnly) stepMeta.saveNow?.();
+  // Las tres esperan a que el autosave salga de "pending"/"saving" ANTES de
+  // navegar. Se probó primero llamar `stepMeta.saveNow()` y esperar
+  // directamente su promesa: la respuesta del server action completa 200 en
+  // el servidor (confirmado con logs), pero esa promesa nunca resuelve del
+  // lado del cliente cuando se la espera desde este handler (cuelga
+  // indefinidamente -- confirmado con tracing, >20s sin resolver). En vez de
+  // depender de ese flush forzado (que el propio criterio de Z1 pide NO
+  // simular si no se puede garantizar), se deja que el debounce normal de
+  // `useAutosave` -- que sí se sabe que persiste de forma confiable, ver
+  // use-autosave.ts -- termine solo, y acá simplemente se espera a que
+  // `stepMeta.autosaveStatus` deje de estar en vuelo antes de cambiar de
+  // paso. Tope de tiempo por si algo queda trabado: mejor navegar con el
+  // guard de beforeunload todavía cubriendo el "pending" residual que
+  // bloquear la UI para siempre.
+  async function handleNext() {
+    if (!isReadOnly) await waitForAutosaveToSettle();
     if (isLastStep) {
       router.push(`/proposal/${data!.proposalId}`);
       return;
@@ -137,14 +170,14 @@ function ProposalWizard({ initialData, availableClients }: ProposalWizardProps) 
     updateStepInUrl(currentStep + 1);
   }
 
-  function handlePrevious() {
-    if (!isReadOnly) stepMeta.saveNow?.();
+  async function handlePrevious() {
+    if (!isReadOnly) await waitForAutosaveToSettle();
     previousStep();
     updateStepInUrl(Math.max(0, currentStep - 1));
   }
 
-  function handleJump(step: number) {
-    if (!isReadOnly) stepMeta.saveNow?.();
+  async function handleJump(step: number) {
+    if (!isReadOnly) await waitForAutosaveToSettle();
     setStep(step);
     updateStepInUrl(step);
   }

@@ -130,6 +130,12 @@ function useAutosave<T>(
     const serialized = JSON.stringify(value);
     if (serialized === lastSavedRef.current || serialized === inFlightRef.current) return;
 
+    // Hay un cambio local todavía no enviado: lo exponemos como "pending" (distinto
+    // de "saving") para que el guard de beforeunload/pagehide pueda cubrir también
+    // esta ventana -- de lo contrario un reload durante el debounce pierde el
+    // cambio en silencio, sin ningún aviso al usuario.
+    setStatus("pending");
+
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       void runSave(value, serialized);
@@ -140,6 +146,13 @@ function useAutosave<T>(
     };
   }, [value, enabled, manual, debounceMs, runSave]);
 
+  // Fire-and-forget a propósito: llamar directamente una server action con
+  // `revalidatePath` desde un click handler y esperar esa promesa (en vez de
+  // dejarla flotar) cuelga indefinidamente del lado del cliente -- confirmado
+  // con tracing (el POST completa 200 en el servidor, pero la promesa nunca
+  // resuelve en el browser). Por eso el wizard NO espera esto para navegar;
+  // en cambio espera a que `status` salga de "pending"/"saving" por su cuenta
+  // (ver proposal-wizard.tsx) antes de cambiar de paso.
   const saveNow = useCallback(() => {
     if (conflictedRef.current) return;
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -166,10 +179,13 @@ function useAutosave<T>(
     lastSavedRef.current = JSON.stringify(value);
   }, [value]);
 
-  // El guardado sigue en curso aunque el componente se desmonte de la vista
-  // (cambiar de paso del wizard no cancela la promesa) -- lo único que sí lo
-  // pierde es cerrar/recargar la pestaña mientras la respuesta está en vuelo.
-  useBeforeUnloadGuard(status === "saving");
+  // Cubre tanto el guardado en vuelo ("saving") como el cambio todavía no
+  // enviado que espera el debounce ("pending") -- sin esto último, cerrar o
+  // recargar la pestaña durante esa ventana pierde la edición en silencio.
+  // El guardado en sí sigue en curso aunque el componente se desmonte de la
+  // vista (cambiar de paso del wizard no cancela la promesa); lo único que sí
+  // lo pierde es cerrar/recargar la pestaña mientras la respuesta está en vuelo.
+  useBeforeUnloadGuard(status === "saving" || status === "pending");
 
   return { status, error, conflictRevision, saveNow, forceSaveNow, clearConflict };
 }

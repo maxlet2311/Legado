@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 
 import { useAutosave } from "@/hooks/use-autosave";
 import { upsertNarrativeAction } from "@/lib/wizard/actions";
@@ -76,7 +76,16 @@ function useNarrativeAutosave(isValid: boolean) {
     // el caso de navegar antes de que venza el debounce.
   );
 
-  useEffect(() => {
+  // useLayoutEffect (no useEffect): stepMeta.saveNow es lo que el wizard invoca
+  // para volcar el cambio pendiente antes de cambiar de paso (handleNext/
+  // handleJump). Con useEffect (efecto "pasivo", corre después de pintar) hay
+  // una ventana entre "el usuario tipeó" y "stepMeta.saveNow ya conoce ese
+  // texto": un click de navegación disparado dentro de esa ventana ejecuta un
+  // saveNow con el closure viejo y la última tecla se pierde en silencio.
+  // useLayoutEffect corre sincrónicamente tras el commit, antes de que el
+  // navegador procese el próximo evento (incl. el click de "Siguiente"), así
+  // que cierra esa ventana.
+  useLayoutEffect(() => {
     setStepMeta({
       isValid,
       autosaveStatus: status,

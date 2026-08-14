@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, FileStack, Eye } from "lucide-react";
 
@@ -17,19 +17,19 @@ import type { WizardStepProps } from "@/types/wizard";
 
 function StepSummary({ onJumpToStep }: WizardStepProps) {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const data = useWizardStore((state) => state.data);
   const [error, setError] = useState<string | undefined>();
   const [isPending, startTransition] = useTransition();
   const [versionError, setVersionError] = useState<string | undefined>();
   const [isEmitting, startEmitting] = useTransition();
-
-  // Persistido en la URL (no en useState local): un Server Action que revalida
-  // datos puede forzar el remount del árbol cliente antes de que el estado
-  // local llegue a pintarse (ver informe Fase 3, bug de "Ver preview" ausente).
-  const emittedVersionId = searchParams.get("emittedVersionId") ?? undefined;
-  const emittedVersionNumber = searchParams.get("emittedVersionNumber") ?? undefined;
+  // Estado local (no URL): a diferencia del bug de "Ver preview" de Fase 3, esta
+  // acción revalida `/proposal/${proposalId}` -- una ruta distinta a la página
+  // actual (`/proposal/${proposalId}/edit`) -- así que no fuerza el remount que
+  // motivaba pasar por la URL. El round-trip por `router.replace` era la causa
+  // real de que el mensaje de éxito nunca llegara a pintarse: el refresh
+  // automático que Next dispara tras cualquier `revalidatePath` en una server
+  // action competía con el `replace` inmediatamente posterior.
+  const [emittedVersion, setEmittedVersion] = useState<{ id: string; versionNumber: number } | undefined>();
 
   const deterministicFindings = useMemo(() => (data ? runDeterministicChecks(data) : []), [data]);
   const hasBlockingErrors = deterministicFindings.some((f) => f.severity === "error");
@@ -61,10 +61,7 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
         setVersionError(result.error ?? "No pudimos emitir la versión.");
         return;
       }
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("emittedVersionId", result.data.id);
-      params.set("emittedVersionNumber", String(result.data.versionNumber));
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      setEmittedVersion({ id: result.data.id, versionNumber: result.data.versionNumber });
     });
   }
 
@@ -183,16 +180,16 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
           finalizada). Podés seguir editando el wizard después: no altera versiones ya emitidas.
         </p>
         {versionError && <p className="text-small text-error">{versionError}</p>}
-        {emittedVersionId && (
+        {emittedVersion && (
           <p className="flex items-center gap-2 text-small font-semibold text-success">
             <CheckCircle2 className="h-4 w-4" />
-            Versión {emittedVersionNumber ? `#${emittedVersionNumber} ` : ""}emitida correctamente.
+            Versión #{emittedVersion.versionNumber} emitida correctamente.
           </p>
         )}
         <div className="flex items-center gap-3">
-          {emittedVersionId ? (
+          {emittedVersion ? (
             <Button variant="secondary" asChild>
-              <Link href={`/proposal/${proposalId}/versions/${emittedVersionId}/preview`}>
+              <Link href={`/proposal/${proposalId}/versions/${emittedVersion.id}/preview`}>
                 <Eye className="h-4 w-4" />
                 Ver preview
               </Link>

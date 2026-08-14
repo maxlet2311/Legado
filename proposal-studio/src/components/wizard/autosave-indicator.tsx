@@ -16,6 +16,7 @@ interface AutosaveIndicatorProps {
 
 const LABELS: Record<AutosaveStatus, string> = {
   idle: "",
+  pending: "Cambios sin guardar",
   saving: "Guardando…",
   saved: "Guardado",
   error: "Error al guardar",
@@ -37,7 +38,7 @@ function AutosaveIndicator({
         className={cn(
           "flex items-center gap-2 text-caption font-semibold",
           status === "saved" && "text-success",
-          status === "saving" && "text-on-surface-variant",
+          (status === "saving" || status === "pending") && "text-on-surface-variant",
           (status === "error" || status === "conflict") && "text-error",
         )}
         role="status"
@@ -45,6 +46,7 @@ function AutosaveIndicator({
         title={status === "error" ? error : undefined}
       >
         {status === "saving" && <Spinner className="h-3.5 w-3.5" />}
+        {status === "pending" && <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />}
         {status === "saved" && <Check className="h-3.5 w-3.5" />}
         {(status === "error" || status === "conflict") && <AlertTriangle className="h-3.5 w-3.5" />}
         {LABELS[status]}
