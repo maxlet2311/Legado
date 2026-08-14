@@ -12,14 +12,17 @@ export const metadata: Metadata = {
   title: "Nueva Propuesta — Proposal Studio™",
 };
 
+// Mismo orden que STEPS en proposal-wizard.tsx (auditoría UX/UI, hallazgo
+// P2: este preview mostraba Recomendación/Beneficios invertidos respecto al
+// wizard real).
 const wizardSteps = [
   { label: "Cliente" },
   { label: "Información" },
   { label: "Diagnóstico" },
   { label: "Alternativas" },
-  { label: "Recomendación" },
   { label: "Beneficios" },
   { label: "Comparativa" },
+  { label: "Recomendación" },
   { label: "Resumen" },
 ];
 

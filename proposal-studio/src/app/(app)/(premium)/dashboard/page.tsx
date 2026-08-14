@@ -79,7 +79,12 @@ export default async function DashboardPage() {
     { context: "/dashboard" },
   );
 
-  const firstName = profile?.full_name?.split(" ")[0] ?? "asesor";
+  // Auditoría UX/UI, hallazgo P1: cuando el perfil no tiene full_name, algunos
+  // flujos de alta lo dejan en el email crudo -- mostrarlo tal cual desborda
+  // el saludo (Fraunces a tamaño display) en mobile y no es un nombre real.
+  // Si full_name parece un email, tratamos el nombre como ausente.
+  const rawName = profile?.full_name?.trim();
+  const firstName = rawName && !rawName.includes("@") ? rawName.split(" ")[0] : null;
   const totalCount = proposals?.length ?? 0;
   const draftCount = proposals?.filter((p) => p.status === "draft").length ?? 0;
   const completedCount = proposals?.filter((p) => p.status === "completed").length ?? 0;
@@ -89,7 +94,9 @@ export default async function DashboardPage() {
       <section className="relative overflow-hidden rounded-xl bg-primary px-8 py-10 shadow-md sm:px-12 sm:py-12">
         <div className="pointer-events-none absolute inset-0 bg-primary-container/20 mix-blend-overlay" />
         <div className="relative z-10 flex flex-col justify-center">
-          <h2 className="font-serif text-h2 font-extrabold tracking-tight text-white sm:text-display">Hola, {firstName}.</h2>
+          <h2 className="font-serif text-h2 font-extrabold tracking-tight text-white break-words sm:text-display">
+            {firstName ? `Hola, ${firstName}.` : "Hola."}
+          </h2>
           <p className="mt-3 max-w-2xl text-body-lg text-white/90">
             {totalCount > 0
               ? `Tenés ${totalCount} propuesta${totalCount === 1 ? "" : "s"} reciente${totalCount === 1 ? "" : "s"} en seguimiento.`
