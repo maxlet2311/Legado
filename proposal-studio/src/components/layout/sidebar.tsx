@@ -32,8 +32,8 @@ function Sidebar({ collapsed, onCollapsedChange, profile }: SidebarProps) {
       <div className="flex items-center justify-between p-6">
         {!collapsed && (
           <div>
-            <h1 className="text-h4 font-bold tracking-tight text-on-surface">Proposal Studio™</h1>
-            <p className="mt-1 text-caption text-on-surface-variant">Asesor Premium</p>
+            <h1 className="font-serif text-h4 font-extrabold tracking-tight text-on-surface">Proposal Studio™</h1>
+            <p className="mt-1 text-caption font-medium text-on-surface-variant">Asesor Premium</p>
           </div>
         )}
         <Button

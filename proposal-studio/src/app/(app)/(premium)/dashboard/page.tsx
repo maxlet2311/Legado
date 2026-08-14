@@ -80,18 +80,35 @@ export default async function DashboardPage() {
   );
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "asesor";
+  const totalCount = proposals?.length ?? 0;
+  const draftCount = proposals?.filter((p) => p.status === "draft").length ?? 0;
+  const completedCount = proposals?.filter((p) => p.status === "completed").length ?? 0;
 
   return (
     <ContentContainer>
-      <section className="relative overflow-hidden rounded-xl bg-primary px-12 py-12 shadow-sm">
+      <section className="relative overflow-hidden rounded-xl bg-primary px-8 py-10 shadow-md sm:px-12 sm:py-12">
         <div className="pointer-events-none absolute inset-0 bg-primary-container/20 mix-blend-overlay" />
         <div className="relative z-10 flex flex-col justify-center">
-          <h2 className="text-h2 font-extrabold tracking-tight text-white">Hola, {firstName}.</h2>
-          <p className="mt-4 max-w-2xl text-body-lg text-white/90">
-            {proposals && proposals.length > 0
-              ? `Tenés ${proposals.length} propuesta${proposals.length === 1 ? "" : "s"} registrada${proposals.length === 1 ? "" : "s"}.`
+          <h2 className="font-serif text-h2 font-extrabold tracking-tight text-white sm:text-display">Hola, {firstName}.</h2>
+          <p className="mt-3 max-w-2xl text-body-lg text-white/90">
+            {totalCount > 0
+              ? `Tenés ${totalCount} propuesta${totalCount === 1 ? "" : "s"} reciente${totalCount === 1 ? "" : "s"} en seguimiento.`
               : "Todavía no creaste ninguna propuesta. Empezá cargando tu primer cliente."}
           </p>
+
+          {totalCount > 0 && (
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-caption font-semibold text-white backdrop-blur-sm">
+                <span className="h-2 w-2 rounded-full bg-amber-400" aria-hidden="true" />
+                {draftCount} en Borrador
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-caption font-semibold text-white backdrop-blur-sm">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />
+                {completedCount} Finalizadas
+              </span>
+            </div>
+          )}
+
           <div className="mt-8">
             <NewProposalDialog clients={clients ?? []} />
           </div>
@@ -99,7 +116,7 @@ export default async function DashboardPage() {
       </section>
 
       <section>
-        <h3 className="mb-6 text-h3 font-bold text-on-surface">Acceso Rápido</h3>
+        <h3 className="mb-6 font-serif text-h3 font-bold text-on-surface">Acceso Rápido</h3>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           {quickAccess.map(({ href, icon: Icon, title, description, cta }) => {
             const content = (
@@ -136,7 +153,7 @@ export default async function DashboardPage() {
 
       <Card className="overflow-hidden">
         <div className="flex items-center justify-between border-b border-outline-variant px-8 py-6">
-          <h3 className="text-h3 font-bold text-on-surface">Actividad Reciente</h3>
+          <h3 className="font-serif text-h3 font-bold text-on-surface">Actividad Reciente</h3>
         </div>
 
         {proposalsError ? (
@@ -158,17 +175,16 @@ export default async function DashboardPage() {
                 <TableHead>Cliente</TableHead>
                 <TableHead className="hidden sm:table-cell">Fecha</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Acción</TableHead>
               </TableHeaderRow>
             </TableHeader>
             <TableBody>
               {proposals.map((proposal) => (
                 <TableRow key={proposal.id}>
                   <TableCell>
-                    {/* Sin prefetch: son N links dinámicos en viewport a la vez, y cada uno
-                        dispara auth + fetch de servidor en /proposal/[id] si se prefetchean todos. */}
-                    <Link href={`/proposal/${proposal.id}`} prefetch={false} className="flex items-center gap-3">
-                      <FileText className="h-4 w-4 text-primary" />
-                      <span className="text-body font-medium text-on-surface">{proposal.title}</span>
+                    <Link href={`/proposal/${proposal.id}`} prefetch={false} className="flex items-center gap-3 group">
+                      <FileText className="h-4 w-4 text-primary shrink-0 transition-transform group-hover:scale-110" />
+                      <span className="text-body font-medium text-on-surface group-hover:text-primary transition-colors">{proposal.title}</span>
                     </Link>
                   </TableCell>
                   <TableCell className="text-small text-on-surface">
@@ -179,6 +195,16 @@ export default async function DashboardPage() {
                   </TableCell>
                   <TableCell>
                     <StatusPill status={proposal.status as ProposalStatus} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Link
+                      href={proposal.status === "completed" ? `/proposal/${proposal.id}` : `/proposal/${proposal.id}/edit`}
+                      prefetch={false}
+                      className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-caption font-semibold text-primary hover:bg-primary/10 transition-colors"
+                    >
+                      {proposal.status === "completed" ? "Ver propuesta" : "Editar"}
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </Link>
                   </TableCell>
                 </TableRow>
               ))}

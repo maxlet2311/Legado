@@ -202,6 +202,19 @@ function ProposalWizard({ initialData, availableClients }: ProposalWizardProps) 
     >
       <ReadOnlyProposalBanner />
       <DuplicationReviewBanner />
+      <div className="mb-6 flex flex-col gap-1 border-b border-outline-variant/60 pb-4">
+        <div className="flex items-center justify-between">
+          <span className="text-caption font-semibold uppercase tracking-wider text-primary">
+            Bloque {currentStep + 1} de {STEPS.length} — {STEPS[currentStep]?.label ?? "Información"}
+          </span>
+          <span className="text-caption font-medium text-on-surface-variant">
+            {Math.round(((currentStep + 1) / STEPS.length) * 100)}% completado
+          </span>
+        </div>
+        <h2 className="font-serif text-h2 font-extrabold tracking-tight text-on-surface">
+          {STEPS[currentStep]?.label ?? "Información"}
+        </h2>
+      </div>
       <StepComponent onJumpToStep={setStep} availableClients={availableClients} isReadOnly={isReadOnly} />
     </WizardLayout>
   );

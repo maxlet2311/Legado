@@ -5,15 +5,15 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils/cn";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-small font-semibold transition-all duration-base ease-premium disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-small font-semibold transition-all duration-base ease-premium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        primary: "bg-primary text-on-primary hover:opacity-90 active:scale-press",
+        primary: "bg-primary text-on-primary hover:opacity-90 active:scale-press shadow-sm",
         secondary:
-          "bg-surface text-on-surface border border-outline-variant hover:bg-surface-container-low active:scale-press",
-        ghost: "text-on-surface-variant hover:bg-surface-container-low active:scale-press",
-        danger: "bg-error text-on-error hover:opacity-90 active:scale-press",
+          "bg-surface text-on-surface border border-outline-variant hover:bg-surface-container-low hover:border-outline active:scale-press shadow-xs",
+        ghost: "text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface active:scale-press",
+        danger: "bg-error text-on-error hover:opacity-90 active:scale-press shadow-sm",
       },
       size: {
         default: "h-12 px-6",

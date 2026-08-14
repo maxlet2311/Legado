@@ -21,7 +21,7 @@ function PreSummaryChecklist({ deterministicFindings, onJumpToStep }: PreSummary
     <Card className="p-6">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <h3 className="text-h4 font-semibold text-on-surface">Antes de emitir</h3>
+          <h3 className="font-serif text-h4 font-bold text-on-surface tracking-tight">Antes de emitir</h3>
           {hasAnyFindings ? (
             <Badge variant={blockingCount > 0 ? "error" : "warning"}>
               {totalFindings} {totalFindings === 1 ? "pendiente" : "pendientes"}

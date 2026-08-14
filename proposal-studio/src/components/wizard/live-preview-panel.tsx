@@ -76,17 +76,17 @@ function LivePreviewPanel() {
   if (!proposalId) return null;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface">
-      <div className="flex items-center justify-between border-b border-outline-variant px-4 py-2">
-        <span className="text-caption font-semibold text-on-surface-variant">Vista previa</span>
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-outline-variant/80 bg-surface shadow-md">
+      <div className="flex items-center justify-between border-b border-outline-variant/60 bg-surface-container-low px-4 py-2.5">
+        <span className="font-serif text-caption font-bold text-on-surface tracking-tight">Vista previa del documento</span>
         {updating ? (
-          <span className="flex items-center gap-1.5 text-caption text-on-surface-variant">
-            <Spinner className="h-3.5 w-3.5" />
+          <span className="flex items-center gap-1.5 text-caption font-medium text-primary">
+            <Spinner className="h-3.5 w-3.5 text-primary" />
             Actualizando…
           </span>
         ) : null}
       </div>
-      <div className="flex-1 overflow-auto p-4">
+      <div className="flex-1 overflow-auto bg-surface-container-lowest p-4">
         {error ? (
           <EmptyState
             icon={RefreshCw}
@@ -100,7 +100,7 @@ function LivePreviewPanel() {
           />
         ) : html ? (
           <div
-            className="ps-preview-scale origin-top-left"
+            className="ps-preview-scale origin-top-left shadow-sm"
             style={{ transform: "scale(0.55)", width: "182%" }}
             dangerouslySetInnerHTML={{ __html: html }}
           />

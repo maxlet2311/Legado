@@ -37,7 +37,7 @@ function PageHeader({ title, description, breadcrumbs, actions, className }: Pag
       ) : null}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-h2 font-bold tracking-tight text-on-surface">{title}</h1>
+          <h1 className="font-serif text-h2 font-extrabold tracking-tight text-on-surface">{title}</h1>
           {description ? (
             <p className="mt-1 text-body text-on-surface-variant">{description}</p>
           ) : null}

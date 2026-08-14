@@ -80,6 +80,7 @@
 
   /* Tipografía */
   --font-sans: var(--font-inter), "SF Pro Display", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), "Georgia", serif;
 
   --text-display: 3rem;
   --text-display--line-height: 3.5rem;
