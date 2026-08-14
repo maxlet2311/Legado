@@ -17,10 +17,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Copy, GripVertical, Plus, Trash2 } from "lucide-react";
+import { Columns3, Copy, GripVertical, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils/cn";
 import type { WizardComparisonColumn, WizardComparisonRow } from "@/types/wizard";
@@ -202,6 +203,34 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
     if (moved === undefined) return;
     next.splice(newIndex, 0, moved);
     onChange(columns, next);
+  }
+
+  // Auditoría UX/UI, hallazgo P2: la tabla vacía se veía como dos botones
+  // sueltos flotando en el espacio, sin explicar para qué sirve esta
+  // comparativa ni cómo se relaciona con las alternativas ya cargadas en el
+  // bloque anterior -- se percibía rota más que "todavía sin datos".
+  if (columns.length === 0 && rows.length === 0) {
+    return (
+      <EmptyState
+        icon={Columns3}
+        title="Todavía no armaste la comparativa"
+        description="Agregá una columna por cada alternativa que quieras comparar (ej. Aseguradora Norte, Aseguradora Sur) y una fila por cada criterio (cobertura, costo mensual, exclusiones). Queda lista para el PDF."
+        action={
+          !isReadOnly ? (
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button type="button" variant="secondary" size="sm" onClick={addColumn}>
+                <Plus className="h-4 w-4" />
+                Agregar columna
+              </Button>
+              <Button type="button" variant="secondary" size="sm" onClick={addRow}>
+                <Plus className="h-4 w-4" />
+                Agregar fila
+              </Button>
+            </div>
+          ) : undefined
+        }
+      />
+    );
   }
 
   return (
