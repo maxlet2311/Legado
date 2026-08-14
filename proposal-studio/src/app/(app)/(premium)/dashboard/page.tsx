@@ -4,6 +4,7 @@ import { FileText, BookOpen, BadgeCheck, SlidersHorizontal, ChevronRight } from 
 
 import { ContentContainer } from "@/components/layout/content-container";
 import { StatusPill, type ProposalStatus } from "@/components/layout/status-pill";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Table, TableHeader, TableHeaderRow, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
@@ -88,6 +89,11 @@ export default async function DashboardPage() {
   const totalCount = proposals?.length ?? 0;
   const draftCount = proposals?.filter((p) => p.status === "draft").length ?? 0;
   const completedCount = proposals?.filter((p) => p.status === "completed").length ?? 0;
+  // Stitch North Star, ADOPTAR 6 ("Continuar donde quedaste"): `proposals`
+  // ya viene ordenado por updated_at desc, así que el primer borrador de esa
+  // misma lista es, por definición, el que se tocó más recientemente -- sin
+  // query nueva.
+  const mostRecentDraft = proposals?.find((p) => p.status === "draft") ?? null;
 
   return (
     <ContentContainer>
@@ -121,6 +127,29 @@ export default async function DashboardPage() {
           </div>
         </div>
       </section>
+
+      {mostRecentDraft && (
+        <Card className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary">
+              <FileText className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-caption font-bold uppercase tracking-wider text-primary">Continuar donde quedaste</p>
+              <p className="text-h4 font-bold text-on-surface">{mostRecentDraft.title}</p>
+              <p className="text-small text-on-surface-variant">
+                {mostRecentDraft.clients?.full_name ?? "Sin cliente"} · última edición {formatDate(mostRecentDraft.updated_at)}
+              </p>
+            </div>
+          </div>
+          <Button asChild className="shrink-0">
+            <Link href={`/proposal/${mostRecentDraft.id}/edit`} prefetch={false}>
+              Continuar propuesta
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </Card>
+      )}
 
       <section>
         <h3 className="mb-6 font-serif text-h3 font-bold text-on-surface">Acceso Rápido</h3>
