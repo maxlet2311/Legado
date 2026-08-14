@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { useAutosave } from "@/hooks/use-autosave";
 import { upsertNarrativeAction } from "@/lib/wizard/actions";
@@ -17,6 +17,15 @@ function useNarrativeAutosave(isValid: boolean) {
   const setStepMeta = useWizardStore((state) => state.setStepMeta);
   const setNarrative = useWizardStore((state) => state.setNarrative);
 
+  // `revision` se excluye del payload memoizado a propósito: cada guardado
+  // exitoso actualiza `data.narrative.revision` en el store, así que incluirla
+  // acá haría que el propio guardado disparase el próximo (loop infinito de
+  // autoguardado, con conflictos espurios cuando dos vueltas se solapan). Se
+  // lee al momento de guardar vía `revisionRef`, no como parte de la identidad
+  // que dispara el autoguardado.
+  const revisionRef = useRef(data?.narrative.revision ?? null);
+  revisionRef.current = data?.narrative.revision ?? null;
+
   // Memoizado por valor: ver use-proposal-details-autosave.ts para por qué un literal
   // nuevo en cada render acá dispara un loop infinito de re-renders.
   const payload = useMemo(
@@ -32,7 +41,6 @@ function useNarrativeAutosave(isValid: boolean) {
             recommended_strategy: data.narrative.recommended_strategy,
             executive_summary: data.narrative.executive_summary,
             final_message: data.narrative.final_message,
-            expected_revision: data.narrative.revision,
           }
         : null,
     // Deps intencionalmente granulares (no `data`): ver use-proposal-details-autosave.ts.
@@ -47,7 +55,6 @@ function useNarrativeAutosave(isValid: boolean) {
       data?.narrative.recommended_strategy,
       data?.narrative.executive_summary,
       data?.narrative.final_message,
-      data?.narrative.revision,
     ],
   );
 
@@ -55,7 +62,7 @@ function useNarrativeAutosave(isValid: boolean) {
     payload,
     async (value) => {
       if (!value) return;
-      const result = await upsertNarrativeAction(value);
+      const result = await upsertNarrativeAction({ ...value, expected_revision: revisionRef.current });
       if (result.conflict) {
         return { conflict: true, currentRevision: result.currentRevision };
       }
@@ -78,9 +85,10 @@ function useNarrativeAutosave(isValid: boolean) {
       conflictRevision,
       resolveKeepMine: () => {
         if (!payload) return;
-        const revision = conflictRevision ?? payload.expected_revision;
+        const revision = conflictRevision ?? revisionRef.current;
+        revisionRef.current = revision;
         setNarrative({ revision });
-        forceSaveNow({ ...payload, expected_revision: revision });
+        forceSaveNow(payload);
       },
       resolveReload: async () => {
         if (!data) return;

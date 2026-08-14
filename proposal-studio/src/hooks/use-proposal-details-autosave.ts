@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { useAutosave } from "@/hooks/use-autosave";
 import { updateProposalDetailsAction } from "@/lib/wizard/actions";
@@ -21,6 +21,15 @@ function useProposalDetailsAutosave(isValid: boolean) {
   const setStepMeta = useWizardStore((state) => state.setStepMeta);
   const setMeta = useWizardStore((state) => state.setMeta);
 
+  // `revision` se excluye del payload memoizado a propósito: cada guardado
+  // exitoso actualiza `data.meta.revision` en el store, así que incluirla acá
+  // haría que el propio guardado disparase el próximo (loop infinito de
+  // autoguardado, con conflictos espurios cuando dos vueltas se solapan). Se
+  // lee al momento de guardar vía `revisionRef`, no como parte de la identidad
+  // que dispara el autoguardado.
+  const revisionRef = useRef(data?.meta.revision);
+  revisionRef.current = data?.meta.revision;
+
   // Memoizado por valor: `useAutosave` expone `saveNow`/`forceSaveNow` con identidad
   // atada a este objeto (para comparar el valor vigente al guardar). Si `payload` fuera
   // un literal nuevo en cada render, esas funciones cambiarían de referencia en cada
@@ -38,7 +47,6 @@ function useProposalDetailsAutosave(isValid: boolean) {
             product: data.meta.product,
             currency: data.meta.currency,
             internal_notes: data.meta.internal_notes,
-            expected_revision: data.meta.revision,
           }
         : null,
     // Deps intencionalmente granulares (no `data`): así el objeto solo cambia de
@@ -53,7 +61,6 @@ function useProposalDetailsAutosave(isValid: boolean) {
       data?.meta.product,
       data?.meta.currency,
       data?.meta.internal_notes,
-      data?.meta.revision,
     ],
   );
 
@@ -61,7 +68,7 @@ function useProposalDetailsAutosave(isValid: boolean) {
     payload,
     async (value) => {
       if (!value) return;
-      const result = await updateProposalDetailsAction(value);
+      const result = await updateProposalDetailsAction({ ...value, expected_revision: revisionRef.current });
       if (result.conflict) {
         return { conflict: true, currentRevision: result.currentRevision };
       }
@@ -84,9 +91,10 @@ function useProposalDetailsAutosave(isValid: boolean) {
       conflictRevision,
       resolveKeepMine: () => {
         if (!payload) return;
-        const revision = conflictRevision ?? payload.expected_revision;
+        const revision = conflictRevision ?? revisionRef.current;
+        revisionRef.current = revision;
         setMeta({ revision });
-        forceSaveNow({ ...payload, expected_revision: revision });
+        forceSaveNow(payload);
       },
       resolveReload: async () => {
         if (!data) return;

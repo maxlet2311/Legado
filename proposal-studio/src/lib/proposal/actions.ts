@@ -250,7 +250,10 @@ async function duplicateProposalAction(proposalId: string): Promise<ActionResult
       p_product: source.product,
       p_currency: source.currency,
       p_internal_notes: "",
-      p_expected_revision: 0,
+      // create_draft_proposal siempre inserta con revision = 1 (default de columna,
+      // sin overrides) -- 0 acá chocaba contra la concurrencia optimista y el error
+      // (descartado sin chequear) dejaba `product` en null en toda copia.
+      p_expected_revision: 1,
     });
   }
 
