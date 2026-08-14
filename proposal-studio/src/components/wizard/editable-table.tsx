@@ -305,7 +305,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
           </table>
         </DndContext>
       </div>
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Button type="button" variant="secondary" size="sm" onClick={addColumn} disabled={isReadOnly}>
           <Plus className="h-4 w-4" />
           Agregar columna

@@ -82,7 +82,7 @@ function WizardLayout({ outline, children, footer, preview }: WizardLayoutProps)
         ) : null}
       </div>
       <div className="sticky bottom-0 border-t border-outline-variant bg-surface px-4 py-4 sm:px-8">
-        <div className="mx-auto flex w-full max-w-240 items-center justify-between gap-4">
+        <div className="mx-auto flex w-full max-w-240 flex-wrap items-center justify-between gap-3">
           {footer}
         </div>
       </div>

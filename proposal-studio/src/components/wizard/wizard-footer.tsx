@@ -35,7 +35,7 @@ function WizardFooter({
 }: WizardFooterProps) {
   return (
     <>
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-4">
         <Button type="button" variant="secondary" onClick={onPrevious} disabled={!onPrevious}>
           <ArrowLeft className="h-4 w-4" />
           Anterior
