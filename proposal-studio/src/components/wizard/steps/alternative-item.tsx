@@ -46,6 +46,16 @@ interface AlternativeItemProps {
    * cambio en silencio.
    */
   onRegisterSave: (key: string, saveNow: (() => void) | null) => void;
+  /**
+   * Reporta al padre si este ítem tiene una edición pendiente/en vuelo
+   * (`useAutosave` status "pending"/"saving"). `StepAlternatives` agrega esto
+   * en `stepMeta.autosaveStatus`, que es lo único que `waitForAutosaveToSettle`
+   * lee antes de cambiar de paso -- sin este reporte, `stepMeta.autosaveStatus`
+   * quedaba fijo en "idle" y el wizard navegaba sin esperar el debounce de
+   * 2s, desmontando el ítem (y cancelando su `setTimeout` pendiente) antes de
+   * que el guardado llegara a dispararse.
+   */
+  onBusyChange: (key: string, busy: boolean) => void;
 }
 
 function AlternativeItem({
@@ -59,6 +69,7 @@ function AlternativeItem({
   onToggleCollapse,
   autoFocus = false,
   onRegisterSave,
+  onBusyChange,
 }: AlternativeItemProps) {
   const isReadOnly = useIsWizardReadOnly();
   const canSave = Boolean(
@@ -170,6 +181,12 @@ function AlternativeItem({
     onRegisterSave(item.client_key, canSave ? saveNow : null);
     return () => onRegisterSave(item.client_key, null);
   }, [item.client_key, canSave, saveNow, onRegisterSave]);
+
+  useEffect(() => {
+    const busy = status === "pending" || status === "saving";
+    onBusyChange(item.client_key, busy);
+    return () => onBusyChange(item.client_key, false);
+  }, [item.client_key, status, onBusyChange]);
 
   useEffect(() => {
     if (!autoFocus) return;

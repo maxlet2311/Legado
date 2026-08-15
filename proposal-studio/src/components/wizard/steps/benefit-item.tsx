@@ -49,6 +49,8 @@ interface BenefitItemProps {
    * haga flush de ediciones sin guardar (ver mismo mecanismo en `AlternativeItem`).
    */
   onRegisterSave: (key: string, saveNow: (() => void) | null) => void;
+  /** Reporta si este ítem tiene una edición pendiente/en vuelo (ver mismo mecanismo en `AlternativeItem`). */
+  onBusyChange: (key: string, busy: boolean) => void;
 }
 
 function BenefitItem({
@@ -62,6 +64,7 @@ function BenefitItem({
   onToggleCollapse,
   autoFocus = false,
   onRegisterSave,
+  onBusyChange,
 }: BenefitItemProps) {
   const isReadOnly = useIsWizardReadOnly();
   const canSave = Boolean(item.title.trim() && item.description.trim() && item.icon.trim());
@@ -149,6 +152,12 @@ function BenefitItem({
     onRegisterSave(item.client_key, canSave ? saveNow : null);
     return () => onRegisterSave(item.client_key, null);
   }, [item.client_key, canSave, saveNow, onRegisterSave]);
+
+  useEffect(() => {
+    const busy = status === "pending" || status === "saving";
+    onBusyChange(item.client_key, busy);
+    return () => onBusyChange(item.client_key, false);
+  }, [item.client_key, status, onBusyChange]);
 
   useEffect(() => {
     if (!autoFocus) return;

@@ -14,6 +14,7 @@ import { BenefitItem } from "@/components/wizard/steps/benefit-item";
 import { deleteBenefitAction, reorderBenefitsAction, saveBenefitAction } from "@/lib/wizard/actions";
 import { buildBenefitFromLibraryContent } from "@/lib/library/build-from-content";
 import { createSaveRegistry } from "@/lib/wizard/save-registry";
+import { deriveListAutosaveStatus } from "@/lib/wizard/derive-list-autosave-status";
 import { useWizardStore } from "@/stores/wizard-store";
 import type { WizardBenefit, WizardStepProps } from "@/types/wizard";
 import type { LibraryBenefitContent, LibraryItem } from "@/types/library";
@@ -60,9 +61,27 @@ function StepBenefits({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
     registryRef.current.flushAll();
   }, []);
 
+  // Ver mismo mecanismo y justificación en step-alternatives.tsx: sin
+  // agregar el estado real "pending"/"saving" de cada ítem, `waitForAutosaveToSettle`
+  // navegaba de paso sin esperar el debounce y perdía la edición.
+  const [busyKeys, setBusyKeys] = useState<Set<string>>(new Set());
+  const handleBusyChange = useCallback((key: string, busy: boolean) => {
+    setBusyKeys((prev) => {
+      if (busy === prev.has(key)) return prev;
+      const next = new Set(prev);
+      if (busy) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
-    setStepMeta({ isValid: true, autosaveStatus: "idle", saveNow: flushAll });
-  }, [setStepMeta, flushAll]);
+    setStepMeta({
+      isValid: true,
+      autosaveStatus: deriveListAutosaveStatus(busyKeys),
+      saveNow: flushAll,
+    });
+  }, [setStepMeta, flushAll, busyKeys]);
 
   // Ver mismo comentario en step-alternatives.tsx: duplicar guarda fuera del
   // ciclo de useAutosave, así que necesita su propio guard de recarga.
@@ -251,6 +270,7 @@ function StepBenefits({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
               onToggleCollapse={() => toggleCollapsed(key)}
               autoFocus={key === lastAddedKey}
               onRegisterSave={registerSave}
+              onBusyChange={handleBusyChange}
             />
           );
         }}

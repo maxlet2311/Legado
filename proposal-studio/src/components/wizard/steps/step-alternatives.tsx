@@ -14,6 +14,7 @@ import { AlternativeItem } from "@/components/wizard/steps/alternative-item";
 import { deleteAlternativeAction, reorderAlternativesAction, saveAlternativeAction } from "@/lib/wizard/actions";
 import { buildAlternativeFromLibraryContent } from "@/lib/library/build-from-content";
 import { createSaveRegistry } from "@/lib/wizard/save-registry";
+import { deriveListAutosaveStatus } from "@/lib/wizard/derive-list-autosave-status";
 import { useWizardStore } from "@/stores/wizard-store";
 import type { WizardAlternative, WizardStepProps } from "@/types/wizard";
 import type { LibraryAlternativeContent, LibraryItem } from "@/types/library";
@@ -69,9 +70,30 @@ function StepAlternatives({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
     registryRef.current.flushAll();
   }, []);
 
+  // Agrega el estado "pending"/"saving" real de cada AlternativeItem: sin
+  // esto `stepMeta.autosaveStatus` quedaba fijo en "idle" y
+  // `waitForAutosaveToSettle` (proposal-wizard.tsx) navegaba de paso sin
+  // esperar el debounce de 2s, desmontando el ítem editado antes de que su
+  // guardado llegara a dispararse -- la causa raíz de la pérdida de datos en
+  // Alternativas.
+  const [busyKeys, setBusyKeys] = useState<Set<string>>(new Set());
+  const handleBusyChange = useCallback((key: string, busy: boolean) => {
+    setBusyKeys((prev) => {
+      if (busy === prev.has(key)) return prev;
+      const next = new Set(prev);
+      if (busy) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
-    setStepMeta({ isValid: true, autosaveStatus: "idle", saveNow: flushAll });
-  }, [setStepMeta, flushAll]);
+    setStepMeta({
+      isValid: true,
+      autosaveStatus: deriveListAutosaveStatus(busyKeys),
+      saveNow: flushAll,
+    });
+  }, [setStepMeta, flushAll, busyKeys]);
 
   // `duplicateItem` guarda de inmediato fuera del ciclo de useAutosave: si el
   // usuario recarga/cierra la pestaña mientras esa escritura sigue en vuelo,
@@ -276,6 +298,7 @@ function StepAlternatives({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
               onToggleCollapse={() => toggleCollapsed(key)}
               autoFocus={key === lastAddedKey}
               onRegisterSave={registerSave}
+              onBusyChange={handleBusyChange}
             />
           );
         }}
