@@ -1,5 +1,7 @@
 "use client";
 
+import { useId } from "react";
+
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +24,9 @@ function StepInfo() {
   const data = useWizardStore((state) => state.data);
   const setMeta = useWizardStore((state) => state.setMeta);
   const isReadOnly = useIsWizardReadOnly();
+  const proposalTypeId = useId();
+  const objectiveId = useId();
+  const currencyId = useId();
 
   const isValid = Boolean(data?.meta.title.trim() && data?.meta.product.trim());
   useProposalDetailsAutosave(isValid);
@@ -48,13 +53,13 @@ function StepInfo() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Tipo de propuesta</Label>
+            <Label htmlFor={proposalTypeId}>Tipo de propuesta</Label>
             <Select
               value={data.meta.proposal_type}
               disabled={isReadOnly}
               onValueChange={(value) => setMeta({ proposal_type: value as typeof data.meta.proposal_type })}
             >
-              <SelectTrigger>
+              <SelectTrigger id={proposalTypeId}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -64,7 +69,7 @@ function StepInfo() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Objetivo principal</Label>
+            <Label htmlFor={objectiveId}>Objetivo principal</Label>
             <Select
               value={data.meta.primary_objective}
               disabled={isReadOnly}
@@ -72,7 +77,7 @@ function StepInfo() {
                 setMeta({ primary_objective: value as typeof data.meta.primary_objective })
               }
             >
-              <SelectTrigger>
+              <SelectTrigger id={objectiveId}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -106,13 +111,13 @@ function StepInfo() {
         </h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Moneda</Label>
+            <Label htmlFor={currencyId}>Moneda</Label>
             <Select
               value={data.meta.currency}
               disabled={isReadOnly}
               onValueChange={(value) => setMeta({ currency: value as typeof data.meta.currency })}
             >
-              <SelectTrigger>
+              <SelectTrigger id={currencyId}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

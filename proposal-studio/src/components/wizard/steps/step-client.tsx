@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
@@ -33,6 +33,7 @@ function StepClient({ availableClients }: WizardStepProps) {
   const data = useWizardStore((state) => state.data);
   const setClient = useWizardStore((state) => state.setClient);
   const isReadOnly = useIsWizardReadOnly();
+  const clientSelectId = useId();
   const [clients, setClients] = useState(availableClients);
   const [open, setOpen] = useState(false);
   const [serverError, setServerError] = useState<string | undefined>();
@@ -73,7 +74,7 @@ function StepClient({ availableClients }: WizardStepProps) {
       description="Seleccioná un cliente existente o creá uno nuevo sin salir del wizard."
     >
       <div className="space-y-2">
-        <Label>Cliente</Label>
+        <Label htmlFor={clientSelectId}>Cliente</Label>
         <Select
           value={data.client.id || undefined}
           disabled={isReadOnly}
@@ -82,7 +83,7 @@ function StepClient({ availableClients }: WizardStepProps) {
             if (client) setClient(client);
           }}
         >
-          <SelectTrigger>
+          <SelectTrigger id={clientSelectId}>
             <SelectValue placeholder="Seleccioná un cliente" />
           </SelectTrigger>
           <SelectContent>
@@ -97,7 +98,7 @@ function StepClient({ availableClients }: WizardStepProps) {
       </div>
 
       {data.client.id && (
-        <div className="rounded-md border border-outline-variant bg-surface-container-low p-4 text-small text-on-surface-variant">
+        <div className="rounded-lg border border-outline-variant/40 bg-surface-container-low p-4 text-small text-on-surface-variant">
           <p className="font-semibold text-on-surface">{data.client.full_name}</p>
           <p>{data.client.email}</p>
           {data.client.phone && <p>{data.client.phone}</p>}
