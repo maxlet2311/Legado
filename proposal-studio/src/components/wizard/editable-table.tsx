@@ -235,7 +235,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto rounded-md border border-outline-variant">
+      <div className="overflow-x-auto rounded-lg border border-outline-variant/40">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <table className="w-full min-w-[640px] border-collapse text-small">
             <thead>

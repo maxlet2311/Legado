@@ -15,8 +15,8 @@ interface SummaryCardProps {
 
 function SummaryCard({ title, onEdit, children, empty, emptyLabel }: SummaryCardProps) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="rounded-lg border-outline-variant/40 shadow-none">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-outline-variant/40 pb-6">
         <CardTitle>{title}</CardTitle>
         {onEdit && (
           <Button type="button" variant="ghost" size="sm" onClick={onEdit}>

@@ -18,7 +18,7 @@ function PreSummaryChecklist({ deterministicFindings, onJumpToStep }: PreSummary
   const hasAnyFindings = totalFindings > 0;
 
   return (
-    <Card className="p-6">
+    <Card className="rounded-lg border-outline-variant/40 p-6 shadow-none">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <h3 className="font-serif text-h4 font-bold text-on-surface tracking-tight">Antes de emitir</h3>
