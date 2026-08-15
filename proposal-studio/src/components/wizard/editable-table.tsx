@@ -250,7 +250,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                         onChange={(event) => renameColumn(column.id, event.target.value)}
                         className="h-9"
                         aria-label="Título de columna"
-                        disabled={isReadOnly}
+                        readOnly={isReadOnly}
                       />
                       <Button
                         type="button"
@@ -290,7 +290,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                           onChange={(event) => renameRow(row.id, event.target.value)}
                           className="h-9"
                           aria-label="Título de fila"
-                          disabled={isReadOnly}
+                          readOnly={isReadOnly}
                         />
                         <Button
                           type="button"
@@ -323,7 +323,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                           onChange={(event) => setCell(row.id, column.id, event.target.value)}
                           className="h-9"
                           aria-label={`${row.label} — ${column.label}`}
-                          disabled={isReadOnly}
+                          readOnly={isReadOnly}
                         />
                       </td>
                     ))}

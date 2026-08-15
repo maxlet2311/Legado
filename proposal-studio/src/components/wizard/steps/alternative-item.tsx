@@ -199,7 +199,11 @@ function AlternativeItem({
   }
 
   return (
-    <div ref={containerRef} className="rounded-md border border-outline-variant p-5" data-testid="alternative-item">
+    <div
+      ref={containerRef}
+      className="rounded-lg border border-outline-variant/50 border-t-2 border-t-primary bg-surface-container-lowest p-5"
+      data-testid="alternative-item"
+    >
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
@@ -214,7 +218,7 @@ function AlternativeItem({
           )}
           {collapsed ? (
             <span className="min-w-0 truncate text-small">
-              <span className="font-semibold text-on-surface">
+              <span className="font-serif font-medium text-on-surface">
                 {item.title.trim() || "Alternativa sin título"}
               </span>
               {(item.insurance_company || item.product_name) && (
@@ -285,7 +289,7 @@ function AlternativeItem({
               ref={titleInputRef}
               value={item.title}
               onChange={(event) => updateField("title", event.target.value)}
-              disabled={isReadOnly}
+              readOnly={isReadOnly}
             />
           </div>
           <div className="space-y-2">
@@ -315,7 +319,7 @@ function AlternativeItem({
             rows={3}
             value={item.description}
             onChange={(event) => updateField("description", event.target.value)}
-            disabled={isReadOnly}
+            readOnly={isReadOnly}
           />
         </div>
 
@@ -328,7 +332,7 @@ function AlternativeItem({
               id={companyId}
               value={item.insurance_company}
               onChange={(event) => updateField("insurance_company", event.target.value)}
-              disabled={isReadOnly}
+              readOnly={isReadOnly}
             />
           </div>
           <div className="space-y-2">
@@ -339,7 +343,7 @@ function AlternativeItem({
               id={productId}
               value={item.product_name}
               onChange={(event) => updateField("product_name", event.target.value)}
-              disabled={isReadOnly}
+              readOnly={isReadOnly}
             />
           </div>
         </div>
@@ -359,7 +363,7 @@ function AlternativeItem({
                   event.target.value === "" ? null : Number(event.target.value),
                 )
               }
-              disabled={isReadOnly}
+              readOnly={isReadOnly}
             />
           </div>
           <div className="space-y-2">
@@ -391,7 +395,7 @@ function AlternativeItem({
               onChange={(event) =>
                 updateDetails("advantages", event.target.value.split("\n"))
               }
-              disabled={isReadOnly}
+              readOnly={isReadOnly}
             />
           </div>
           <div className="space-y-2">
@@ -403,7 +407,7 @@ function AlternativeItem({
               onChange={(event) =>
                 updateDetails("disadvantages", event.target.value.split("\n"))
               }
-              disabled={isReadOnly}
+              readOnly={isReadOnly}
             />
           </div>
         </div>
@@ -415,7 +419,7 @@ function AlternativeItem({
             rows={2}
             value={item.details.notes}
             onChange={(event) => updateDetails("notes", event.target.value)}
-            disabled={isReadOnly}
+            readOnly={isReadOnly}
           />
         </div>
       </div>

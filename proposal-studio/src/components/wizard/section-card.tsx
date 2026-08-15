@@ -19,8 +19,8 @@ function SectionCard({ title, description, actions, children, className, collaps
   const showBody = !collapsible || !collapsed;
 
   return (
-    <Card className={cn("w-full", className)}>
-      <CardHeader className="flex flex-row items-start justify-between gap-4">
+    <Card className={cn("w-full rounded-lg border-outline-variant/40 shadow-none", className)}>
+      <CardHeader className="flex flex-row items-start justify-between gap-4 border-b border-outline-variant/40 pb-6">
         <button
           type="button"
           onClick={collapsible ? () => setCollapsed((prev) => !prev) : undefined}
@@ -35,13 +35,13 @@ function SectionCard({ title, description, actions, children, className, collaps
               <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-on-surface-variant" />
             ))}
           <div>
-            <CardTitle>{title}</CardTitle>
+            <CardTitle className="font-medium tracking-tight">{title}</CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
           </div>
         </button>
         {actions}
       </CardHeader>
-      {showBody && <CardContent className="space-y-6">{children}</CardContent>}
+      {showBody && <CardContent className="space-y-8 pt-8">{children}</CardContent>}
     </Card>
   );
 }

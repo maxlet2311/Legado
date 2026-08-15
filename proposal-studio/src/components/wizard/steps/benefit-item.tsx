@@ -159,7 +159,11 @@ function BenefitItem({
   }, []);
 
   return (
-    <div ref={containerRef} className="rounded-md border border-outline-variant p-5" data-testid="benefit-item">
+    <div
+      ref={containerRef}
+      className="rounded-lg border border-outline-variant/50 border-t-2 border-t-secondary bg-surface-container-lowest p-5"
+      data-testid="benefit-item"
+    >
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
@@ -175,9 +179,9 @@ function BenefitItem({
           {collapsed ? (
             <span className="flex min-w-0 items-center gap-2 text-small">
               {ItemIcon && (
-                <ItemIcon className="h-4 w-4 shrink-0 text-primary" />
+                <ItemIcon className="h-4 w-4 shrink-0 text-secondary" />
               )}
-              <span className="truncate font-semibold text-on-surface">
+              <span className="truncate font-serif font-medium text-on-surface">
                 {item.title.trim() || "Beneficio sin título"}
               </span>
             </span>
@@ -240,7 +244,7 @@ function BenefitItem({
               ref={titleInputRef}
               value={item.title}
               onChange={(event) => updateField("title", event.target.value)}
-              disabled={isReadOnly}
+              readOnly={isReadOnly}
             />
           </div>
           <div className="space-y-2">
@@ -273,7 +277,7 @@ function BenefitItem({
             rows={2}
             value={item.description}
             onChange={(event) => updateField("description", event.target.value)}
-            disabled={isReadOnly}
+            readOnly={isReadOnly}
           />
         </div>
 

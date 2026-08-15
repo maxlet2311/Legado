@@ -49,6 +49,7 @@ function StepRecommendation() {
         onChange={(value) => setNarrative({ recommended_strategy: value })}
         hint="Este texto es el corazón de la propuesta: explicá por qué esta es la mejor estrategia para el cliente."
         disabled={isReadOnly}
+        className="border-l-2 border-secondary/40 pl-4"
       />
       <RichTextarea
         label="Resumen ejecutivo"
