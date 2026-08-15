@@ -20,6 +20,7 @@ import { StepSummary } from "@/components/wizard/steps/step-summary";
 import { useWizardStore } from "@/stores/wizard-store";
 import { useFocusModeStore } from "@/stores/focus-mode-store";
 import { clampRequestedStep, computeCompletion } from "@/lib/wizard/step-completion";
+import { isStepUnsettled } from "@/lib/wizard/step-unsettled";
 import type { WizardData, WizardStepProps } from "@/types/wizard";
 
 const STEPS = [
@@ -58,7 +59,11 @@ async function waitForAutosaveToSettle(): Promise<void> {
   const start = Date.now();
   while (Date.now() - start < AUTOSAVE_SETTLE_TIMEOUT_MS) {
     const current = useWizardStore.getState().stepMeta.autosaveStatus;
-    if (current !== "pending" && current !== "saving") return;
+    // `isStepUnsettled()` cubre la ventana entre que una acción mutante
+    // manual (duplicateItem/confirmRemove/reorder) arranca y que el efecto
+    // del componente llega a reflejar "saving" en `stepMeta.autosaveStatus`
+    // -- ver step-unsettled.ts.
+    if ((current !== "pending" && current !== "saving") && !isStepUnsettled()) return;
     await new Promise((resolve) => setTimeout(resolve, AUTOSAVE_SETTLE_POLL_MS));
   }
 }

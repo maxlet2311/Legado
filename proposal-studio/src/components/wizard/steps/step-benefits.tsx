@@ -15,6 +15,7 @@ import { deleteBenefitAction, reorderBenefitsAction, saveBenefitAction } from "@
 import { buildBenefitFromLibraryContent } from "@/lib/library/build-from-content";
 import { createSaveRegistry } from "@/lib/wizard/save-registry";
 import { deriveListAutosaveStatus } from "@/lib/wizard/derive-list-autosave-status";
+import { beginUnsettledAction } from "@/lib/wizard/step-unsettled";
 import { useWizardStore } from "@/stores/wizard-store";
 import type { WizardBenefit, WizardStepProps } from "@/types/wizard";
 import type { LibraryBenefitContent, LibraryItem } from "@/types/library";
@@ -132,6 +133,15 @@ function StepBenefits({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
   // inmediato posterior no podría persistirla y el preview quedaría desincronizado.
   async function duplicateItem(index: number) {
     if (isReadOnly) return;
+    const release = beginUnsettledAction();
+    try {
+      await duplicateItemUnsettled(index);
+    } finally {
+      release();
+    }
+  }
+
+  async function duplicateItemUnsettled(index: number) {
     pushHistorySnapshot();
     const source = benefits[index];
     if (!source) return;
@@ -195,6 +205,15 @@ function StepBenefits({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
     if (isReadOnly) return;
     const index = pendingRemoveIndex;
     if (index === null) return;
+    const release = beginUnsettledAction();
+    try {
+      await confirmRemoveUnsettled(index);
+    } finally {
+      release();
+    }
+  }
+
+  async function confirmRemoveUnsettled(index: number) {
     pushHistorySnapshot();
     const item = benefits[index];
     const previous = benefits;
@@ -214,12 +233,17 @@ function StepBenefits({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
 
   async function reorder(next: WizardBenefit[]) {
     if (isReadOnly) return;
-    pushHistorySnapshot();
-    const withOrder = next.map((item, index) => ({ ...item, display_order: index }));
-    setBenefits(withOrder);
-    const orderedIds = withOrder.map((item) => item.id).filter((id): id is string => Boolean(id));
-    if (orderedIds.length > 0) {
-      await reorderBenefitsAction({ proposal_id: proposalId, ordered_ids: orderedIds });
+    const release = beginUnsettledAction();
+    try {
+      pushHistorySnapshot();
+      const withOrder = next.map((item, index) => ({ ...item, display_order: index }));
+      setBenefits(withOrder);
+      const orderedIds = withOrder.map((item) => item.id).filter((id): id is string => Boolean(id));
+      if (orderedIds.length > 0) {
+        await reorderBenefitsAction({ proposal_id: proposalId, ordered_ids: orderedIds });
+      }
+    } finally {
+      release();
     }
   }
 
