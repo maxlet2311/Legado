@@ -50,7 +50,8 @@ function RichTextarea({
         onChange={(event) => onChange(event.target.value.slice(0, maxLength))}
         placeholder={placeholder}
         rows={rows}
-        disabled={disabled}
+        readOnly={disabled}
+        aria-readonly={disabled}
       />
       {hint && <p className="text-caption text-on-surface-variant">{hint}</p>}
     </div>
