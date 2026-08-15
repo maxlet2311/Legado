@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useMemo, useRef } from "react";
 import { BookmarkPlus, Check, ChevronDown, ChevronRight, Copy, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -71,20 +71,41 @@ function BenefitItem({
   const containerRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
+  const categoryId = useId();
   const descriptionId = useId();
 
+  // Ver mismo comentario en alternative-item.tsx: `id`/`revision`/`display_order`
+  // se excluyen del valor que dispara el autoguardado para evitar un loop de
+  // autoguardado fantasma (mismo bug que 488f2c4 arregló para narrativa/detalles).
+  const idRef = useRef(item.id);
+  idRef.current = item.id;
+  const revisionRef = useRef(item.revision);
+  revisionRef.current = item.revision;
+  const displayOrderRef = useRef(item.display_order);
+  displayOrderRef.current = item.display_order;
+
+  const autosaveValue = useMemo(
+    () => ({
+      title: item.title,
+      description: item.description,
+      icon: item.icon,
+      category: item.category,
+    }),
+    [item.title, item.description, item.icon, item.category],
+  );
+
   const { status, error, conflictRevision, saveNow, forceSaveNow, clearConflict } = useAutosave(
-    item,
+    autosaveValue,
     async (value) => {
       const result = await saveBenefitAction({
-        id: value.id,
+        id: idRef.current,
         proposal_id: proposalId,
         title: value.title,
         description: value.description,
         icon: value.icon,
         category: value.category,
-        display_order: value.display_order,
-        expected_revision: value.revision,
+        display_order: displayOrderRef.current,
+        expected_revision: revisionRef.current,
       });
       if (result.conflict) {
         return { conflict: true, currentRevision: result.currentRevision };
@@ -127,8 +148,9 @@ function BenefitItem({
 
   function resolveKeepMine() {
     const revision = conflictRevision ?? item.revision;
+    revisionRef.current = revision;
     onChange({ ...item, revision });
-    forceSaveNow({ ...item, revision });
+    forceSaveNow(autosaveValue);
   }
 
   function updateField<K extends keyof WizardBenefit>(key: K, value: WizardBenefit[K]) {
@@ -257,13 +279,13 @@ function BenefitItem({
             />
           </div>
           <div className="space-y-2">
-            <Label>Categoría</Label>
+            <Label htmlFor={categoryId}>Categoría</Label>
             <Select
               value={item.category}
               disabled={isReadOnly}
               onValueChange={(value) => updateField("category", value as BenefitCategory)}
             >
-              <SelectTrigger>
+              <SelectTrigger id={categoryId}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

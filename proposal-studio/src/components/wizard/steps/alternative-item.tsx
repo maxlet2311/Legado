@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useMemo, useRef } from "react";
 import { BookmarkPlus, Check, ChevronDown, ChevronRight, Copy, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -78,18 +78,57 @@ function AlternativeItem({
   const containerRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
+  const categoryId = useId();
   const companyId = useId();
   const productId = useId();
   const premiumId = useId();
+  const currencyId = useId();
   const advantagesId = useId();
   const disadvantagesId = useId();
   const notesId = useId();
 
+  // `id`/`revision`/`display_order` se excluyen del valor que dispara el
+  // autoguardado: cada guardado exitoso actualiza `id`+`revision` en el store
+  // (`onSaved`) y cada reorder actualiza `display_order` -- incluirlos acá
+  // hacía que el propio guardado (o un reorder ajeno) disparara otro guardado
+  // más, entrando en un loop de autoguardado fantasma (mismo bug que 488f2c4
+  // arregló para narrativa/detalles, nunca aplicado a Alternativas). Se leen
+  // por ref al momento de guardar, no como parte de la identidad comparada.
+  const idRef = useRef(item.id);
+  idRef.current = item.id;
+  const revisionRef = useRef(item.revision);
+  revisionRef.current = item.revision;
+  const displayOrderRef = useRef(item.display_order);
+  displayOrderRef.current = item.display_order;
+
+  const autosaveValue = useMemo(
+    () => ({
+      title: item.title,
+      description: item.description,
+      category: item.category,
+      insurance_company: item.insurance_company,
+      product_name: item.product_name,
+      currency: item.currency,
+      monthly_premium: item.monthly_premium,
+      details: item.details,
+    }),
+    [
+      item.title,
+      item.description,
+      item.category,
+      item.insurance_company,
+      item.product_name,
+      item.currency,
+      item.monthly_premium,
+      item.details,
+    ],
+  );
+
   const { status, error, conflictRevision, saveNow, forceSaveNow, clearConflict } = useAutosave(
-    item,
+    autosaveValue,
     async (value) => {
       const result = await saveAlternativeAction({
-        id: value.id,
+        id: idRef.current,
         proposal_id: proposalId,
         title: value.title,
         description: value.description,
@@ -101,8 +140,8 @@ function AlternativeItem({
         advantages: value.details.advantages,
         disadvantages: value.details.disadvantages,
         notes: value.details.notes,
-        display_order: value.display_order,
-        expected_revision: value.revision,
+        display_order: displayOrderRef.current,
+        expected_revision: revisionRef.current,
       });
       if (result.conflict) {
         return { conflict: true, currentRevision: result.currentRevision };
@@ -160,8 +199,9 @@ function AlternativeItem({
 
   function resolveKeepMine() {
     const revision = conflictRevision ?? item.revision;
+    revisionRef.current = revision;
     onChange({ ...item, revision });
-    forceSaveNow({ ...item, revision });
+    forceSaveNow(autosaveValue);
   }
 
   function updateField<K extends keyof WizardAlternative>(key: K, value: WizardAlternative[K]) {
@@ -310,13 +350,13 @@ function AlternativeItem({
             />
           </div>
           <div className="space-y-2">
-            <Label>Categoría</Label>
+            <Label htmlFor={categoryId}>Categoría</Label>
             <Select
               value={item.category}
               disabled={isReadOnly}
               onValueChange={(value) => updateField("category", value as AlternativeCategory)}
             >
-              <SelectTrigger>
+              <SelectTrigger id={categoryId}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -384,13 +424,13 @@ function AlternativeItem({
             />
           </div>
           <div className="space-y-2">
-            <Label>Moneda</Label>
+            <Label htmlFor={currencyId}>Moneda</Label>
             <Select
               value={item.currency}
               disabled={isReadOnly}
               onValueChange={(value) => updateField("currency", value as WizardAlternative["currency"])}
             >
-              <SelectTrigger>
+              <SelectTrigger id={currencyId}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
