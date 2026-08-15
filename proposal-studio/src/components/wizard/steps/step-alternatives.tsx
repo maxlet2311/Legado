@@ -87,13 +87,25 @@ function StepAlternatives({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
     });
   }, []);
 
+  // `duplicateItem` guarda fuera del ciclo de useAutosave (ver comentario más
+  // abajo) y necesita comunicar su propio "saving"/"error" en stepMeta. Sin
+  // esto como parte del mismo efecto, una edición concurrente en otro ítem
+  // (que cambia `busyKeys`) re-ejecutaba el efecto de abajo y pisaba el
+  // estado del duplicado -- incluido un mensaje de error, que desaparecía
+  // del footer antes de que el asesor llegara a verlo.
+  const [actionAlert, setActionAlert] = useState<{ status: "saving" | "error"; error?: string } | null>(null);
+
   useEffect(() => {
+    if (actionAlert) {
+      setStepMeta({ isValid: true, autosaveStatus: actionAlert.status, autosaveError: actionAlert.error, saveNow: flushAll });
+      return;
+    }
     setStepMeta({
       isValid: true,
       autosaveStatus: deriveListAutosaveStatus(busyKeys),
       saveNow: flushAll,
     });
-  }, [setStepMeta, flushAll, busyKeys]);
+  }, [setStepMeta, flushAll, busyKeys, actionAlert]);
 
   // `duplicateItem` guarda de inmediato fuera del ciclo de useAutosave: si el
   // usuario recarga/cierra la pestaña mientras esa escritura sigue en vuelo,
@@ -155,7 +167,7 @@ function StepAlternatives({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
     setAlternatives(withOrder);
     setLastAddedKey(clone.client_key);
     setDuplicating(true);
-    setStepMeta({ autosaveStatus: "saving" });
+    setActionAlert({ status: "saving" });
 
     try {
       const result = await saveAlternativeAction({
@@ -181,16 +193,16 @@ function StepAlternatives({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
             i === cloneIndex ? { ...item, id: result.data!.id, revision: result.data!.revision } : item,
           ),
         );
-        setStepMeta({ autosaveStatus: "saved" });
+        setActionAlert(null);
       } else {
         // Rollback: el duplicado optimista nunca se persistió, no debe quedar
         // en pantalla como si lo hubiera hecho.
         setAlternatives(previous);
-        setStepMeta({ autosaveStatus: "error", autosaveError: result.error ?? "No pudimos duplicar la alternativa." });
+        setActionAlert({ status: "error", error: result.error ?? "No pudimos duplicar la alternativa." });
       }
     } catch {
       setAlternatives(previous);
-      setStepMeta({ autosaveStatus: "error", autosaveError: "No pudimos duplicar la alternativa." });
+      setActionAlert({ status: "error", error: "No pudimos duplicar la alternativa." });
     } finally {
       setDuplicating(false);
     }
@@ -222,7 +234,7 @@ function StepAlternatives({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
         // revisión, propuesta finalizada, etc.), no debe quedar en pantalla
         // como si lo hubiera hecho.
         setAlternatives(previous);
-        setStepMeta({ autosaveStatus: "error", autosaveError: result.error });
+        setActionAlert({ status: "error", error: result.error });
       }
     }
   }

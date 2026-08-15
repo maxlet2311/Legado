@@ -75,13 +75,24 @@ function StepBenefits({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
     });
   }, []);
 
+  // `duplicateItem`/`confirmRemove` guardan fuera del ciclo de useAutosave y
+  // necesitan comunicar su propio "saving"/"error" en stepMeta. Sin esto como
+  // parte del mismo efecto, una edición concurrente en otro ítem (que cambia
+  // `busyKeys`) pisaba ese estado -- incluido un mensaje de error, que
+  // desaparecía del footer antes de que el asesor llegara a verlo.
+  const [actionAlert, setActionAlert] = useState<{ status: "saving" | "error"; error?: string } | null>(null);
+
   useEffect(() => {
+    if (actionAlert) {
+      setStepMeta({ isValid: true, autosaveStatus: actionAlert.status, autosaveError: actionAlert.error, saveNow: flushAll });
+      return;
+    }
     setStepMeta({
       isValid: true,
       autosaveStatus: deriveListAutosaveStatus(busyKeys),
       saveNow: flushAll,
     });
-  }, [setStepMeta, flushAll, busyKeys]);
+  }, [setStepMeta, flushAll, busyKeys, actionAlert]);
 
   // Ver mismo comentario en step-alternatives.tsx: duplicar guarda fuera del
   // ciclo de useAutosave, así que necesita su propio guard de recarga.
@@ -139,7 +150,7 @@ function StepBenefits({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
     setBenefits(withOrder);
     setLastAddedKey(clone.client_key);
     setDuplicating(true);
-    setStepMeta({ autosaveStatus: "saving" });
+    setActionAlert({ status: "saving" });
 
     try {
       const result = await saveBenefitAction({
@@ -159,14 +170,14 @@ function StepBenefits({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
             i === cloneIndex ? { ...item, id: result.data!.id, revision: result.data!.revision } : item,
           ),
         );
-        setStepMeta({ autosaveStatus: "saved" });
+        setActionAlert(null);
       } else {
         setBenefits(previous);
-        setStepMeta({ autosaveStatus: "error", autosaveError: result.error ?? "No pudimos duplicar el beneficio." });
+        setActionAlert({ status: "error", error: result.error ?? "No pudimos duplicar el beneficio." });
       }
     } catch {
       setBenefits(previous);
-      setStepMeta({ autosaveStatus: "error", autosaveError: "No pudimos duplicar el beneficio." });
+      setActionAlert({ status: "error", error: "No pudimos duplicar el beneficio." });
     } finally {
       setDuplicating(false);
     }
@@ -196,7 +207,7 @@ function StepBenefits({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
         // revisión, propuesta finalizada, etc.), no debe quedar en pantalla
         // como si lo hubiera hecho.
         setBenefits(previous);
-        setStepMeta({ autosaveStatus: "error", autosaveError: result.error });
+        setActionAlert({ status: "error", error: result.error });
       }
     }
   }
