@@ -7,6 +7,7 @@ import { TopNavigation } from "@/components/layout/top-navigation";
 import { MobileNavDrawer } from "@/components/layout/mobile-nav-drawer";
 import { cn } from "@/lib/utils/cn";
 import { useFocusModeStore } from "@/stores/focus-mode-store";
+import { usePersistentBoolean } from "@/hooks/use-persistent-boolean";
 import type { Profile } from "@/lib/auth/session";
 
 interface AppShellProps {
@@ -15,7 +16,7 @@ interface AppShellProps {
 }
 
 function AppShell({ children, profile }: AppShellProps) {
-  const [collapsed, setCollapsed] = React.useState(false);
+  const [collapsed, setCollapsed] = usePersistentBoolean("ps:sidebar-collapsed", false);
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
   const focusMode = useFocusModeStore((state) => state.active);
 
@@ -37,7 +38,10 @@ function AppShell({ children, profile }: AppShellProps) {
           "min-h-screen overflow-x-hidden transition-all duration-base ease-premium",
           !focusMode && [
             "mt-18 min-h-[calc(100vh-4.5rem)] p-4 md:p-10",
-            collapsed ? "md:ml-20" : "md:ml-70",
+            // Entre md (768) y lg (1024) la sidebar siempre queda en icon-rail
+            // (ver sidebar.tsx) para no comerse un tercio del viewport en
+            // tablet -- el "valle de 768px" de la auditoría estructural.
+            collapsed ? "md:ml-20" : "md:ml-20 lg:ml-70",
           ],
         )}
       >

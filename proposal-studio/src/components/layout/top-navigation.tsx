@@ -29,7 +29,7 @@ function TopNavigation({ collapsed, profile, onOpenMobileNav }: TopNavigationPro
     <header
       className={cn(
         "fixed left-0 right-0 top-0 z-40 flex h-18 items-center justify-between border-b border-outline-variant bg-surface px-4 transition-all duration-base ease-premium md:px-10",
-        collapsed ? "md:left-20" : "md:left-70",
+        collapsed ? "md:left-20" : "md:left-20 lg:left-70",
       )}
     >
       <Button

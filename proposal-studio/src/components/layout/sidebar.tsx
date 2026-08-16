@@ -26,12 +26,15 @@ function Sidebar({ collapsed, onCollapsedChange, profile }: SidebarProps) {
     <aside
       className={cn(
         "fixed left-0 top-0 z-50 hidden h-screen flex-col border-r border-outline-variant bg-surface-container-low transition-all duration-base ease-premium md:flex",
-        collapsed ? "w-20" : "w-70",
+        // Icon-rail forzado en 768-1023 (md sin lg) sin importar `collapsed`:
+        // evita el valle de usabilidad donde una sidebar de escritorio
+        // completa se comía ~280px de un viewport de tablet.
+        collapsed ? "w-20" : "w-20 lg:w-70",
       )}
     >
       <div className="flex items-center justify-between p-6">
         {!collapsed && (
-          <div>
+          <div className="hidden lg:block">
             <h1 className="font-serif text-h4 font-extrabold tracking-tight text-on-surface">Proposal Studio™</h1>
             <p className="mt-1 text-caption font-medium text-on-surface-variant">Asesor Premium</p>
           </div>
@@ -63,7 +66,7 @@ function Sidebar({ collapsed, onCollapsedChange, profile }: SidebarProps) {
               )}
             >
               <Icon className="h-5 w-5 shrink-0" />
-              {!collapsed && <span>{label}</span>}
+              {!collapsed && <span className="hidden lg:inline">{label}</span>}
             </Link>
           );
         })}
@@ -78,7 +81,7 @@ function Sidebar({ collapsed, onCollapsedChange, profile }: SidebarProps) {
             )}
           >
             <ShieldCheck className="h-5 w-5 shrink-0" />
-            {!collapsed && <span>Administración</span>}
+            {!collapsed && <span className="hidden lg:inline">Administración</span>}
           </Link>
         )}
       </nav>
@@ -89,7 +92,7 @@ function Sidebar({ collapsed, onCollapsedChange, profile }: SidebarProps) {
           className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-small font-bold text-on-primary transition-all duration-fast ease-premium hover:opacity-90 active:scale-press"
         >
           <Plus className="h-4 w-4" />
-          {!collapsed && <span>Nueva Propuesta</span>}
+          {!collapsed && <span className="hidden lg:inline">Nueva Propuesta</span>}
         </Link>
         <div className="space-y-1">
           <form action={signOutAction}>
@@ -99,7 +102,7 @@ function Sidebar({ collapsed, onCollapsedChange, profile }: SidebarProps) {
               className="h-auto w-full justify-start gap-3 px-4 py-2 font-medium hover:bg-transparent hover:text-error active:scale-100"
             >
               <LogOut className="h-4 w-4" />
-              {!collapsed && <span>Cerrar Sesión</span>}
+              {!collapsed && <span className="hidden lg:inline">Cerrar Sesión</span>}
             </Button>
           </form>
         </div>
