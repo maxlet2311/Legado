@@ -2,6 +2,20 @@ import type { SnapshotComparison } from "@/lib/render/types";
 import { DocumentSection } from "@/components/document/document-section";
 
 /**
+ * Detecta si un valor de celda es inequívocamente un porcentaje ("55%",
+ * "7.5 %") para poder acompañarlo de una barra inline (Stitch North Star,
+ * "Comparativa de Opciones"). Deliberadamente estricto: no interpreta texto
+ * libre ("Moderada", "3 a 5 años") como dato numérico, así que la mayoría de
+ * las filas queda como texto plano sin inventar semántica.
+ */
+function parsePercent(value: string): number | null {
+  const match = /^\s*(\d{1,3}(?:\.\d+)?)\s*%\s*$/.exec(value);
+  if (!match) return null;
+  const parsed = Number.parseFloat(match[1] as string);
+  return Number.isFinite(parsed) ? Math.min(100, Math.max(0, parsed)) : null;
+}
+
+/**
  * Comparativa (06_PDF_ENGINE.md § Comparativa): una única pregunta, legible
  * en segundos. `thead` repite en cada página física (tablas de varias
  * columnas / filas); cada fila evita partirse (`break-inside: avoid`, ver
@@ -30,7 +44,20 @@ function ComparisonSection({ comparison }: { comparison: SnapshotComparison }) {
         <table className="ps-table" style={{ fontSize: "9pt" }}>
           <thead>
             <tr>
-              <th style={{ textAlign: "left", padding: "3mm 2mm", background: "var(--ps-primary)", color: "var(--ps-text-on-primary)" }} />
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "3mm 2mm",
+                  background: "var(--ps-primary)",
+                  color: "var(--ps-text-on-primary)",
+                  fontSize: "7.5pt",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  fontWeight: 600,
+                }}
+              >
+                Criterios de evaluación
+              </th>
               {comparison.columns.map((column) => (
                 <th
                   key={column.id}
@@ -39,6 +66,8 @@ function ComparisonSection({ comparison }: { comparison: SnapshotComparison }) {
                     padding: "3mm 2mm",
                     background: "var(--ps-primary)",
                     color: "var(--ps-text-on-primary)",
+                    fontFamily: "var(--ps-font-display)",
+                    fontSize: "10.5pt",
                     fontWeight: 600,
                   }}
                 >
@@ -51,11 +80,39 @@ function ComparisonSection({ comparison }: { comparison: SnapshotComparison }) {
             {comparison.rows.map((row, index) => (
               <tr key={row.id} style={{ background: index % 2 === 0 ? "transparent" : "color-mix(in srgb, var(--ps-primary) 5%, white)" }}>
                 <td style={{ padding: "2.5mm 2mm", fontWeight: 600, borderBottom: "1px solid #E5E1D3" }}>{row.label}</td>
-                {comparison.columns.map((column) => (
-                  <td key={column.id} style={{ padding: "2.5mm 2mm", borderBottom: "1px solid #E5E1D3" }}>
-                    {row.values[column.id] ?? ""}
-                  </td>
-                ))}
+                {comparison.columns.map((column) => {
+                  const rawValue = row.values[column.id] ?? "";
+                  const percent = parsePercent(rawValue);
+                  return (
+                    <td key={column.id} style={{ padding: "2.5mm 2mm", borderBottom: "1px solid #E5E1D3" }}>
+                      {percent === null ? (
+                        rawValue
+                      ) : (
+                        <div style={{ display: "flex", alignItems: "center", gap: "2mm" }}>
+                          <div
+                            style={{
+                              flex: 1,
+                              height: "1.6mm",
+                              borderRadius: "999px",
+                              background: "#E5E1D3",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: `${percent}%`,
+                                height: "100%",
+                                background: "var(--ps-primary)",
+                                borderRadius: "999px",
+                              }}
+                            />
+                          </div>
+                          <span style={{ whiteSpace: "nowrap" }}>{rawValue.trim()}</span>
+                        </div>
+                      )}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
