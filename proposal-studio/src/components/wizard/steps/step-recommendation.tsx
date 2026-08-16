@@ -21,8 +21,6 @@ function StepRecommendation() {
 
   return (
     <SectionCard
-      title="Recomendación"
-      description="La recomendación profesional que sustenta la propuesta."
       actions={
         <NarrativeLibraryActions
           category="recommendation"

@@ -21,8 +21,6 @@ function StepDiagnosis() {
 
   return (
     <SectionCard
-      title="Diagnóstico"
-      description="Situación del cliente antes de la propuesta."
       actions={
         <NarrativeLibraryActions
           category="diagnosis"

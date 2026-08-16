@@ -276,8 +276,6 @@ function StepAlternatives({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
 
   return (
     <SectionCard
-      title="Alternativas"
-      description="Agregá las alternativas financieras que forman parte de la propuesta."
       actions={
         <div className="flex items-center gap-2">
           {alternatives.length > 1 ? (

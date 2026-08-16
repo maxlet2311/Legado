@@ -249,8 +249,6 @@ function StepBenefits({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
 
   return (
     <SectionCard
-      title="Beneficios"
-      description="Beneficios concretos que el cliente obtiene con esta propuesta."
       actions={
         <div className="flex items-center gap-2">
           {benefits.length > 1 ? (

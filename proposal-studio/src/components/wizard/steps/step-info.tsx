@@ -34,7 +34,7 @@ function StepInfo() {
   if (!data) return null;
 
   return (
-    <SectionCard title="Información de la propuesta" description="Datos generales del documento.">
+    <SectionCard>
       <div className="space-y-6">
         <h3 className="font-serif text-h4 font-medium text-on-surface border-b border-outline-variant/40 pb-2">
           Información principal

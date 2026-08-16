@@ -69,10 +69,7 @@ function StepClient({ availableClients }: WizardStepProps) {
   }
 
   return (
-    <SectionCard
-      title="Cliente"
-      description="Seleccioná un cliente existente o creá uno nuevo sin salir del wizard."
-    >
+    <SectionCard>
       <div className="space-y-2">
         <Label htmlFor={clientSelectId}>Cliente</Label>
         <Select

@@ -35,7 +35,7 @@ function DuplicationReviewBanner() {
   }
 
   return (
-    <div className="mb-6 flex items-start gap-3 rounded-md border border-warning/40 bg-warning/10 p-4">
+    <div className="mb-6 flex flex-col items-stretch gap-3 rounded-md border border-warning/40 bg-warning/10 p-4 sm:flex-row sm:items-start">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
       <div className="flex-1 space-y-1">
         <p className="text-small font-semibold text-on-surface">
@@ -47,7 +47,7 @@ function DuplicationReviewBanner() {
         </p>
         {error ? <p className="text-caption text-error">{error}</p> : null}
       </div>
-      <Button type="button" size="sm" variant="secondary" onClick={handleConfirm} disabled={loading}>
+      <Button type="button" size="sm" variant="secondary" onClick={handleConfirm} disabled={loading} className="w-full sm:w-auto">
         {loading ? <Spinner className="h-4 w-4" /> : null}
         Marcar como revisado
       </Button>

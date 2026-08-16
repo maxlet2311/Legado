@@ -24,15 +24,17 @@ import { isStepUnsettled } from "@/lib/wizard/step-unsettled";
 import type { WizardData, WizardStepProps } from "@/types/wizard";
 
 const STEPS = [
-  { label: "Cliente" },
-  { label: "Información" },
-  { label: "Diagnóstico" },
-  { label: "Alternativas" },
-  { label: "Beneficios" },
-  { label: "Comparativa" },
-  { label: "Recomendación" },
-  { label: "Resumen" },
+  { label: "Cliente", description: "Seleccioná un cliente existente o creá uno nuevo sin salir del wizard." },
+  { label: "Información", description: "Datos generales del documento." },
+  { label: "Diagnóstico", description: "Situación del cliente antes de la propuesta." },
+  { label: "Alternativas", description: "Agregá las alternativas financieras que forman parte de la propuesta." },
+  { label: "Beneficios", description: "Beneficios concretos que el cliente obtiene con esta propuesta." },
+  { label: "Comparativa", description: "Tabla comparativa entre las alternativas, lista para el PDF." },
+  { label: "Recomendación", description: "La recomendación profesional que sustenta la propuesta." },
+  { label: "Resumen", description: "Revisá el documento completo antes de finalizar." },
 ];
+
+const COMPARISON_STEP_INDEX = 5;
 
 const STEP_COMPONENTS: ComponentType<WizardStepProps>[] = [
   StepClient,
@@ -204,13 +206,15 @@ function ProposalWizard({ initialData, availableClients }: ProposalWizardProps) 
         />
       }
       preview={<LivePreviewPanel />}
+      currentStep={currentStep}
+      isComparisonStep={currentStep === COMPARISON_STEP_INDEX}
     >
       <ReadOnlyProposalBanner />
       <DuplicationReviewBanner />
       <div className="mb-6 flex flex-col gap-1 border-b border-outline-variant/60 pb-4">
         <div className="flex items-center justify-between">
           <span className="text-caption font-semibold uppercase tracking-wider text-primary">
-            Bloque {currentStep + 1} de {STEPS.length} — {STEPS[currentStep]?.label ?? "Información"}
+            Bloque {currentStep + 1} de {STEPS.length}
           </span>
           <span className="text-caption font-medium text-on-surface-variant">
             {Math.round(((currentStep + 1) / STEPS.length) * 100)}% completado
@@ -219,6 +223,9 @@ function ProposalWizard({ initialData, availableClients }: ProposalWizardProps) 
         <h2 className="font-serif text-h2 font-extrabold tracking-tight text-on-surface">
           {STEPS[currentStep]?.label ?? "Información"}
         </h2>
+        {STEPS[currentStep]?.description && (
+          <p className="text-small text-on-surface-variant">{STEPS[currentStep]?.description}</p>
+        )}
       </div>
       <StepComponent onJumpToStep={setStep} availableClients={availableClients} isReadOnly={isReadOnly} />
     </WizardLayout>

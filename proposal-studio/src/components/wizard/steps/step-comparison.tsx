@@ -97,8 +97,6 @@ function StepComparison() {
 
   return (
     <SectionCard
-      title="Comparativa"
-      description="Tabla comparativa entre las alternativas. Columnas y filas dinámicas, lista para el PDF."
       collapsible
       actions={
         <div className="flex items-center gap-3">
