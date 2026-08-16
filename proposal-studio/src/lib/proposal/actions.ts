@@ -351,6 +351,69 @@ async function markDuplicationReviewedAction(proposalId: string): Promise<Action
   return { success: true };
 }
 
+/**
+ * Borrado real (no soft-delete) para sacar propuestas obsoletas/de prueba.
+ * `proposals_delete_own` (RLS) ya cubre DELETE por ownership, y las tablas
+ * hijas (narratives/alternatives/benefits/comparisons/versions/...) tienen
+ * `ON DELETE CASCADE` -- pero `guard_completed_proposal_child_write`
+ * (20260813030000) bloquea ese cascade en las tablas hijas mientras
+ * `status = 'completed'`. Se resuelve archivando primero (transición ya
+ * permitida sobre completadas, ver comment de esa migración) para que el
+ * guard deje de aplicar antes del DELETE.
+ *
+ * Los PDFs generados no se borran con el cascade de FK (viven en Storage,
+ * no en una tabla): se listan y eliminan explícitamente antes del DELETE.
+ */
+async function deleteProposalAction(proposalId: string): Promise<ActionResult> {
+  const guard = await requireActiveMembershipForAction({ surface: "proposal.delete" });
+  if (!guard.ok) return { error: guard.error };
+  const { user } = guard.context;
+  const supabase = await createClient();
+
+  const { data: proposal } = await supabase
+    .from("proposals")
+    .select("status")
+    .eq("id", proposalId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!proposal) {
+    return { error: "Propuesta no encontrada o sin acceso." };
+  }
+
+  if (proposal.status === "completed") {
+    const { error: archiveError } = await supabase.rpc("archive_proposal", { p_id: proposalId }).single();
+    if (archiveError) {
+      return { error: mapSupabaseError(archiveError) };
+    }
+  }
+
+  const { data: versions } = await supabase.from("proposal_versions").select("id").eq("proposal_id", proposalId);
+  const versionIds = (versions ?? []).map((version) => version.id);
+
+  if (versionIds.length > 0) {
+    const { data: artifacts } = await supabase
+      .from("proposal_version_artifacts")
+      .select("storage_path")
+      .in("proposal_version_id", versionIds);
+
+    const storagePaths = (artifacts ?? []).map((artifact) => artifact.storage_path).filter(Boolean);
+    if (storagePaths.length > 0) {
+      await supabase.storage.from("proposal-files").remove(storagePaths);
+    }
+  }
+
+  const { error } = await supabase.from("proposals").delete().eq("id", proposalId).eq("user_id", user.id);
+
+  if (error) {
+    return { error: mapSupabaseError(error) };
+  }
+
+  revalidatePath("/proposals");
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
 export {
   createDraftProposalAction,
   updateProposalMetaAction,
@@ -359,4 +422,5 @@ export {
   updateProposalCommercialStatusAction,
   duplicateProposalAction,
   markDuplicationReviewedAction,
+  deleteProposalAction,
 };

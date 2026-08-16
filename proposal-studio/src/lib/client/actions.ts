@@ -92,4 +92,31 @@ async function updateClientAction(_prevState: ActionResult, formData: FormData):
   return { success: true };
 }
 
-export { createClientAction, updateClientAction };
+/**
+ * Borrado real (no soft-delete): `clients_all_own` (RLS `FOR ALL`) ya cubre
+ * DELETE por ownership. `proposals.client_id` es `ON DELETE RESTRICT`
+ * (20260715170005_proposals.sql), así que la propia base de datos rechaza el
+ * borrado si el cliente tiene propuestas asociadas -- no hace falta
+ * chequearlo a mano, solo traducir el 23503 a un mensaje claro.
+ */
+async function deleteClientAction(clientId: string): Promise<ActionResult> {
+  const guard = await requireActiveMembershipForAction({ surface: "client.delete" });
+  if (!guard.ok) return { error: guard.error };
+  const { user } = guard.context;
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("clients").delete().eq("id", clientId).eq("user_id", user.id);
+
+  if (error) {
+    if (error.code === "23503") {
+      return { error: "Este cliente tiene propuestas asociadas. Eliminá o reasigná esas propuestas primero." };
+    }
+    return { error: mapSupabaseError(error) };
+  }
+
+  revalidatePath("/clients");
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
+export { createClientAction, updateClientAction, deleteClientAction };

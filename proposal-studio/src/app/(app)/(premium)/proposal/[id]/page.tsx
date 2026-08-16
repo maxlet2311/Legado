@@ -16,6 +16,7 @@ import { measurePerformance } from "@/lib/utils/performance";
 import {
   ArchiveButton,
   CommercialStatusSelect,
+  DeleteProposalButton,
   DuplicateButton,
   EditTitleDialog,
   OrientationToggle,
@@ -132,6 +133,7 @@ export default async function ProposalDetailPage({
             <SaveAsTemplateDialog proposalId={proposal.id} />
             <DuplicateButton proposalId={proposal.id} primary={proposal.status !== "draft"} />
             <ArchiveButton proposalId={proposal.id} disabled={proposal.status === "archived"} />
+            <DeleteProposalButton proposalId={proposal.id} proposalTitle={proposal.title} />
           </div>
         }
       />

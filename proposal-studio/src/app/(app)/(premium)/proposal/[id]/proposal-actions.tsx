@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Archive, Copy, FileStack, Pencil, RectangleHorizontal, RectangleVertical } from "lucide-react";
+import { Archive, Copy, FileStack, Pencil, RectangleHorizontal, RectangleVertical, Trash2 } from "lucide-react";
 
 import {
   archiveProposalAction,
@@ -13,6 +13,7 @@ import {
   updateProposalMetaAction,
   updateProposalOrientationAction,
   updateProposalCommercialStatusAction,
+  deleteProposalAction,
 } from "@/lib/proposal/actions";
 import { saveProposalAsTemplateAction } from "@/lib/templates/actions";
 import { COMMERCIAL_STATUS_LABEL, COMMERCIAL_STATUSES } from "@/components/layout/commercial-status-pill";
@@ -258,6 +259,44 @@ function DuplicateButton({ proposalId, primary = false }: { proposalId: string; 
   );
 }
 
+/** Borrado real (no soft-delete): usar para propuestas obsoletas/de prueba. Redirige a /proposals porque la propuesta deja de existir. */
+function DeleteProposalButton({ proposalId, proposalTitle }: { proposalId: string; proposalTitle: string }) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | undefined>();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  function handleDelete() {
+    setError(undefined);
+    startTransition(async () => {
+      const result = await deleteProposalAction(proposalId);
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+      router.push("/proposals");
+    });
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <Button variant="danger" disabled={isPending} aria-busy={isPending} onClick={() => setConfirmOpen(true)}>
+        {isPending ? <Spinner className="h-4 w-4 text-current" /> : <Trash2 className="h-4 w-4" />}
+        {isPending ? "Eliminando…" : "Eliminar propuesta"}
+      </Button>
+      {error && <p className="text-small text-error">{error}</p>}
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Eliminar propuesta"
+        description={`"${proposalTitle}" se borra de forma permanente junto con sus versiones y PDFs generados. Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        onConfirm={handleDelete}
+      />
+    </div>
+  );
+}
+
 const templateSchema = z.object({
   title: z.string().trim().min(1, "El título es obligatorio."),
   description: z.string().trim().optional().default(""),
@@ -381,6 +420,7 @@ export {
   EditTitleDialog,
   ArchiveButton,
   DuplicateButton,
+  DeleteProposalButton,
   SaveAsTemplateDialog,
   OrientationToggle,
   CommercialStatusSelect,

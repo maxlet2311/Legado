@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { PlusCircle, Pencil } from "lucide-react";
+import { PlusCircle, Pencil, Trash2 } from "lucide-react";
 
-import { createClientAction, updateClientAction } from "@/lib/client/actions";
+import { createClientAction, updateClientAction, deleteClientAction } from "@/lib/client/actions";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
@@ -188,4 +190,48 @@ function EditClientDialog({ client }: { client: ClientSummary }) {
   );
 }
 
-export { NewClientDialog, EditClientDialog };
+function DeleteClientButton({ clientId, clientName }: { clientId: string; clientName: string }) {
+  const router = useRouter();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [error, setError] = useState<string | undefined>();
+
+  function handleDelete() {
+    setError(undefined);
+    return new Promise<void>((resolve) => {
+      deleteClientAction(clientId).then((result) => {
+        if (result?.error) {
+          setError(result.error);
+          resolve();
+          return;
+        }
+        setConfirmOpen(false);
+        router.refresh();
+        resolve();
+      });
+    });
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className="text-outline transition-colors hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        aria-label={`Eliminar ${clientName}`}
+        onClick={() => setConfirmOpen(true)}
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+      {error && <p className="mt-1 text-caption text-error">{error}</p>}
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Eliminar cliente"
+        description={`Esta acción borra a "${clientName}" de forma permanente. Si tiene propuestas asociadas, primero tenés que eliminarlas o reasignarlas.`}
+        confirmLabel="Eliminar"
+        onConfirm={handleDelete}
+      />
+    </>
+  );
+}
+
+export { NewClientDialog, EditClientDialog, DeleteClientButton };

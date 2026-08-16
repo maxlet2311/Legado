@@ -11,7 +11,7 @@ import { Table, TableHeader, TableHeaderRow, TableHead, TableBody, TableRow, Tab
 import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
 import { measurePerformance } from "@/lib/utils/performance";
-import { NewClientDialog, EditClientDialog } from "@/app/(app)/(premium)/clients/client-dialogs";
+import { NewClientDialog, EditClientDialog, DeleteClientButton } from "@/app/(app)/(premium)/clients/client-dialogs";
 
 export const metadata: Metadata = {
   title: "Clientes — Proposal Studio™",
@@ -112,7 +112,10 @@ export default async function ClientsPage({
                       {client.status === "active" ? "Activo" : "Inactivo"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <EditClientDialog client={client} />
+                      <div className="flex items-center justify-end gap-3">
+                        <EditClientDialog client={client} />
+                        <DeleteClientButton clientId={client.id} clientName={client.full_name} />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -16,6 +16,7 @@ import { requireActiveUser } from "@/lib/auth/authorization-guards";
 import { createClient } from "@/lib/database/server";
 import { measurePerformance } from "@/lib/utils/performance";
 import { ProposalFilters } from "@/app/(app)/(premium)/proposals/proposal-filters";
+import { ProposalRowDelete } from "@/app/(app)/(premium)/proposals/proposal-row-delete";
 
 /** Escapa comillas para incrustar `q` de forma segura dentro de un filtro `.or()` de PostgREST (sintaxis `column.ilike."%valor%"`). */
 function escapeIlikeValue(value: string): string {
@@ -164,6 +165,7 @@ export default async function ProposalsPage({
                   <TableHead>Cliente</TableHead>
                   <TableHead className="hidden sm:table-cell">Fecha</TableHead>
                   <TableHead>Estado</TableHead>
+                  <TableHead />
                 </TableHeaderRow>
               </TableHeader>
               <TableBody>
@@ -188,6 +190,9 @@ export default async function ProposalsPage({
                         <CommercialStatusPill status={proposal.commercial_status as CommercialStatus} />
                         <StatusPill status={proposal.status as ProposalStatus} />
                       </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <ProposalRowDelete proposalId={proposal.id} proposalTitle={proposal.title} />
                     </TableCell>
                   </TableRow>
                 ))}
