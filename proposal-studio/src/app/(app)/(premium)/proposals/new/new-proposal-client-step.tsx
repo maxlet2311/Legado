@@ -8,7 +8,6 @@ import type { z } from "zod";
 import { PlusCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
@@ -22,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SectionCard } from "@/components/wizard/section-card";
 import { createDraftFromClientAction, createWizardClientAction } from "@/lib/wizard/actions";
 import { clientCreateSchema } from "@/lib/wizard/schemas";
 import type { WizardClient } from "@/types/wizard";
@@ -83,7 +83,7 @@ function NewProposalClientStep({ initialClients }: NewProposalClientStepProps) {
   }
 
   return (
-    <Card className="p-8">
+    <SectionCard title="Cliente" description="Seleccioná un cliente existente o creá uno nuevo para esta propuesta.">
       <div className="space-y-6">
         <div className="space-y-2">
           <Label>Cliente</Label>
@@ -156,7 +156,7 @@ function NewProposalClientStep({ initialClients }: NewProposalClientStepProps) {
           Continuar
         </Button>
       </div>
-    </Card>
+    </SectionCard>
   );
 }
 
