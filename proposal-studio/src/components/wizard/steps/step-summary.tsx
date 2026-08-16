@@ -8,10 +8,11 @@ import { CheckCircle2, FileStack, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { SummaryCard } from "@/components/wizard/summary-card";
-import { PreSummaryChecklist } from "@/components/wizard/steps/pre-summary-checklist";
+import { StepStatusOverview } from "@/components/wizard/steps/step-status-overview";
 import { finalizeProposalAction } from "@/lib/wizard/actions";
 import { emitProposalVersionAction } from "@/lib/versions/actions";
 import { runDeterministicChecks } from "@/lib/wizard/pre-summary-checks";
+import { computeCompletion } from "@/lib/wizard/step-completion";
 import { useWizardStore } from "@/stores/wizard-store";
 import type { WizardStepProps } from "@/types/wizard";
 
@@ -33,6 +34,7 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
 
   const deterministicFindings = useMemo(() => (data ? runDeterministicChecks(data) : []), [data]);
   const hasBlockingErrors = deterministicFindings.some((f) => f.severity === "error");
+  const completion = useMemo(() => (data ? computeCompletion(data) : []), [data]);
 
   if (!data) return null;
 
@@ -67,7 +69,7 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
 
   return (
     <div className="space-y-6">
-      <PreSummaryChecklist deterministicFindings={deterministicFindings} onJumpToStep={onJumpToStep} />
+      <StepStatusOverview completion={completion} findings={deterministicFindings} onJumpToStep={onJumpToStep} />
 
       <SummaryCard title="Cliente" onEdit={() => onJumpToStep(0)}>
         <p className="font-semibold text-on-surface">{data.client.full_name}</p>
