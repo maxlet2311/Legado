@@ -9,11 +9,13 @@ function RecommendationSection({ narrative }: { narrative: SnapshotNarrative | n
 
   return (
     <DocumentSection eyebrow="Nuestra recomendación" title="Estrategia">
-      {paragraphs.map((paragraph, index) => (
-        <p key={index} style={{ fontSize: "11pt", lineHeight: 1.6, margin: "0 0 3mm 0", whiteSpace: "pre-wrap" }}>
-          {paragraph}
-        </p>
-      ))}
+      <div style={{ borderLeft: "2px solid var(--ps-secondary)", paddingLeft: "5mm" }}>
+        {paragraphs.map((paragraph, index) => (
+          <p key={index} style={{ fontSize: "11pt", lineHeight: 1.6, margin: "0 0 3mm 0", whiteSpace: "pre-wrap" }}>
+            {paragraph}
+          </p>
+        ))}
+      </div>
     </DocumentSection>
   );
 }
