@@ -50,8 +50,10 @@ function WizardLayout({ outline, children, footer, preview }: WizardLayoutProps)
           {focusMode ? "Salir del modo foco" : "Modo foco"}
         </Button>
       </div>
+      {!focusMode && (
+        <div className="border-b border-outline-variant bg-surface px-4 py-4 sm:px-8">{outline}</div>
+      )}
       <div className="flex flex-1 flex-col gap-8 overflow-y-auto px-4 py-8 sm:px-8 lg:flex-row lg:items-start lg:gap-10 lg:overflow-visible">
-        {!focusMode && outline}
         <div className="mx-auto w-full min-w-0 max-w-240 flex-1">{children}</div>
 
         {!focusMode ? (
