@@ -43,6 +43,13 @@ function mapSupabaseError(error: { code?: string; message?: string } | null | un
     return error.message;
   }
 
+  // 23503: foreign_key_violation. Se dispara al intentar borrar un registro
+  // todavía referenciado por otro (ej. cliente con propuestas asociadas,
+  // `proposals.client_id` es ON DELETE RESTRICT).
+  if (error.code === "23503") {
+    return "No se puede eliminar: todavía hay registros asociados a este elemento.";
+  }
+
   const message = error.message?.toLowerCase() ?? "";
 
   if (message.includes("invalid login credentials")) {
