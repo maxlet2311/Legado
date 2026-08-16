@@ -35,24 +35,10 @@ function DocumentCover({ snapshot }: { snapshot: DocumentSnapshot }) {
         flexDirection: "column",
         justifyContent: "space-between",
         padding: "var(--ps-margin)",
-        background: "var(--ps-secondary)",
+        background: "#FFFFFF",
         color: "#1F2421",
       }}
     >
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          right: "-60mm",
-          top: "-60mm",
-          width: "160mm",
-          height: "160mm",
-          borderRadius: "50%",
-          background: "radial-gradient(circle, color-mix(in srgb, var(--ps-primary) 16%, transparent) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
-
       <div style={{ position: "relative", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         {brand?.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element -- HTML servido a Puppeteer, fuera del pipeline de <Image>.
@@ -98,6 +84,7 @@ function DocumentCover({ snapshot }: { snapshot: DocumentSnapshot }) {
         <h1 style={{ fontSize: "30pt", lineHeight: 1.12, margin: 0, color: "#1B211C", fontWeight: 700 }}>
           {proposal.title}
         </h1>
+        <div style={{ width: "36mm", height: "1.2mm", background: "var(--ps-primary)", margin: "6mm 0 0 0" }} />
         {client ? (
           <p style={{ fontSize: "13pt", marginTop: "8mm", color: "#3A413C", fontFamily: "var(--ps-font-body)" }}>
             Preparado para <strong>{client.full_name}</strong>
