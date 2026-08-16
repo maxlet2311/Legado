@@ -12,3 +12,8 @@ supabase/.temp/
 screenshots/
 test-results/
 playwright-report/
+.claude-audit-tmp/
+.qa-tmp/
+stitch-export/stitch_nuevo/
+stitch-export/stitch_ultimo/
+stitch-export/*.zip
