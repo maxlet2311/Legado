@@ -29,6 +29,8 @@ const CATEGORY_LABELS: Record<AlternativeCategory, string> = {
 
 interface AlternativeItemProps {
   proposalId: string;
+  /** Posición dentro de la lista (0-based) — solo para el rótulo "Opción comercial N", presentacional. */
+  index: number;
   item: WizardAlternative;
   onChange: (item: WizardAlternative) => void;
   onSaved: (id: string, revision: number) => void;
@@ -60,6 +62,7 @@ interface AlternativeItemProps {
 
 function AlternativeItem({
   proposalId,
+  index,
   item,
   onChange,
   onSaved,
@@ -261,6 +264,9 @@ function AlternativeItem({
       className="rounded-lg border border-outline-variant/50 border-t-2 border-t-primary bg-surface-container-lowest p-5"
       data-testid="alternative-item"
     >
+      <p className="mb-2 text-caption font-bold uppercase tracking-wider text-secondary">
+        Opción comercial {String(index + 1).padStart(2, "0")}
+      </p>
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"

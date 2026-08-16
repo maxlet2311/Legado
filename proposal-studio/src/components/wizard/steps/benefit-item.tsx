@@ -34,6 +34,8 @@ const CATEGORY_LABELS: Record<BenefitCategory, string> = {
 
 interface BenefitItemProps {
   proposalId: string;
+  /** Posición dentro de la lista (0-based) — solo para el rótulo "Argumento de valor N", presentacional. */
+  index: number;
   item: WizardBenefit;
   onChange: (item: WizardBenefit) => void;
   onSaved: (id: string, revision: number) => void;
@@ -55,6 +57,7 @@ interface BenefitItemProps {
 
 function BenefitItem({
   proposalId,
+  index,
   item,
   onChange,
   onSaved,
@@ -195,6 +198,9 @@ function BenefitItem({
       className="rounded-lg border border-outline-variant/50 border-t-2 border-t-secondary bg-surface-container-lowest p-5"
       data-testid="benefit-item"
     >
+      <p className="mb-2 text-caption font-bold uppercase tracking-wider text-secondary">
+        Argumento de valor {String(index + 1).padStart(2, "0")}
+      </p>
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"

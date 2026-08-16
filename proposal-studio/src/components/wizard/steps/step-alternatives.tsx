@@ -325,6 +325,7 @@ function StepAlternatives({ isReadOnly }: Pick<WizardStepProps, "isReadOnly">) {
           return (
             <AlternativeItem
               proposalId={proposalId}
+              index={index}
               item={item}
               onChange={(next) => updateItem(index, next)}
               onSaved={(id, revision) => markSaved(index, id, revision)}
