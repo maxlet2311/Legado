@@ -43,9 +43,13 @@ test("Golden Path: draft -> completed -> read-only -> duplicar -> editar copia -
   const outline = page.getByRole("navigation", { name: "Bloques de la propuesta" });
   const outlineButtons = outline.getByRole("button");
   await outlineButtons.nth(3).click(); // Alternativas
+  await expect(page.getByRole("heading", { name: "Alternativas", exact: true })).toBeVisible();
   await outlineButtons.nth(4).click(); // Beneficios
+  await expect(page.getByRole("heading", { name: "Beneficios", exact: true })).toBeVisible();
   await outlineButtons.nth(5).click(); // Comparativa
+  await expect(page.getByRole("heading", { name: "Comparativa", exact: true })).toBeVisible();
   await outlineButtons.nth(6).click(); // Recomendación
+  await expect(page.getByRole("heading", { name: "Recomendación", exact: true })).toBeVisible();
 
   // Recomendación (requerida para finalizar)
   await page.getByLabel("Recomendación", { exact: false }).fill("Recomendamos el Plan Vida Integral.");

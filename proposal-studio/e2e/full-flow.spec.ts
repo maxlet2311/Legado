@@ -79,7 +79,10 @@ test.describe("Flujo completo — Proposal Studio", () => {
     // ninguna (a propósito, ese CRUD se prueba aparte), así que sin esto
     // "Finalizar propuesta" rechaza la propuesta con un error legítimo de
     // negocio ("La propuesta necesita al menos una alternativa").
-    await page.getByRole("button", { name: /Alternativas/ }).click();
+    await page
+      .getByRole("navigation", { name: "Bloques de la propuesta" })
+      .getByRole("button", { name: /Alternativas/ })
+      .click();
     await page.getByRole("button", { name: "Agregar alternativa" }).click();
     const altItem = page.getByTestId("alternative-item").first();
     await altItem.getByLabel("Título", { exact: false }).fill("Plan Vida Integral");
@@ -125,8 +128,15 @@ test.describe("Flujo completo — Proposal Studio", () => {
       page.waitForResponse((res) => res.url().includes("/download") && res.request().method() === "GET"),
       page.getByRole("button", { name: "Descargar" }).first().click(),
     ]);
-    expect(downloadResponse.ok()).toBeTruthy();
+    expect(
+      downloadResponse.ok(),
+      `PDF download failed (${downloadResponse.status()}): ${await downloadResponse.text()}`,
+    ).toBeTruthy();
 
+    // El endpoint responde con redirect al signed URL de Storage. En Chromium
+    // esa descarga puede dejar una navegación externa pendiente; volvemos a
+    // una superficie estable de la app antes de probar el logout.
+    await page.goto("/dashboard");
     await page.getByRole("button", { name: /Cerrar Sesión/i }).first().click();
     await page.waitForURL("**/login");
   });
