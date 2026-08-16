@@ -97,58 +97,61 @@ export default async function DashboardPage() {
 
   return (
     <ContentContainer>
-      <section className="relative overflow-hidden rounded-xl bg-primary px-8 py-10 shadow-md sm:px-12 sm:py-12">
-        <div className="pointer-events-none absolute inset-0 bg-primary-container/20 mix-blend-overlay" />
-        <div className="relative z-10 flex flex-col justify-center">
-          <h2 className="font-serif text-h2 font-extrabold tracking-tight text-white break-words sm:text-display">
+      <section className="flex flex-col gap-5 border-b border-outline-variant pb-10">
+        <div className="flex flex-col gap-3">
+          <h2 className="font-serif text-h1 font-bold tracking-tight text-on-surface break-words sm:text-display">
             {firstName ? `Hola, ${firstName}.` : "Hola."}
           </h2>
-          <p className="mt-3 max-w-2xl text-body-lg text-white/90">
+          <p className="max-w-2xl text-body-lg text-on-surface-variant">
             {totalCount > 0
               ? `Tenés ${totalCount} propuesta${totalCount === 1 ? "" : "s"} reciente${totalCount === 1 ? "" : "s"} en seguimiento.`
               : "Todavía no creaste ninguna propuesta. Empezá cargando tu primer cliente."}
           </p>
-
-          {totalCount > 0 && (
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-caption font-semibold text-white backdrop-blur-sm">
-                <span className="h-2 w-2 rounded-full bg-amber-400" aria-hidden="true" />
-                {draftCount} en Borrador
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-caption font-semibold text-white backdrop-blur-sm">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />
-                {completedCount} Finalizadas
-              </span>
-            </div>
-          )}
-
-          <div className="mt-8">
-            <NewProposalDialog clients={clients ?? []} />
-          </div>
+        </div>
+        <div>
+          <NewProposalDialog clients={clients ?? []} />
         </div>
       </section>
 
-      {mostRecentDraft && (
-        <Card className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary">
-              <FileText className="h-6 w-6" />
+      {(mostRecentDraft || totalCount > 0) && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
+          {mostRecentDraft ? (
+            <Card className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary">
+                  <FileText className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-caption font-bold uppercase tracking-wider text-primary">Continuar donde quedaste</p>
+                  <p className="text-h4 font-bold text-on-surface">{mostRecentDraft.title}</p>
+                  <p className="text-small text-on-surface-variant">
+                    {mostRecentDraft.clients?.full_name ?? "Sin cliente"} · última edición {formatDate(mostRecentDraft.updated_at)}
+                  </p>
+                </div>
+              </div>
+              <Button asChild className="shrink-0">
+                <Link href={`/proposal/${mostRecentDraft.id}/edit`} prefetch={false}>
+                  Continuar propuesta
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </Card>
+          ) : (
+            <div />
+          )}
+          {totalCount > 0 && (
+            <div className="flex flex-row gap-4 lg:flex-col">
+              <Card className="flex-1 p-5">
+                <p className="font-serif text-h2 font-bold text-on-surface">{draftCount}</p>
+                <p className="text-small text-on-surface-variant">Propuestas activas en redacción</p>
+              </Card>
+              <Card className="flex-1 p-5">
+                <p className="font-serif text-h2 font-bold text-on-surface">{completedCount}</p>
+                <p className="text-small text-on-surface-variant">Finalizadas</p>
+              </Card>
             </div>
-            <div>
-              <p className="text-caption font-bold uppercase tracking-wider text-primary">Continuar donde quedaste</p>
-              <p className="text-h4 font-bold text-on-surface">{mostRecentDraft.title}</p>
-              <p className="text-small text-on-surface-variant">
-                {mostRecentDraft.clients?.full_name ?? "Sin cliente"} · última edición {formatDate(mostRecentDraft.updated_at)}
-              </p>
-            </div>
-          </div>
-          <Button asChild className="shrink-0">
-            <Link href={`/proposal/${mostRecentDraft.id}/edit`} prefetch={false}>
-              Continuar propuesta
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </Card>
+          )}
+        </div>
       )}
 
       <section>
