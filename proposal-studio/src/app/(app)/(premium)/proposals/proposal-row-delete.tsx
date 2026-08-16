@@ -40,7 +40,6 @@ function ProposalRowDelete({ proposalId, proposalTitle }: { proposalId: string; 
       >
         {isPending ? <Spinner className="h-4 w-4 text-current" /> : <Trash2 className="h-4 w-4" />}
       </button>
-      {error && <p className="text-caption text-error">{error}</p>}
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
@@ -48,6 +47,7 @@ function ProposalRowDelete({ proposalId, proposalTitle }: { proposalId: string; 
         description={`"${proposalTitle}" se borra de forma permanente junto con sus versiones y PDFs generados. Esta acción no se puede deshacer.`}
         confirmLabel="Eliminar"
         onConfirm={handleDelete}
+        error={error}
       />
     </div>
   );

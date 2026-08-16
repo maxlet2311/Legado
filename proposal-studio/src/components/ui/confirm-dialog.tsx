@@ -22,6 +22,8 @@ interface ConfirmDialogProps {
   cancelLabel?: string;
   confirmVariant?: ButtonProps["variant"];
   onConfirm: () => void | Promise<void>;
+  /** Error a mostrar dentro del propio diálogo (ej. FK violation al intentar borrar). */
+  error?: string;
 }
 
 /** Confirmación genérica del Design System para acciones destructivas o irreversibles. */
@@ -34,6 +36,7 @@ function ConfirmDialog({
   cancelLabel = "Cancelar",
   confirmVariant = "danger",
   onConfirm,
+  error,
 }: ConfirmDialogProps) {
   const [isConfirming, setIsConfirming] = useState(false);
 
@@ -50,6 +53,7 @@ function ConfirmDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+        {error ? <p className="text-small text-error">{error}</p> : null}
         <DialogFooter>
           <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={isConfirming}>
             {cancelLabel}

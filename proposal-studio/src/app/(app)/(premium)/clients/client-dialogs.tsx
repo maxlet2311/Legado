@@ -221,7 +221,6 @@ function DeleteClientButton({ clientId, clientName }: { clientId: string; client
       >
         <Trash2 className="h-4 w-4" />
       </button>
-      {error && <p className="mt-1 text-caption text-error">{error}</p>}
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
@@ -229,6 +228,7 @@ function DeleteClientButton({ clientId, clientName }: { clientId: string; client
         description={`Esta acción borra a "${clientName}" de forma permanente. Si tiene propuestas asociadas, primero tenés que eliminarlas o reasignarlas.`}
         confirmLabel="Eliminar"
         onConfirm={handleDelete}
+        error={error}
       />
     </>
   );
