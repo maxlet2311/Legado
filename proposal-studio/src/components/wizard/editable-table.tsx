@@ -90,6 +90,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
   // pedía confirmación (a diferencia de eliminar una alternativa/beneficio):
   // la única red de seguridad era Ctrl+Z, un atajo sin ningún botón visible.
   const [pendingRemoval, setPendingRemoval] = useState<PendingRemoval | null>(null);
+  const recommendedColumn = columns.find((column) => column.recommended);
 
   function addColumn() {
     if (isReadOnly) return;
@@ -244,6 +245,13 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
 
   return (
     <div className="space-y-4">
+      {recommendedColumn && (
+        <div className="flex items-center gap-2 rounded-md border border-secondary/25 bg-secondary/5 px-3 py-2 text-small sm:hidden">
+          <Star className="h-3.5 w-3.5 shrink-0 fill-persona-accent text-persona-accent" />
+          <span className="font-bold uppercase tracking-wider text-secondary">Opción recomendada</span>
+          <span className="min-w-0 truncate font-serif font-semibold text-on-surface">{recommendedColumn.label}</span>
+        </div>
+      )}
       <div className="overflow-x-auto rounded-lg border border-outline-variant/40">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <table className="w-full min-w-[640px] border-collapse text-small">
@@ -258,20 +266,26 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                     key={column.id}
                     className={cn(
                       "border-b p-2 text-left",
-                      column.recommended ? "border-secondary/40 bg-secondary-container/30" : "border-primary/20",
+                      column.recommended
+                        ? "border-x border-b-secondary/60 border-x-secondary/30 bg-secondary text-on-secondary"
+                        : "border-primary/20",
                     )}
                   >
                     {column.recommended && (
-                      <p className="mb-1 flex items-center gap-1 text-caption font-bold uppercase tracking-wider text-secondary">
-                        <Star className="h-3 w-3 fill-current" />
+                      <p className="mb-1 flex items-center gap-1 text-caption font-bold uppercase tracking-wider text-on-secondary">
+                        <Star className="h-3 w-3 fill-persona-accent text-persona-accent" />
                         Opción recomendada
                       </p>
                     )}
-                    <div className="flex items-center gap-0.5">
+                    <div className="flex flex-col gap-1.5">
                       <Input
                         value={column.label}
                         onChange={(event) => renameColumn(column.id, event.target.value)}
-                        className="h-9"
+                        className={cn(
+                          "h-9 font-serif font-semibold",
+                          column.recommended &&
+                            "border-on-secondary/35 bg-secondary text-on-secondary placeholder:text-on-secondary/70 focus-visible:border-on-secondary focus-visible:ring-on-secondary",
+                        )}
                         aria-label="Título de columna"
                         readOnly={isReadOnly}
                       />
@@ -279,44 +293,55 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                           columna "recomendada" sumó un tercer ícono a este header;
                           h-8/gap-0.5 en vez de h-9/gap-1 devuelve parte de ese ancho
                           para que 3-4 columnas comparativas quepan sin scroll antes. */}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className={cn("h-8 w-8 shrink-0", column.recommended && "text-secondary")}
-                        onClick={() => toggleRecommended(column.id)}
-                        aria-pressed={Boolean(column.recommended)}
-                        aria-label={
-                          column.recommended
-                            ? `Quitar "${column.label}" como opción recomendada`
-                            : `Marcar "${column.label}" como opción recomendada`
-                        }
-                        disabled={isReadOnly}
-                      >
-                        <Star className={cn("h-4 w-4", column.recommended && "fill-current")} />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 shrink-0"
-                        onClick={() => duplicateColumn(column.id)}
-                        aria-label={`Duplicar columna ${column.label}`}
-                        disabled={isReadOnly}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 shrink-0"
-                        onClick={() => setPendingRemoval({ kind: "column", id: column.id, label: column.label })}
-                        aria-label={`Eliminar columna ${column.label}`}
-                        disabled={isReadOnly}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-0.5">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                            "h-8 w-8 shrink-0",
+                            column.recommended && "text-on-secondary hover:bg-on-secondary/10 hover:text-on-secondary",
+                          )}
+                          onClick={() => toggleRecommended(column.id)}
+                          aria-pressed={Boolean(column.recommended)}
+                          aria-label={
+                            column.recommended
+                              ? `Quitar "${column.label}" como opción recomendada`
+                              : `Marcar "${column.label}" como opción recomendada`
+                          }
+                          disabled={isReadOnly}
+                        >
+                          <Star className={cn("h-4 w-4", column.recommended && "fill-current")} />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                            "h-8 w-8 shrink-0",
+                            column.recommended && "text-on-secondary hover:bg-on-secondary/10 hover:text-on-secondary",
+                          )}
+                          onClick={() => duplicateColumn(column.id)}
+                          aria-label={`Duplicar columna ${column.label}`}
+                          disabled={isReadOnly}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                            "h-8 w-8 shrink-0",
+                            column.recommended && "text-on-secondary hover:bg-on-secondary/10 hover:text-on-secondary",
+                          )}
+                          onClick={() => setPendingRemoval({ kind: "column", id: column.id, label: column.label })}
+                          aria-label={`Eliminar columna ${column.label}`}
+                          disabled={isReadOnly}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </th>
                 ))}
@@ -360,7 +385,13 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                       </div>
                     </td>
                     {columns.map((column) => (
-                      <td key={column.id} className={cn("p-2", column.recommended && "bg-secondary-container/20")}>
+                      <td
+                        key={column.id}
+                        className={cn(
+                          "p-2",
+                          column.recommended && "border-x border-secondary/20 bg-secondary/5",
+                        )}
+                      >
                         <Input
                           value={row.values[column.id] ?? ""}
                           onChange={(event) => setCell(row.id, column.id, event.target.value)}

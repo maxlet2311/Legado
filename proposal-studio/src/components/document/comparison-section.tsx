@@ -70,8 +70,14 @@ function ComparisonSection({ comparison }: { comparison: SnapshotComparison }) {
                   style={{
                     textAlign: "left",
                     padding: "3mm 2mm",
-                    background: column.recommended ? "var(--ps-secondary)" : "var(--ps-primary)",
+                    background: column.recommended ? "var(--color-secondary)" : "var(--ps-primary)",
                     color: "#FFFFFF",
+                    borderLeft: column.recommended
+                      ? "1px solid color-mix(in srgb, var(--color-secondary) 45%, white)"
+                      : undefined,
+                    borderRight: column.recommended
+                      ? "1px solid color-mix(in srgb, var(--color-secondary) 45%, white)"
+                      : undefined,
                   }}
                 >
                   {column.recommended && (
@@ -85,7 +91,7 @@ function ComparisonSection({ comparison }: { comparison: SnapshotComparison }) {
                         opacity: 0.9,
                       }}
                     >
-                      ★ Opción recomendada
+                      <span style={{ color: "var(--ps-accent)" }}>★</span> Opción recomendada
                     </div>
                   )}
                   <div style={{ fontFamily: "var(--ps-font-display)", fontSize: "10.5pt", fontWeight: 600 }}>
@@ -108,9 +114,15 @@ function ComparisonSection({ comparison }: { comparison: SnapshotComparison }) {
                       style={{
                         padding: "2.5mm 2mm",
                         borderBottom: "1px solid #E5E1D3",
-                        background: column.recommended ? "color-mix(in srgb, var(--ps-secondary) 8%, transparent)" : undefined,
+                        background: column.recommended ? "color-mix(in srgb, var(--color-secondary) 8%, transparent)" : undefined,
+                        borderLeft: column.recommended
+                          ? "1px solid color-mix(in srgb, var(--color-secondary) 20%, white)"
+                          : undefined,
+                        borderRight: column.recommended
+                          ? "1px solid color-mix(in srgb, var(--color-secondary) 20%, white)"
+                          : undefined,
                         fontWeight: column.recommended ? 600 : 400,
-                        color: column.recommended ? "var(--ps-secondary)" : undefined,
+                        color: column.recommended ? "var(--color-secondary)" : undefined,
                       }}
                     >
                       {percent === null ? (
@@ -130,7 +142,7 @@ function ComparisonSection({ comparison }: { comparison: SnapshotComparison }) {
                               style={{
                                 width: `${percent}%`,
                                 height: "100%",
-                                background: column.recommended ? "var(--ps-secondary)" : "var(--ps-primary)",
+                                background: column.recommended ? "var(--color-secondary)" : "var(--ps-primary)",
                                 borderRadius: "999px",
                               }}
                             />
