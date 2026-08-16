@@ -34,7 +34,13 @@ function ComparisonSection({ comparison }: { comparison: SnapshotComparison }) {
       <div
         className="ps-card"
         style={{
-          maxWidth: "min(var(--ps-card-max), 100%)",
+          // A diferencia de Alternativas/Beneficios (tarjetas de un solo
+          // elemento, que sí necesitan `--ps-card-max` para no desbalancearse
+          // a 100% de ancho), la Comparativa es siempre una tabla de ≥2
+          // columnas y es la sección protagonista del documento (auditoría
+          // estructural, Wave 4) -- usa todo el ancho de contenido disponible
+          // en vez de heredar el tope genérico de tarjeta solitaria.
+          maxWidth: "100%",
           border: "1px solid #DEDCCF",
           borderRadius: "8px",
           overflow: "hidden",

@@ -267,7 +267,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                         Opción recomendada
                       </p>
                     )}
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-0.5">
                       <Input
                         value={column.label}
                         onChange={(event) => renameColumn(column.id, event.target.value)}
@@ -275,11 +275,15 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                         aria-label="Título de columna"
                         readOnly={isReadOnly}
                       />
+                      {/* Controles compactados (auditoría estructural, Wave 4): la
+                          columna "recomendada" sumó un tercer ícono a este header;
+                          h-8/gap-0.5 en vez de h-9/gap-1 devuelve parte de ese ancho
+                          para que 3-4 columnas comparativas quepan sin scroll antes. */}
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className={cn("h-9 w-9 shrink-0", column.recommended && "text-secondary")}
+                        className={cn("h-8 w-8 shrink-0", column.recommended && "text-secondary")}
                         onClick={() => toggleRecommended(column.id)}
                         aria-pressed={Boolean(column.recommended)}
                         aria-label={
@@ -295,7 +299,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 shrink-0"
+                        className="h-8 w-8 shrink-0"
                         onClick={() => duplicateColumn(column.id)}
                         aria-label={`Duplicar columna ${column.label}`}
                         disabled={isReadOnly}
@@ -306,7 +310,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 shrink-0"
+                        className="h-8 w-8 shrink-0"
                         onClick={() => setPendingRemoval({ kind: "column", id: column.id, label: column.label })}
                         aria-label={`Eliminar columna ${column.label}`}
                         disabled={isReadOnly}
