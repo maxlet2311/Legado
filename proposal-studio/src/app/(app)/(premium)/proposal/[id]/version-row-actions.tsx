@@ -44,14 +44,14 @@ function VersionRowActions({ versionId, hasPdf: initialHasPdf }: { versionId: st
   return (
     <div className="flex items-center gap-2">
       {!hasPdf ? (
-        <Button type="button" size="sm" variant="secondary" onClick={handleGenerate} disabled={isGenerating}>
+        <Button type="button" size="sm" variant="secondary" onClick={handleGenerate} disabled={isGenerating} aria-busy={isGenerating}>
           {isGenerating ? <Spinner className="h-4 w-4 text-current" /> : <FileDown className="h-4 w-4" />}
-          Generar
+          {isGenerating ? "Generando…" : "Generar"}
         </Button>
       ) : (
-        <Button type="button" size="sm" variant="secondary" onClick={handleDownload} disabled={isDownloading}>
+        <Button type="button" size="sm" variant="secondary" onClick={handleDownload} disabled={isDownloading} aria-busy={isDownloading}>
           {isDownloading ? <Spinner className="h-4 w-4 text-current" /> : <Download className="h-4 w-4" />}
-          Descargar
+          {isDownloading ? "Descargando…" : "Descargar"}
         </Button>
       )}
       {error && <p className="text-caption text-error">{error}</p>}

@@ -122,7 +122,7 @@ export default async function ProposalDetailPage({
               proposalId={proposal.id}
               orientation={(proposal.orientation as "portrait" | "landscape") ?? "portrait"}
             />
-            <Button variant="secondary" asChild>
+            <Button variant={proposal.status === "draft" ? "primary" : "secondary"} asChild>
               <Link href={`/proposal/${proposal.id}/edit`}>
                 <Pencil className="h-4 w-4" />
                 Continuar edición
@@ -130,7 +130,7 @@ export default async function ProposalDetailPage({
             </Button>
             <EditTitleDialog proposalId={proposal.id} currentTitle={proposal.title} />
             <SaveAsTemplateDialog proposalId={proposal.id} />
-            <DuplicateButton proposalId={proposal.id} />
+            <DuplicateButton proposalId={proposal.id} primary={proposal.status !== "draft"} />
             <ArchiveButton proposalId={proposal.id} disabled={proposal.status === "archived"} />
           </div>
         }

@@ -47,14 +47,14 @@ function PreviewActions({ versionId, hasPdf: initialHasPdf }: PreviewActionsProp
     <div className="flex flex-col items-end gap-2">
       <div className="flex items-center gap-3">
         {!hasPdf ? (
-          <Button type="button" onClick={handleGenerate} disabled={isGenerating}>
+          <Button type="button" onClick={handleGenerate} disabled={isGenerating} aria-busy={isGenerating}>
             {isGenerating ? <Spinner className="h-4 w-4 text-current" /> : <FileDown className="h-4 w-4" />}
-            Generar PDF
+            {isGenerating ? "Generando…" : "Generar PDF"}
           </Button>
         ) : (
-          <Button type="button" variant="secondary" onClick={handleDownload} disabled={isDownloading}>
+          <Button type="button" variant="secondary" onClick={handleDownload} disabled={isDownloading} aria-busy={isDownloading}>
             {isDownloading ? <Spinner className="h-4 w-4 text-current" /> : <Download className="h-4 w-4" />}
-            Descargar PDF
+            {isDownloading ? "Descargando…" : "Descargar PDF"}
           </Button>
         )}
       </div>

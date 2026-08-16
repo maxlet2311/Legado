@@ -124,7 +124,7 @@ function OrientationToggle({
           onClick={() => handleSelect("portrait")}
           disabled={isPending}
           aria-pressed={orientation === "portrait"}
-          className={`flex items-center gap-2 px-3 py-2 text-small font-medium transition-colors ${
+          className={`flex items-center gap-2 px-3 py-2 text-small font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
             orientation === "portrait" ? "bg-primary text-on-primary" : "text-on-surface-variant hover:bg-surface-container-low"
           }`}
         >
@@ -136,7 +136,7 @@ function OrientationToggle({
           onClick={() => handleSelect("landscape")}
           disabled={isPending}
           aria-pressed={orientation === "landscape"}
-          className={`flex items-center gap-2 px-3 py-2 text-small font-medium transition-colors ${
+          className={`flex items-center gap-2 px-3 py-2 text-small font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
             orientation === "landscape" ? "bg-primary text-on-primary" : "text-on-surface-variant hover:bg-surface-container-low"
           }`}
         >
@@ -213,9 +213,9 @@ function ArchiveButton({ proposalId, disabled }: { proposalId: string; disabled?
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <Button variant="secondary" disabled={disabled || isPending} onClick={() => setConfirmOpen(true)}>
+      <Button variant="secondary" disabled={disabled || isPending} aria-busy={isPending} onClick={() => setConfirmOpen(true)}>
         {isPending ? <Spinner className="h-4 w-4 text-current" /> : <Archive className="h-4 w-4" />}
-        Archivar
+        {isPending ? "Archivando…" : "Archivar"}
       </Button>
       {error && <p className="text-small text-error">{error}</p>}
       <ConfirmDialog
@@ -230,7 +230,7 @@ function ArchiveButton({ proposalId, disabled }: { proposalId: string; disabled?
   );
 }
 
-function DuplicateButton({ proposalId }: { proposalId: string }) {
+function DuplicateButton({ proposalId, primary = false }: { proposalId: string; primary?: boolean }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | undefined>();
@@ -249,9 +249,9 @@ function DuplicateButton({ proposalId }: { proposalId: string }) {
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <Button variant="secondary" disabled={isPending} onClick={handleDuplicate}>
+      <Button variant={primary ? "primary" : "secondary"} disabled={isPending} aria-busy={isPending} onClick={handleDuplicate}>
         {isPending ? <Spinner className="h-4 w-4 text-current" /> : <Copy className="h-4 w-4" />}
-        Duplicar propuesta
+        {isPending ? "Duplicando…" : "Duplicar propuesta"}
       </Button>
       {error && <p className="text-small text-error">{error}</p>}
     </div>

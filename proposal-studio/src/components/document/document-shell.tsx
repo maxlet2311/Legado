@@ -108,9 +108,9 @@ function DocumentShell({ snapshot, children }: DocumentShellProps) {
             table.ps-table tr { break-inside: avoid; }
 
             @media screen {
-              .ps-doc { background: #E7E4DA; padding: 12px 0; }
-              .ps-cover-page { box-shadow: 0 1px 3px rgba(0,0,0,0.15); margin: 0 auto 8px auto; }
-              .ps-content { max-width: var(--ps-page-width); margin: 0 auto; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.15); padding-top: var(--ps-margin); padding-bottom: var(--ps-margin); }
+              .ps-doc { background: #FCF9F8; padding: 40px 0; }
+              .ps-cover-page { box-shadow: 0 10px 40px -10px rgba(31,36,33,0.12); margin: 0 auto 24px auto; }
+              .ps-content { max-width: var(--ps-page-width); margin: 0 auto; background: #FFFFFF; box-shadow: 0 10px 40px -10px rgba(31,36,33,0.12); padding-top: var(--ps-margin); padding-bottom: var(--ps-margin); }
               .ps-section--anchor { break-before: auto; border-top: 1px dashed #C7C2B4; padding-top: 10mm; }
             }
           `,

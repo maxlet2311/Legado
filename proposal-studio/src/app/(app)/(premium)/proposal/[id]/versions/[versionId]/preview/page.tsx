@@ -62,7 +62,7 @@ export default async function VersionPreviewPage({
         actions={<PreviewActions versionId={versionId} hasPdf={Boolean(artifact)} />}
       />
 
-      <div style={{ overflowX: "auto", padding: "8px 0" }}>
+      <div style={{ overflowX: "auto", padding: "8px 16px" }}>
         <RenderDocument snapshot={snapshot} />
       </div>
     </ContentContainer>
