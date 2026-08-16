@@ -239,11 +239,13 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <table className="w-full min-w-[640px] border-collapse text-small">
             <thead>
-              <tr className="bg-surface-container-low">
-                <th className="w-8 border-b border-outline-variant p-2" />
-                <th className="w-48 border-b border-outline-variant p-2 text-left" />
+              <tr className="bg-primary/5">
+                <th className="w-8 border-b border-primary/20 p-2" />
+                <th className="w-48 border-b border-primary/20 p-2 text-left text-caption font-bold uppercase tracking-wider text-on-surface-variant">
+                  Criterios de evaluación
+                </th>
                 {columns.map((column) => (
-                  <th key={column.id} className="border-b border-outline-variant p-2 text-left">
+                  <th key={column.id} className="border-b border-primary/20 p-2 text-left">
                     <div className="flex items-center gap-1">
                       <Input
                         value={column.label}
