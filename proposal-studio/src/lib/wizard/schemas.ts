@@ -111,6 +111,7 @@ const plainTextCell = z
 const comparisonColumnSchema = z.object({
   id: z.string().min(1).max(60),
   label: plainTextCell.pipe(z.string().min(1, "La columna necesita un título.")),
+  recommended: z.boolean().optional(),
 });
 
 const comparisonRowSchema = z.object({

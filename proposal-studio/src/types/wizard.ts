@@ -98,6 +98,8 @@ export interface WizardBenefit {
 export interface WizardComparisonColumn {
   id: string;
   label: string;
+  /** Marca esta columna como la opción sugerida (a lo sumo una por comparativa). Presentacional: no afecta cálculos ni datos. */
+  recommended?: boolean;
 }
 
 export interface WizardComparisonRow {

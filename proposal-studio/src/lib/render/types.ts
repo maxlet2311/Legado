@@ -103,6 +103,7 @@ export interface SnapshotBenefit {
 export interface SnapshotComparisonColumn {
   id: string;
   label: string;
+  recommended?: boolean;
 }
 
 export interface SnapshotComparisonRow {

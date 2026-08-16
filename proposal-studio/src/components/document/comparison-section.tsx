@@ -64,14 +64,27 @@ function ComparisonSection({ comparison }: { comparison: SnapshotComparison }) {
                   style={{
                     textAlign: "left",
                     padding: "3mm 2mm",
-                    background: "var(--ps-primary)",
-                    color: "var(--ps-text-on-primary)",
-                    fontFamily: "var(--ps-font-display)",
-                    fontSize: "10.5pt",
-                    fontWeight: 600,
+                    background: column.recommended ? "var(--ps-secondary)" : "var(--ps-primary)",
+                    color: "#FFFFFF",
                   }}
                 >
-                  {column.label}
+                  {column.recommended && (
+                    <div
+                      style={{
+                        fontSize: "6.5pt",
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        fontWeight: 700,
+                        marginBottom: "1mm",
+                        opacity: 0.9,
+                      }}
+                    >
+                      ★ Opción recomendada
+                    </div>
+                  )}
+                  <div style={{ fontFamily: "var(--ps-font-display)", fontSize: "10.5pt", fontWeight: 600 }}>
+                    {column.label}
+                  </div>
                 </th>
               ))}
             </tr>
@@ -84,7 +97,16 @@ function ComparisonSection({ comparison }: { comparison: SnapshotComparison }) {
                   const rawValue = row.values[column.id] ?? "";
                   const percent = parsePercent(rawValue);
                   return (
-                    <td key={column.id} style={{ padding: "2.5mm 2mm", borderBottom: "1px solid #E5E1D3" }}>
+                    <td
+                      key={column.id}
+                      style={{
+                        padding: "2.5mm 2mm",
+                        borderBottom: "1px solid #E5E1D3",
+                        background: column.recommended ? "color-mix(in srgb, var(--ps-secondary) 8%, transparent)" : undefined,
+                        fontWeight: column.recommended ? 600 : 400,
+                        color: column.recommended ? "var(--ps-secondary)" : undefined,
+                      }}
+                    >
                       {percent === null ? (
                         rawValue
                       ) : (
@@ -102,7 +124,7 @@ function ComparisonSection({ comparison }: { comparison: SnapshotComparison }) {
                               style={{
                                 width: `${percent}%`,
                                 height: "100%",
-                                background: "var(--ps-primary)",
+                                background: column.recommended ? "var(--ps-secondary)" : "var(--ps-primary)",
                                 borderRadius: "999px",
                               }}
                             />

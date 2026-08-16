@@ -17,7 +17,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Columns3, Copy, GripVertical, Plus, Trash2 } from "lucide-react";
+import { Columns3, Copy, GripVertical, Plus, Star, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -101,6 +101,15 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
     if (isReadOnly) return;
     onChange(
       columns.map((column) => (column.id === id ? { ...column, label } : column)),
+      rows,
+    );
+  }
+
+  /** A lo sumo una columna "recomendada" a la vez: marcar una desmarca cualquier otra. Solo presentación, no altera valores. */
+  function toggleRecommended(id: string) {
+    if (isReadOnly) return;
+    onChange(
+      columns.map((column) => ({ ...column, recommended: column.id === id ? !column.recommended : false })),
       rows,
     );
   }
@@ -245,7 +254,19 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                   Criterios de evaluación
                 </th>
                 {columns.map((column) => (
-                  <th key={column.id} className="border-b border-primary/20 p-2 text-left">
+                  <th
+                    key={column.id}
+                    className={cn(
+                      "border-b p-2 text-left",
+                      column.recommended ? "border-secondary/40 bg-secondary-container/30" : "border-primary/20",
+                    )}
+                  >
+                    {column.recommended && (
+                      <p className="mb-1 flex items-center gap-1 text-caption font-bold uppercase tracking-wider text-secondary">
+                        <Star className="h-3 w-3 fill-current" />
+                        Opción recomendada
+                      </p>
+                    )}
                     <div className="flex items-center gap-1">
                       <Input
                         value={column.label}
@@ -254,6 +275,22 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                         aria-label="Título de columna"
                         readOnly={isReadOnly}
                       />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={cn("h-9 w-9 shrink-0", column.recommended && "text-secondary")}
+                        onClick={() => toggleRecommended(column.id)}
+                        aria-pressed={Boolean(column.recommended)}
+                        aria-label={
+                          column.recommended
+                            ? `Quitar "${column.label}" como opción recomendada`
+                            : `Marcar "${column.label}" como opción recomendada`
+                        }
+                        disabled={isReadOnly}
+                      >
+                        <Star className={cn("h-4 w-4", column.recommended && "fill-current")} />
+                      </Button>
                       <Button
                         type="button"
                         variant="ghost"
@@ -319,7 +356,7 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                       </div>
                     </td>
                     {columns.map((column) => (
-                      <td key={column.id} className="p-2">
+                      <td key={column.id} className={cn("p-2", column.recommended && "bg-secondary-container/20")}>
                         <Input
                           value={row.values[column.id] ?? ""}
                           onChange={(event) => setCell(row.id, column.id, event.target.value)}

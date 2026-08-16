@@ -112,7 +112,7 @@ const benefitSchema = z.object({
 });
 
 const comparisonSchema = z.object({
-  columns: z.array(z.object({ id: z.string(), label: z.string() })),
+  columns: z.array(z.object({ id: z.string(), label: z.string(), recommended: z.boolean().optional() })),
   rows: z.array(
     z.object({
       id: z.string(),
