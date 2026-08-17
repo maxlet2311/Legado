@@ -40,12 +40,12 @@ function StepRecommendation() {
       }
     >
       <RichTextarea
-        label="Estrategia recomendada"
+        label="Recomendación"
         required
         rows={8}
         value={data.narrative.recommended_strategy}
         onChange={(value) => setNarrative({ recommended_strategy: value })}
-        hint="Este texto es el corazón de la propuesta: explicá con claridad y autoridad por qué esta es la mejor solución estratégica para el cliente."
+        hint="Estrategia recomendada: este texto es el corazón de la propuesta. Explicá por qué esta es la mejor solución para el cliente."
         disabled={isReadOnly}
         className="border-l-4 border-secondary bg-recommended-bg/30 p-4 rounded-r-xl"
       />
