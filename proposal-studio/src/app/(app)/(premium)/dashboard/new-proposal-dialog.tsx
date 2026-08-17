@@ -96,7 +96,7 @@ function NewProposalDialog({ clients }: NewProposalDialogProps) {
       <DialogTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-small font-bold text-primary transition-all hover:-translate-y-0.5 hover:shadow-lg active:scale-95"
+          className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-small font-bold text-on-primary shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
         >
           <PlusCircle className="h-4 w-4" />
           Nueva Propuesta
