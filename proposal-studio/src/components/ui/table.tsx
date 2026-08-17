@@ -23,7 +23,7 @@ TableHeader.displayName = "TableHeader";
 
 const TableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <tbody ref={ref} className={cn("divide-y divide-outline-variant", className)} {...props} />
+    <tbody ref={ref} className={cn("divide-y divide-border-fine", className)} {...props} />
   ),
 );
 TableBody.displayName = "TableBody";

@@ -18,6 +18,13 @@ export interface SidebarProps {
   profile: Profile | null;
 }
 
+function getInitials(fullName?: string | null): string {
+  if (!fullName) return "A";
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  const initials = parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "");
+  return initials.join("") || "A";
+}
+
 function Sidebar({ collapsed, onCollapsedChange, profile }: SidebarProps) {
   const pathname = usePathname();
   const showAdminLink = Boolean(profile && isPlatformOwner(profile));
@@ -25,47 +32,58 @@ function Sidebar({ collapsed, onCollapsedChange, profile }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-50 hidden h-screen flex-col border-r border-outline-variant bg-surface-container-low transition-all duration-base ease-premium md:flex",
-        // Icon-rail forzado en 768-1023 (md sin lg) sin importar `collapsed`:
-        // evita el valle de usabilidad donde una sidebar de escritorio
-        // completa se comía ~280px de un viewport de tablet.
-        collapsed ? "w-20" : "w-20 lg:w-70",
+        "fixed left-0 top-0 z-50 hidden h-screen flex-col border-r border-fine bg-surface transition-all duration-base ease-premium md:flex",
+        collapsed ? "w-20" : "w-20 lg:w-64",
       )}
     >
-      <div className="flex items-center justify-between p-6">
+      {/* Brand Header */}
+      <div className={cn("flex items-center justify-between border-b border-fine p-5", collapsed && "justify-center px-2")}>
         {!collapsed && (
-          <div className="hidden lg:block">
-            <h1 className="font-serif text-h4 font-extrabold tracking-tight text-on-surface">Proposal Studio™</h1>
-            <p className="mt-1 text-caption font-medium text-on-surface-variant">Asesor Premium</p>
+          <div className="hidden lg:flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-xs font-serif font-bold text-sm">
+              P
+            </div>
+            <div>
+              <h1 className="font-serif text-base font-bold tracking-tight text-primary leading-none">Proposal Studio™</h1>
+              <p className="mt-1 text-[11px] font-medium text-on-surface-variant leading-none">Premium Advisory</p>
+            </div>
+          </div>
+        )}
+        {collapsed && (
+          <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-xs font-serif font-bold text-sm">
+            P
           </div>
         )}
         <Button
           type="button"
           variant="ghost"
-          size="icon-lg"
+          size="icon"
           onClick={() => onCollapsedChange(!collapsed)}
-          className="rounded-xs hover:bg-surface-container-highest active:scale-100"
+          className="rounded-md hover:bg-surface-container-low text-on-surface-variant hover:text-primary active:scale-95"
           aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
         >
-          {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+          {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
         </Button>
       </div>
 
-      <nav className="flex-1 space-y-1 px-4 py-6">
+      {/* Navigation Links */}
+      <nav className="flex-1 space-y-1.5 px-3 py-5 overflow-y-auto">
         {navItems.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname?.startsWith(href);
+          const isActive = pathname === href || (href !== "/dashboard" && pathname?.startsWith(href));
           return (
             <Link
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-3 rounded-md px-4 py-3 text-small font-medium transition-colors duration-fast ease-premium",
+                "flex items-center gap-3 rounded-md px-3.5 py-2.5 text-small font-medium transition-colors duration-fast ease-premium group",
                 isActive
-                  ? "border-l-4 border-primary bg-surface-container-high font-bold text-primary"
-                  : "text-on-surface-variant hover:bg-surface-container-highest",
+                  ? "bg-surface-container-low text-primary font-semibold border-r-2 border-primary"
+                  : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low",
+                collapsed && "justify-center px-2",
               )}
+              title={collapsed ? label : undefined}
             >
-              <Icon className="h-5 w-5 shrink-0" />
+              <Icon className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-105", isActive && "text-primary")} />
               {!collapsed && <span className="hidden lg:inline">{label}</span>}
             </Link>
           );
@@ -74,38 +92,69 @@ function Sidebar({ collapsed, onCollapsedChange, profile }: SidebarProps) {
           <Link
             href="/admin"
             className={cn(
-              "flex items-center gap-3 rounded-md px-4 py-3 text-small font-medium transition-colors duration-fast ease-premium",
+              "flex items-center gap-3 rounded-md px-3.5 py-2.5 text-small font-medium transition-colors duration-fast ease-premium group",
               pathname?.startsWith("/admin")
-                ? "border-l-4 border-primary bg-surface-container-high font-bold text-primary"
-                : "text-on-surface-variant hover:bg-surface-container-highest",
+                ? "bg-surface-container-low text-primary font-semibold border-r-2 border-primary"
+                : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low",
+              collapsed && "justify-center px-2",
             )}
+            title={collapsed ? "Administración" : undefined}
           >
-            <ShieldCheck className="h-5 w-5 shrink-0" />
+            <ShieldCheck className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-105", pathname?.startsWith("/admin") && "text-primary")} />
             {!collapsed && <span className="hidden lg:inline">Administración</span>}
           </Link>
         )}
       </nav>
 
-      <div className="space-y-6 border-t border-outline-variant px-4 py-6">
+      {/* Footer Profile & Actions */}
+      <div className="border-t border-fine p-4 space-y-4">
         <Link
           href="/proposals/new"
-          className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-small font-bold text-on-primary transition-all duration-fast ease-premium hover:opacity-90 active:scale-press"
+          className={cn(
+            "flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-small font-semibold text-on-primary transition-all duration-fast ease-premium hover:opacity-90 active:scale-press shadow-xs",
+            collapsed && "px-2",
+          )}
+          title={collapsed ? "Nueva Propuesta" : undefined}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 shrink-0" />
           {!collapsed && <span className="hidden lg:inline">Nueva Propuesta</span>}
         </Link>
-        <div className="space-y-1">
-          <form action={signOutAction}>
-            <Button
-              type="submit"
-              variant="ghost"
-              className="h-auto w-full justify-start gap-3 px-4 py-2 font-medium hover:bg-transparent hover:text-error active:scale-100"
-            >
-              <LogOut className="h-4 w-4" />
-              {!collapsed && <span className="hidden lg:inline">Cerrar Sesión</span>}
-            </Button>
-          </form>
-        </div>
+
+        {profile && !collapsed && (
+          <div className="hidden lg:flex items-center justify-between gap-3 pt-2">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                {getInitials(profile.full_name)}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-on-surface truncate leading-tight">{profile.full_name || "Asesor"}</p>
+                <p className="text-[10px] text-on-surface-variant truncate leading-tight mt-0.5">Socio Asesor</p>
+              </div>
+            </div>
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                title="Cerrar Sesión"
+                className="text-on-surface-variant hover:text-error p-1.5 rounded-md hover:bg-surface-container-low transition-colors"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </button>
+            </form>
+          </div>
+        )}
+        {profile && collapsed && (
+          <div className="flex justify-center pt-1">
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                title="Cerrar Sesión"
+                className="text-on-surface-variant hover:text-error p-2 rounded-md hover:bg-surface-container-low transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </aside>
   );

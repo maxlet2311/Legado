@@ -57,11 +57,28 @@
   --color-surface-container-highest: #e5e2e1;
   --color-surface-tint: #004dea;
 
+  --color-border-fine: #e5e1df;
   --color-outline: #737688;
-  --color-outline-variant: #c3c5d9;
-
+  --color-outline-variant: #e5e1df;
   --color-inverse-surface: #313030;
   --color-inverse-on-surface: #f3f0ef;
+  --color-text-editorial: #1b1c1b;
+  --color-text-ui: #434654;
+  --color-surface-paper: #fcf9f8;
+  --color-surface-canvas: #ffffff;
+
+  --color-status-document: #0041c8;
+  --color-status-commercial: #50652a;
+
+  --color-gold-accent: #c7a45b;
+  --color-gold-subtle: #fbf7ec;
+
+  --color-recommended-bg: #f3f5ef;
+  --color-recommended-border: #d2eca2;
+  --color-recommended-text: #50652a;
+
+  --spacing-writing-width: 840px;
+  --spacing-content-max: 1280px;
 
   /* Estados semánticos (docs/03_DESIGN_SYSTEM.md) */
   --color-success: #22c55e;

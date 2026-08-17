@@ -37,11 +37,8 @@ function AppShell({ children, profile }: AppShellProps) {
         className={cn(
           "min-h-screen overflow-x-hidden transition-all duration-base ease-premium",
           !focusMode && [
-            "mt-18 min-h-[calc(100vh-4.5rem)] p-4 md:p-10",
-            // Entre md (768) y lg (1024) la sidebar siempre queda en icon-rail
-            // (ver sidebar.tsx) para no comerse un tercio del viewport en
-            // tablet -- el "valle de 768px" de la auditoría estructural.
-            collapsed ? "md:ml-20" : "md:ml-20 lg:ml-70",
+            "pt-16 min-h-[calc(100vh-4rem)] p-4 md:p-8 lg:p-10",
+            collapsed ? "md:ml-20" : "md:ml-20 lg:ml-64",
           ],
         )}
       >
