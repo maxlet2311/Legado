@@ -76,9 +76,9 @@ function LivePreviewPanel() {
   if (!proposalId) return null;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-outline-variant/80 bg-surface shadow-md">
-      <div className="flex items-center justify-between border-b border-outline-variant/60 bg-surface-container-low px-4 py-2.5">
-        <span className="font-serif text-caption font-bold text-on-surface tracking-tight">Vista previa del documento</span>
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-fine bg-surface shadow-xs">
+      <div className="flex items-center justify-between border-b border-fine bg-surface-container-low/50 px-4 py-2.5">
+        <span className="font-serif text-xs font-semibold text-on-surface tracking-tight">Vista previa en vivo</span>
         {updating ? (
           <span className="flex items-center gap-1.5 text-caption font-medium text-primary">
             <Spinner className="h-3.5 w-3.5 text-primary" />

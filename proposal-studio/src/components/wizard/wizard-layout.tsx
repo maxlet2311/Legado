@@ -45,71 +45,80 @@ function WizardLayout({ outline, children, footer, preview, currentStep, isCompa
   }, [isComparisonStep, currentStep]);
 
   return (
-    <div className="flex min-h-[calc(100vh-6rem)] flex-col">
-      <div className="flex items-center justify-end gap-2 border-b border-outline-variant bg-surface px-4 py-2 sm:px-8">
-        <Button
-          type="button"
-          variant={blocksOpen ? "secondary" : "ghost"}
-          size="sm"
-          onClick={() => setBlocksOpen(!blocksOpen)}
-          aria-expanded={blocksOpen}
-          aria-controls="wizard-blocks-panel"
-        >
-          <Blocks className="h-4 w-4" />
-          Bloques
-        </Button>
-        <Button
-          type="button"
-          variant={previewOpen ? "secondary" : "ghost"}
-          size="sm"
-          onClick={() => setPreviewOpen(!previewOpen)}
-          aria-expanded={previewOpen}
-          aria-controls="wizard-preview-panel"
-        >
-          <Eye className="h-4 w-4" />
-          Vista previa
-        </Button>
+    <div className="flex min-h-[calc(100vh-5rem)] flex-col">
+      {/* Wizard Auxiliary Controls Bar */}
+      <div className="flex items-center justify-between gap-3 border-b border-fine bg-surface px-4 py-2.5 sm:px-8">
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant={blocksOpen ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setBlocksOpen(!blocksOpen)}
+            aria-expanded={blocksOpen}
+            aria-controls="wizard-blocks-panel"
+            className="h-8 text-xs font-medium"
+          >
+            <Blocks className="h-3.5 w-3.5" />
+            <span>Bloques</span>
+          </Button>
+          <Button
+            type="button"
+            variant={previewOpen ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setPreviewOpen(!previewOpen)}
+            aria-expanded={previewOpen}
+            aria-controls="wizard-preview-panel"
+            className="h-8 text-xs font-medium"
+          >
+            <Eye className="h-3.5 w-3.5" />
+            <span>Vista previa</span>
+          </Button>
+        </div>
+
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={toggleFocusMode}
           title="Modo foco (F)"
+          className="h-8 text-xs font-medium text-on-surface-variant hover:text-on-surface"
         >
-          {focusMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          {focusMode ? "Salir del modo foco" : "Modo foco"}
+          {focusMode ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+          <span className="hidden sm:inline">{focusMode ? "Salir del modo foco" : "Modo foco"}</span>
         </Button>
       </div>
+
+      {/* Auxiliary Bloques Outline Panel */}
       {!focusMode && blocksOpen && (
-        <div id="wizard-blocks-panel" className="border-b border-outline-variant bg-surface px-4 py-4 sm:px-8">
+        <div id="wizard-blocks-panel" className="border-b border-fine bg-surface-container-low/40 px-4 py-3.5 sm:px-8">
           {outline}
         </div>
       )}
+
+      {/* Main Workspace (Editor is protagonist) */}
       <div className="flex flex-1 flex-col gap-8 overflow-y-auto px-4 py-8 sm:px-8 lg:flex-row lg:items-start lg:gap-10 lg:overflow-visible">
-        <div className="mx-auto w-full min-w-0 max-w-240 flex-1">{children}</div>
+        <div
+          className={cn(
+            "mx-auto w-full min-w-0 flex-1 transition-all duration-base ease-premium",
+            isComparisonStep ? "max-w-6xl" : "max-w-3xl",
+          )}
+        >
+          {children}
+        </div>
 
         {!focusMode ? (
           <div
             id="wizard-preview-panel"
             className={cn(
-              // El preview nunca comparte scroll con el editor: en desktop queda
-              // fijo (`sticky`) con su propia altura acotada y scroll interno, así
-              // desplazarse por un bloque largo del wizard nunca lo mueve ni se lo
-              // lleva de la vista.
-              // Recién a partir de 2xl hay ancho real de sobra para sumar una
-              // tercera columna sin apretar el editor -- pero incluso ahí, solo si
-              // `previewOpen`: nunca se fuerza visible (auditoría estructural,
-              // hallazgo P0). Por debajo de 2xl, la Preview se abre como overlay
-              // de pantalla completa.
               "flex-col",
-              previewOpen && "2xl:flex 2xl:w-[420px] 2xl:shrink-0 2xl:sticky 2xl:top-4 2xl:max-h-[calc(100vh-7rem)]",
+              previewOpen && "2xl:flex 2xl:w-[440px] 2xl:shrink-0 2xl:sticky 2xl:top-4 2xl:max-h-[calc(100vh-7rem)]",
               previewOpen
                 ? "fixed inset-0 z-50 flex bg-surface 2xl:static 2xl:inset-auto 2xl:z-auto 2xl:bg-transparent"
                 : "hidden",
             )}
           >
-            <div className="flex items-center justify-between border-b border-outline-variant px-4 py-3 2xl:hidden">
-              <span className="text-small font-semibold text-on-surface">Vista previa</span>
+            <div className="flex items-center justify-between border-b border-fine px-4 py-3 2xl:hidden bg-surface">
+              <span className="font-serif text-sm font-semibold text-on-surface">Vista previa en vivo</span>
               <Button
                 type="button"
                 variant="ghost"
@@ -124,8 +133,15 @@ function WizardLayout({ outline, children, footer, preview, currentStep, isCompa
           </div>
         ) : null}
       </div>
-      <div className="sticky bottom-0 border-t border-outline-variant bg-surface px-4 py-4 sm:px-8">
-        <div className="mx-auto flex w-full max-w-240 flex-wrap items-center justify-between gap-3">
+
+      {/* Sticky Wizard Footer */}
+      <div className="sticky bottom-0 z-30 border-t border-fine bg-surface/95 backdrop-blur-xs px-4 py-3.5 sm:px-8">
+        <div
+          className={cn(
+            "mx-auto flex w-full flex-wrap items-center justify-between gap-3",
+            isComparisonStep ? "max-w-6xl" : "max-w-3xl",
+          )}
+        >
           {footer}
         </div>
       </div>
