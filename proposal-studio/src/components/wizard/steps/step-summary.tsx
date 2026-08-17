@@ -161,7 +161,7 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
         </p>
       </SummaryCard>
 
-      <div className="flex flex-col items-end gap-2 border-t border-outline-variant pt-6">
+      <div className="flex flex-col items-end gap-2 border-t border-fine pt-6">
         {error && <p className="text-small text-error">{error}</p>}
         {isCompleted ? (
           <p className="flex items-center gap-2 text-small font-semibold text-success">
@@ -176,7 +176,7 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
         )}
       </div>
 
-      <div className="flex flex-col items-end gap-2 border-t border-outline-variant pt-6">
+      <div className="flex flex-col items-end gap-2 border-t border-fine pt-6">
         <p className="text-small text-on-surface-variant">
           Emitir una versión congela un snapshot inmutable del documento (independiente de si la propuesta ya está
           finalizada). Podés seguir editando el wizard después: no altera versiones ya emitidas.
@@ -206,7 +206,7 @@ function StepSummary({ onJumpToStep }: WizardStepProps) {
 
       {/* Nunca dejar al asesor "atrapado" al terminar el último paso: salidas
           claras hacia el resto del producto, sin obligarlo a adivinar. */}
-      <div className="flex flex-col gap-3 border-t border-outline-variant pt-6 sm:flex-row sm:justify-end">
+      <div className="flex flex-col gap-3 border-t border-fine pt-6 sm:flex-row sm:justify-end">
         <Button type="button" variant="secondary" asChild>
           <Link href="/proposals">Volver a Propuestas</Link>
         </Button>

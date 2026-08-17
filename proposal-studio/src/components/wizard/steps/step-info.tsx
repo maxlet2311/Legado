@@ -36,12 +36,12 @@ function StepInfo() {
   return (
     <SectionCard>
       <div className="space-y-6">
-        <h3 className="font-serif text-h4 font-medium text-on-surface border-b border-outline-variant/40 pb-2">
+        <h3 className="font-serif text-lg font-bold text-on-surface border-b border-fine pb-2.5">
           Información principal
         </h3>
         <div className="space-y-2">
           <Label htmlFor="title">
-            Título <span className="text-error">*</span>
+            Título de la propuesta <span className="text-error">*</span>
           </Label>
           <Input
             id="title"
@@ -63,8 +63,8 @@ function StepInfo() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="individual">Individual</SelectItem>
-                <SelectItem value="corporate">Corporativa</SelectItem>
+                <SelectItem value="individual">Individual / Personas</SelectItem>
+                <SelectItem value="corporate">Corporativa / Empresas</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -93,11 +93,11 @@ function StepInfo() {
 
         <div className="space-y-2">
           <Label htmlFor="product">
-            Producto <span className="text-error">*</span>
+            Producto o Solución <span className="text-error">*</span>
           </Label>
           <Input
             id="product"
-            placeholder="Vida Integral Plus"
+            placeholder="Ej. Vida Integral Plus"
             value={data.meta.product}
             onChange={(event) => setMeta({ product: event.target.value })}
             readOnly={isReadOnly}
@@ -106,8 +106,8 @@ function StepInfo() {
       </div>
 
       <div className="space-y-6">
-        <h3 className="font-serif text-h4 font-medium text-on-surface border-b border-outline-variant/40 pb-2">
-          Datos de la propuesta
+        <h3 className="font-serif text-lg font-bold text-on-surface border-b border-fine pb-2.5">
+          Datos del documento
         </h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
@@ -121,39 +121,41 @@ function StepInfo() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ARS">ARS</SelectItem>
-                <SelectItem value="USD">USD</SelectItem>
-                <SelectItem value="EUR">EUR</SelectItem>
+                <SelectItem value="ARS">ARS ($)</SelectItem>
+                <SelectItem value="USD">USD (US$)</SelectItem>
+                <SelectItem value="EUR">EUR (€)</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
             <Label>N.º de propuesta</Label>
-            <p className="flex h-12 items-center px-4 text-body text-on-surface-variant">{data.meta.proposal_number}</p>
+            <p className="flex h-12 items-center px-4 rounded-md border border-fine bg-surface-container-low/40 text-body text-on-surface font-mono text-sm">
+              {data.meta.proposal_number}
+            </p>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 text-small text-on-surface-variant">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 text-small text-on-surface-variant p-4 rounded-xl border border-fine bg-surface-container-low/30">
           <div>
-            <p className="font-semibold text-on-surface">Fecha</p>
+            <p className="font-semibold text-on-surface">Fecha de emisión</p>
             <p>{new Date(data.meta.created_at).toLocaleDateString("es-AR")}</p>
           </div>
           <div>
-            <p className="font-semibold text-on-surface">Asesor</p>
+            <p className="font-semibold text-on-surface">Asesor responsable</p>
             <p>{data.advisorName}</p>
           </div>
         </div>
       </div>
 
       <div className="space-y-6">
-        <h3 className="font-serif text-h4 font-medium text-on-surface border-b border-outline-variant/40 pb-2">
+        <h3 className="font-serif text-lg font-bold text-on-surface border-b border-fine pb-2.5">
           Uso interno
         </h3>
         <div className="space-y-2">
           <Label htmlFor="internal_notes">Observaciones internas</Label>
           <Textarea
             id="internal_notes"
-            rows={4}
-            placeholder="Notas privadas, no visibles para el cliente."
+            rows={3}
+            placeholder="Notas privadas de la negociación o del cliente (no visibles en el documento)."
             value={data.meta.internal_notes}
             onChange={(event) => setMeta({ internal_notes: event.target.value })}
             readOnly={isReadOnly}

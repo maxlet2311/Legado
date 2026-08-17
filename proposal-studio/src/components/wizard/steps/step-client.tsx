@@ -95,10 +95,15 @@ function StepClient({ availableClients }: WizardStepProps) {
       </div>
 
       {data.client.id && (
-        <div className="rounded-lg border border-outline-variant/40 bg-surface-container-low p-4 text-small text-on-surface-variant">
-          <p className="font-semibold text-on-surface">{data.client.full_name}</p>
-          <p>{data.client.email}</p>
-          {data.client.phone && <p>{data.client.phone}</p>}
+        <div className="rounded-xl border border-fine bg-surface-container-low/60 p-5 text-small text-on-surface-variant space-y-1">
+          <div className="flex items-center justify-between">
+            <p className="font-semibold text-on-surface text-base">{data.client.full_name}</p>
+            <span className="text-[11px] font-medium text-secondary bg-secondary-fixed/50 px-2 py-0.5 rounded-full">
+              Cliente asignado
+            </span>
+          </div>
+          <p className="text-small text-on-surface-variant">{data.client.email}</p>
+          {data.client.phone && <p className="text-caption text-outline">{data.client.phone}</p>}
         </div>
       )}
 

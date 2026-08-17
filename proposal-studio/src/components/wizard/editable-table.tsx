@@ -56,7 +56,7 @@ function DraggableRow({ id, children, disabled }: DraggableRowProps) {
     <tr
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn("border-b border-outline-variant last:border-b-0", isDragging && "relative z-10 bg-surface")}
+      className={cn("border-b border-fine last:border-b-0", isDragging && "relative z-10 bg-surface shadow-md")}
     >
       <td className="w-8 p-2">
         <button
@@ -246,34 +246,34 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
   return (
     <div className="space-y-4">
       {recommendedColumn && (
-        <div className="flex items-center gap-2 rounded-md border border-secondary/25 bg-secondary/5 px-3 py-2 text-small sm:hidden">
-          <Star className="h-3.5 w-3.5 shrink-0 fill-persona-accent text-persona-accent" />
-          <span className="font-bold uppercase tracking-wider text-secondary">Opción recomendada</span>
+        <div className="flex items-center gap-2 rounded-lg border border-recommended-border bg-recommended-bg px-3.5 py-2 text-small sm:hidden">
+          <Star className="h-4 w-4 shrink-0 fill-gold-accent text-gold-accent" />
+          <span className="font-bold text-xs uppercase tracking-wider text-secondary">Opción recomendada:</span>
           <span className="min-w-0 truncate font-serif font-semibold text-on-surface">{recommendedColumn.label}</span>
         </div>
       )}
-      <div className="overflow-x-auto rounded-lg border border-outline-variant/40">
+      <div className="overflow-x-auto rounded-xl border border-fine bg-surface shadow-2xs">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <table className="w-full min-w-[640px] border-collapse text-small">
             <thead>
-              <tr className="bg-primary/5">
-                <th className="w-8 border-b border-primary/20 p-2" />
-                <th className="w-48 border-b border-primary/20 p-2 text-left text-caption font-bold uppercase tracking-wider text-on-surface-variant">
+              <tr className="bg-surface-container-low/60 border-b border-fine">
+                <th className="w-8 p-2" />
+                <th className="w-52 p-3 text-left text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
                   Criterios de evaluación
                 </th>
                 {columns.map((column) => (
                   <th
                     key={column.id}
                     className={cn(
-                      "border-b p-2 text-left",
+                      "p-3 text-left transition-colors",
                       column.recommended
-                        ? "border-x border-b-secondary/60 border-x-secondary/30 bg-secondary text-on-secondary"
-                        : "border-primary/20",
+                        ? "border-x border-b-secondary/80 border-x-secondary/40 bg-secondary text-on-secondary shadow-xs"
+                        : "border-l border-fine",
                     )}
                   >
                     {column.recommended && (
-                      <p className="mb-1 flex items-center gap-1 text-caption font-bold uppercase tracking-wider text-on-secondary">
-                        <Star className="h-3 w-3 fill-persona-accent text-persona-accent" />
+                      <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-on-secondary">
+                        <Star className="h-3.5 w-3.5 fill-gold-accent text-gold-accent" />
                         Opción recomendada
                       </p>
                     )}
@@ -388,14 +388,19 @@ function EditableTable({ columns, rows, onChange, onBeforeStructuralChange, isRe
                       <td
                         key={column.id}
                         className={cn(
-                          "p-2",
-                          column.recommended && "border-x border-secondary/20 bg-secondary/5",
+                          "p-2.5 transition-colors",
+                          column.recommended
+                            ? "border-x border-recommended-border/70 bg-recommended-bg/60 font-medium"
+                            : "border-l border-fine",
                         )}
                       >
                         <Input
                           value={row.values[column.id] ?? ""}
                           onChange={(event) => setCell(row.id, column.id, event.target.value)}
-                          className="h-9"
+                          className={cn(
+                            "h-9",
+                            column.recommended && "border-recommended-border bg-surface font-medium focus-visible:border-secondary focus-visible:ring-secondary",
+                          )}
                           aria-label={`${row.label} — ${column.label}`}
                           readOnly={isReadOnly}
                         />

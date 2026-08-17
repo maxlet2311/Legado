@@ -195,10 +195,10 @@ function BenefitItem({
   return (
     <div
       ref={containerRef}
-      className="rounded-lg border border-outline-variant/50 border-t-2 border-t-secondary bg-surface-container-lowest p-5"
+      className="rounded-xl border border-fine bg-surface p-5 shadow-2xs transition-all duration-base hover:border-secondary/30"
       data-testid="benefit-item"
     >
-      <p className="mb-2 text-caption font-bold uppercase tracking-wider text-secondary">
+      <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-secondary">
         Argumento de valor {String(index + 1).padStart(2, "0")}
       </p>
       <div className="flex items-center justify-between gap-2">

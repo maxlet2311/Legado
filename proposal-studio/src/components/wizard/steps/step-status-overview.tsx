@@ -50,15 +50,17 @@ function StepStatusOverview({ completion, findings, onJumpToStep }: StepStatusOv
     <div className="space-y-4">
       <div
         className={cn(
-          "rounded-lg border p-5",
-          incompleteCount > 0 ? "border-error/30 bg-error-container/40" : "border-outline-variant bg-surface-container-low",
+          "rounded-xl border p-5 transition-all duration-base",
+          incompleteCount > 0
+            ? "border-warning/40 bg-warning/5 text-on-surface"
+            : "border-fine bg-surface-container-low/60 text-on-surface",
         )}
       >
-        <p className="font-serif text-h4 font-bold text-on-surface">¿Está lista esta propuesta para presentar?</p>
-        <p className="mt-1 text-small text-on-surface-variant">{bannerCopy}</p>
+        <p className="font-serif text-lg font-bold text-on-surface tracking-tight">¿Está lista esta propuesta para presentar?</p>
+        <p className="mt-1 text-small text-on-surface-variant leading-relaxed">{bannerCopy}</p>
       </div>
 
-      <ul className="divide-y divide-outline-variant/60 rounded-lg border border-outline-variant/60">
+      <ul className="divide-y divide-border-fine rounded-xl border border-fine bg-surface shadow-2xs overflow-hidden">
         {STEP_LABELS.map((label, index) => {
           const isCurrent = index === currentIndex;
           const done = completion[index];
