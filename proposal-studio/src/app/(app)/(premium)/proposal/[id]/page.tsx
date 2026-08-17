@@ -138,11 +138,11 @@ export default async function ProposalDetailPage({
         }
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Resumen ejecutivo</CardTitle>
+      <Card className="rounded-xl border-fine bg-surface shadow-2xs">
+        <CardHeader className="border-b border-fine pb-4">
+          <CardTitle className="font-serif text-lg font-bold text-on-surface">Resumen ejecutivo</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {narrative?.executive_summary ? (
             <p className="text-body text-on-surface-variant">{narrative.executive_summary}</p>
           ) : (

@@ -157,7 +157,7 @@ export default async function ProposalsPage({
         />
       ) : (
         <>
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden border-fine bg-surface shadow-2xs">
             <Table>
               <TableHeader>
                 <TableHeaderRow>

@@ -87,7 +87,7 @@ export default async function ClientsPage({
         />
       ) : (
         <>
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden border-fine bg-surface shadow-2xs">
             <Table>
               <TableHeader>
                 <TableHeaderRow>

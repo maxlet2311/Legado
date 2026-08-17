@@ -133,38 +133,38 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <section aria-label="Indicadores principales" className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <section aria-label="Indicadores principales" className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         {metrics.map(({ label, value, icon: Icon, detail, tone }) => (
-          <Card key={label} className="overflow-hidden border-outline-variant/55 p-4 shadow-sm shadow-on-surface/5 sm:p-5">
+          <Card key={label} className="overflow-hidden border-fine p-5 shadow-2xs">
             <div className="flex items-start justify-between gap-3">
-              <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${tone}`}>
-                <Icon className="h-[18px] w-[18px]" />
+              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${tone}`}>
+                <Icon className="h-5 w-5" />
               </div>
             </div>
-            <p className="mt-5 font-serif text-[1.9rem] font-bold leading-none text-on-surface sm:text-[2.15rem]">{value}</p>
+            <p className="mt-4 font-serif text-3xl font-bold leading-none text-on-surface">{value}</p>
             <p className="mt-2 text-small font-semibold text-on-surface">{label}</p>
-            <p className="mt-1 hidden text-caption text-on-surface-variant sm:block">{detail}</p>
+            <p className="mt-0.5 hidden text-caption text-on-surface-variant sm:block">{detail}</p>
           </Card>
         ))}
       </section>
 
       {mostRecentDraft && (
-        <Card className="relative overflow-hidden border-primary/20 bg-primary-fixed/35 shadow-sm shadow-primary/5">
-          <div className="absolute inset-y-0 left-0 w-1 bg-primary" />
-          <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <Card className="relative overflow-hidden border-primary/20 bg-surface shadow-2xs">
+          <div className="absolute inset-y-0 left-0 w-1.5 bg-primary" />
+          <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-on-primary shadow-sm">
-                <Clock3 className="h-5 w-5" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-on-primary shadow-xs">
+                <Clock3 className="h-6 w-6" />
               </div>
               <div className="min-w-0">
-                <p className="text-caption font-bold uppercase tracking-[0.14em] text-on-primary-fixed-variant">Continuar donde quedaste</p>
-                <p className="mt-1 truncate font-serif text-h4 font-bold text-on-surface">{mostRecentDraft.title}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Continuar donde quedaste</p>
+                <p className="mt-1 truncate font-serif text-xl font-bold text-on-surface">{mostRecentDraft.title}</p>
                 <p className="mt-0.5 text-small text-on-surface-variant">
                   {mostRecentDraft.clients?.full_name ?? "Sin cliente"} · editada {formatDate(mostRecentDraft.updated_at)}
                 </p>
               </div>
             </div>
-            <Button asChild size="sm" className="shrink-0 shadow-sm">
+            <Button asChild size="sm" className="shrink-0 shadow-xs">
               <Link href={`/proposal/${mostRecentDraft.id}/edit`} prefetch={false}>
                 Continuar propuesta
                 <ChevronRight className="h-4 w-4" />
@@ -174,14 +174,14 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <Card className="min-w-0 overflow-hidden border-outline-variant/55 shadow-sm shadow-on-surface/5">
-          <div className="flex items-center justify-between border-b border-outline-variant/60 px-5 py-4 sm:px-6">
+      <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <Card className="min-w-0 overflow-hidden border-fine shadow-2xs">
+          <div className="flex items-center justify-between border-b border-fine px-6 py-4">
             <div>
-              <h3 className="font-serif text-h4 font-bold text-on-surface">Actividad reciente</h3>
+              <h3 className="font-serif text-lg font-bold text-on-surface tracking-tight">Actividad reciente</h3>
               <p className="mt-0.5 text-caption text-on-surface-variant">Últimos documentos modificados</p>
             </div>
-            <Link href="/proposals" className="-my-2 inline-flex items-center gap-1 py-2 text-small font-semibold text-primary hover:underline">
+            <Link href="/proposals" className="inline-flex items-center gap-1 text-small font-semibold text-primary hover:underline">
               Ver todas <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
@@ -233,16 +233,16 @@ export default async function DashboardPage() {
         </Card>
 
         <aside className="space-y-6">
-          <Card className="overflow-hidden border-outline-variant/55 shadow-sm shadow-on-surface/5">
-            <div className="border-b border-outline-variant/60 px-5 py-4">
-              <h3 className="font-serif text-h4 font-bold text-on-surface">Accesos directos</h3>
+          <Card className="overflow-hidden border-fine shadow-2xs">
+            <div className="border-b border-fine px-5 py-4">
+              <h3 className="font-serif text-base font-bold text-on-surface tracking-tight">Accesos directos</h3>
               <p className="mt-0.5 text-caption text-on-surface-variant">Herramientas de trabajo</p>
             </div>
-            <div className="divide-y divide-outline-variant/60 p-2">
+            <div className="divide-y divide-border-fine p-2">
               {quickAccess.map(({ href, icon: Icon, title, description, cta }) => (
                 <Link key={href} href={href} className="group flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-surface-container-low">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/7 text-primary transition-colors group-hover:bg-primary group-hover:text-on-primary">
-                    <Icon className="h-[18px] w-[18px]" />
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary transition-colors group-hover:bg-primary group-hover:text-on-primary">
+                    <Icon className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-small font-semibold text-on-surface">{title}</span>
@@ -256,15 +256,15 @@ export default async function DashboardPage() {
           </Card>
 
           {totalCount > 0 && (
-            <Card className="border-outline-variant/55 p-5 shadow-sm shadow-on-surface/5">
+            <Card className="border-fine p-5 shadow-2xs">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-small font-semibold text-on-surface">Estado de la cartera</p>
                   <p className="mt-0.5 text-caption text-on-surface-variant">Propuestas recientes</p>
                 </div>
-                <p className="font-serif text-h3 font-bold text-secondary">{completionRate}%</p>
+                <p className="font-serif text-2xl font-bold text-secondary">{completionRate}%</p>
               </div>
-              <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-surface-container-highest" aria-label={`${completionRate}% finalizadas`}>
+              <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-surface-container-high" aria-label={`${completionRate}% finalizadas`}>
                 <div className="bg-secondary" style={{ width: `${completionRate}%` }} />
               </div>
               <div className="mt-4 flex items-center justify-between text-caption">

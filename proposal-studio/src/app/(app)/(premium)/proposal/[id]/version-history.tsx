@@ -23,15 +23,15 @@ interface VersionListItem {
  */
 function VersionHistory({ proposalId, versions }: { proposalId: string; versions: VersionListItem[] }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Versiones emitidas</CardTitle>
+    <Card className="rounded-xl border-fine bg-surface shadow-2xs">
+      <CardHeader className="border-b border-fine pb-4">
+        <CardTitle className="font-serif text-lg font-bold text-on-surface">Versiones emitidas</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         {versions.length === 0 ? (
           <EmptyState compact title="Todavía no se emitió ninguna versión." description="Emitila desde el resumen del wizard." />
         ) : (
-          <ul className="divide-y divide-outline-variant">
+          <ul className="divide-y divide-border-fine">
             {versions.map((version) => {
               const orientation = version.render_json.proposal?.orientation === "landscape" ? "Horizontal" : "Vertical";
               const templateTitle = version.render_json.template?.title ?? "Editorial Premium";
